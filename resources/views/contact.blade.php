@@ -4,8 +4,15 @@
 
 @section('content')
     <!-- Hero Section -->
-    <section class="bg-gradient-to-br from-teal-800 via-teal-700 to-teal-900 text-white py-12 sm:py-16 md:py-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <section
+        class="relative text-white py-12 sm:py-16 md:py-20 overflow-hidden"
+        @if (!empty($contactSettings?->hero_image_path))
+            style="background-image: linear-gradient(to bottom right, rgba(4, 120, 87, 0.9), rgba(6, 78, 59, 0.9)), url('{{ asset('storage/'.$contactSettings->hero_image_path) }}'); background-size: cover; background-position: center;"
+        @else
+            style="background-image: linear-gradient(to bottom right, #115e59, #0f766e, #134e4a);"
+        @endif
+    >
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 px-4">Contact Us</h1>
             <p class="text-lg sm:text-xl text-teal-100 px-4">Get in touch with Fortress Lenders today</p>
         </div>
@@ -18,42 +25,61 @@
                 <!-- Contact Form -->
                 <div>
                     <h2 class="text-3xl font-bold text-gray-900 mb-6">Send us a Message</h2>
-                    <form action="#" method="POST" class="space-y-6">
+                    @if (session('status'))
+                        <div class="mb-6 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-teal-900">
+                            {{ session('status') }}
+                        </div>
+                    @endif
+                    @if ($errors->any())
+                        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+                            <p>Please review the highlighted fields and try again.</p>
+                        </div>
+                    @endif
+                    <form action="{{ route('contact.store') }}" method="POST" class="space-y-6">
                         @csrf
+                        <div class="hidden">
+                            <label for="company" class="block text-sm font-medium text-gray-700 mb-2">Company</label>
+                            <input type="text" id="company" name="company" tabindex="-1" autocomplete="off">
+                        </div>
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                            <input type="text" id="name" name="name" required 
+                            <input type="text" id="name" name="name" value="{{ old('name') }}" required 
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent transition-all"
                                 placeholder="Enter your full name">
+                            @error('name')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                            <input type="email" id="email" name="email" required
+                            <input type="email" id="email" name="email" value="{{ old('email') }}" required
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent transition-all"
                                 placeholder="Enter your email">
+                            @error('email')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                            <input type="tel" id="phone" name="phone" required
+                            <input type="tel" id="phone" name="phone" value="{{ old('phone') }}"
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent transition-all"
                                 placeholder="Enter your phone number">
+                            @error('phone')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                            <select id="subject" name="subject" required
+                            <select id="subject" name="subject"
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent transition-all">
                                 <option value="">Select a subject</option>
-                                <option value="loan">Loan Inquiry</option>
-                                <option value="general">General Inquiry</option>
-                                <option value="complaint">Complaint</option>
-                                <option value="other">Other</option>
+                                <option value="loan" @selected(old('subject') === 'loan')>Loan Inquiry</option>
+                                <option value="general" @selected(old('subject') === 'general')>General Inquiry</option>
+                                <option value="complaint" @selected(old('subject') === 'complaint')>Complaint</option>
+                                <option value="other" @selected(old('subject') === 'other')>Other</option>
                             </select>
+                            @error('subject')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label for="message" class="block text-sm font-medium text-gray-700 mb-2">Message</label>
                             <textarea id="message" name="message" rows="6" required
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent transition-all"
-                                placeholder="Enter your message"></textarea>
+                                placeholder="Enter your message">{{ old('message') }}</textarea>
+                            @error('message')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                         </div>
                         <button type="submit" 
                             class="w-full px-6 py-4 bg-gradient-to-r from-teal-800 to-teal-700 text-white rounded-lg font-semibold hover:from-red-700 hover:to-orange-700 transition-all transform hover:scale-105 shadow-lg">

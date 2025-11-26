@@ -4,8 +4,15 @@
 
 @section('content')
     <!-- Hero Section -->
-    <section class="bg-gradient-to-br from-teal-800 via-teal-700 to-teal-900 text-white py-12 sm:py-16 md:py-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <section
+        class="relative text-white py-12 sm:py-16 md:py-20 overflow-hidden"
+        @if (!empty($aboutSettings?->hero_image_path))
+            style="background-image: linear-gradient(to bottom right, rgba(4, 120, 87, 0.9), rgba(6, 78, 59, 0.9)), url('{{ asset('storage/'.$aboutSettings->hero_image_path) }}'); background-size: cover; background-position: center;"
+        @else
+            style="background-image: linear-gradient(to bottom right, #115e59, #0f766e, #134e4a);"
+        @endif
+    >
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 px-4">About Fortress Lenders</h1>
             <p class="text-lg sm:text-xl text-teal-100 px-4">The Force Of Possibilities</p>
         </div>
@@ -160,55 +167,34 @@
     <section class="py-20 bg-gray-50" id="team">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">Our Team</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- James Ndegwa -->
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all transform hover:-translate-y-2">
-                    <div class="bg-gradient-to-br from-teal-700 to-teal-800 h-48 flex items-center justify-center">
-                        <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-                            <span class="text-4xl font-bold text-red-600">JN</span>
+            @if(isset($teamMembers) && $teamMembers->isNotEmpty())
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    @foreach ($teamMembers as $member)
+                        <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all transform hover:-translate-y-2">
+                            <div class="bg-gradient-to-br from-teal-700 to-teal-800 h-48 flex items-center justify-center">
+                                <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center border-4 border-white shadow-lg overflow-hidden">
+                                    @if ($member->photo_path)
+                                        <img src="{{ asset('storage/'.$member->photo_path) }}" alt="{{ $member->name }}" class="w-full h-full object-cover">
+                                    @else
+                                        <span class="text-4xl font-bold text-teal-700">{{ strtoupper(substr($member->name, 0, 2)) }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="p-6 text-center">
+                                <h3 class="text-xl font-bold text-gray-900 mb-2">{{ strtoupper($member->name) }}</h3>
+                                <p class="text-teal-800 font-semibold mb-4">{{ $member->role }}</p>
+                                <p class="text-gray-600 text-sm mb-4">
+                                    {{ \Illuminate\Support\Str::limit($member->bio, 260) }}
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="p-6 text-center">
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">JAMES NDEGWA</h3>
-                        <p class="text-teal-800 font-semibold mb-4">Executive Director</p>
-                        <p class="text-gray-600 text-sm mb-4">
-                            An astute, result oriented and widely experienced businessman well entrenched in business strategically and customer relations. Holds a BSc. in Actuarial Science from JKUAT and an Advanced Diploma in Hardware & Software Engineering from City & Guilds, UK.
-                        </p>
-                    </div>
+                    @endforeach
                 </div>
-
-                <!-- Ann Wairimu -->
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all transform hover:-translate-y-2">
-                    <div class="bg-gradient-to-br from-orange-500 to-yellow-500 h-48 flex items-center justify-center">
-                        <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-                            <span class="text-4xl font-bold text-orange-600">AW</span>
-                        </div>
-                    </div>
-                    <div class="p-6 text-center">
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">ANN WAIRIMU</h3>
-                        <p class="text-blue-900 font-semibold mb-4">Human Resource</p>
-                        <p class="text-gray-600 text-sm mb-4">
-                            In charge of the human resource department. Her role is to enhance the organization's human resources by planning, implementing, and evaluating employee relations and human resources policies, programs, and practices. Holds a Bachelor's degree in Mass communication from Daystar University and a MBA from Kenyatta University.
-                        </p>
-                    </div>
+            @else
+                <div class="text-center text-gray-500 bg-white border border-dashed border-gray-200 rounded-2xl py-12">
+                    Team information is being updated. Please check back soon.
                 </div>
-
-                <!-- Allan Libese -->
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all transform hover:-translate-y-2">
-                    <div class="bg-gradient-to-br from-blue-500 to-indigo-500 h-48 flex items-center justify-center">
-                        <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-                            <span class="text-4xl font-bold text-blue-600">AL</span>
-                        </div>
-                    </div>
-                    <div class="p-6 text-center">
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Mr. ALLAN LIBESE</h3>
-                        <p class="text-blue-900 font-semibold mb-4">Head of ICT</p>
-                        <p class="text-gray-600 text-sm mb-4">
-                            The ICT Manager with vast experience in financial services and Core Banking Systems. His role is to support the achievement of FORTRESS LTD strategic and operational objectives through the provision of high information communication technology and associated infrastructure, systems, procedures and solutions. Holds a Bachelor of Science degree in Information Technology from Karatina University.
-                        </p>
-                    </div>
-                </div>
-            </div>
+            @endif
         </div>
     </section>
 

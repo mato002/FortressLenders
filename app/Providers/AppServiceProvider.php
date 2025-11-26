@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\ContactMessage;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        View::composer('layouts.admin', function ($view): void {
+            $unreadCount = ContactMessage::whereNull('handled_at')
+                ->orWhere('status', 'new')
+                ->count();
+
+            $view->with('adminUnreadMessagesCount', $unreadCount);
+        });
     }
 }
