@@ -9,3 +9,4 @@ class AboutSetting extends Model
         'hero_image_path',
     ];
 }
+

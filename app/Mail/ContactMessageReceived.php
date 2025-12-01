@@ -25,3 +25,4 @@ class ContactMessageReceived extends Mailable
     }
 }
 
+
