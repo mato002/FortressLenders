@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\HomeSettingsController as AdminHomeSettingsContro
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ProductImageController as AdminProductImageController;
 use App\Http\Controllers\Admin\TeamMemberController as AdminTeamMemberController;
+use App\Http\Controllers\Admin\BranchController as AdminBranchController;
 use App\Http\Controllers\AboutPageController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
@@ -57,6 +58,7 @@ Route::middleware(['auth', 'verified', 'admin'])
         Route::post('/contact-page', [AdminContactSettingsController::class, 'update'])->name('contact.update');
         Route::resource('products', AdminProductController::class);
         Route::resource('team-members', AdminTeamMemberController::class)->except(['show']);
+        Route::resource('branches', AdminBranchController::class)->except(['show']);
         Route::resource('contact-messages', AdminContactMessageController::class)->only(['index', 'show', 'update', 'destroy']);
         Route::prefix('products/{product}/images')
             ->name('products.images.')

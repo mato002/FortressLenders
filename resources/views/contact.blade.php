@@ -12,7 +12,7 @@
             style="background-image: linear-gradient(to bottom right, #115e59, #0f766e, #134e4a);"
         @endif
     >
-        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="relative w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32 text-center">
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 px-4">Contact Us</h1>
             <p class="text-lg sm:text-xl text-teal-100 px-4">Get in touch with Fortress Lenders today</p>
         </div>
@@ -20,7 +20,7 @@
 
     <!-- Contact Information Section -->
     <section class="py-12 sm:py-16 md:py-20 bg-white" id="contact">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12">
                 <!-- Contact Form -->
                 <div>
@@ -178,104 +178,59 @@
 
     <!-- Branch Locations Section -->
     <section class="py-12 sm:py-16 md:py-20 bg-gray-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
             <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-8 sm:mb-10 md:mb-12 text-center px-4">Our Branch Locations</h2>
+            @php
+                $colorClasses = [
+                    'teal' => 'from-teal-700 to-teal-800',
+                    'amber' => 'from-amber-500 to-yellow-500',
+                    'green' => 'from-green-500 to-green-600',
+                    'purple' => 'from-purple-500 to-purple-600',
+                ];
+            @endphp
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                <!-- Nakuru Branch -->
-                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all">
-                    <div class="w-12 h-12 bg-gradient-to-br from-teal-700 to-teal-800 rounded-lg flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
+                @forelse($branches as $branch)
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all">
+                        <div class="w-12 h-12 bg-gradient-to-br {{ $colorClasses[$branch->accent_color] ?? $colorClasses['teal'] }} rounded-lg flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">{{ $branch->name }}</h3>
+                        <p class="text-gray-600 mb-4">
+                            {{ $branch->address_line1 }}<br>
+                            @if($branch->address_line2)
+                                {{ $branch->address_line2 }}<br>
+                            @endif
+                            @if($branch->city)
+                                {{ $branch->city }}
+                            @endif
+                        </p>
+                        <div class="space-y-1">
+                            @if($branch->phone_primary)
+                                <a href="tel:{{ preg_replace('/\s+/', '', $branch->phone_primary) }}" class="block text-teal-800 hover:text-teal-700 font-medium transition-colors">
+                                    {{ $branch->phone_primary }}
+                                </a>
+                            @endif
+                            @if($branch->phone_secondary)
+                                <a href="tel:{{ preg_replace('/\s+/', '', $branch->phone_secondary) }}" class="block text-teal-800 hover:text-teal-700 font-medium transition-colors">
+                                    {{ $branch->phone_secondary }}
+                                </a>
+                            @endif
+                        </div>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Nakuru Branch</h3>
-                    <p class="text-gray-600 mb-4">
-                        Fortress Lenders Hse<br>
-                        Barnabas Muguga Opp. Epic ridge Academy
-                    </p>
-                    <a href="tel:+254743838312" class="text-teal-800 hover:text-teal-700 font-medium transition-colors">
-                        +254 743 838 312
-                    </a>
-                </div>
-
-                <!-- Gilgil Branch -->
-                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all">
-                    <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-lg flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
+                @empty
+                    <div class="sm:col-span-2 lg:col-span-3 bg-white border border-dashed border-gray-200 rounded-2xl p-8 text-center text-gray-500">
+                        Branch information is coming soon.
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Gilgil Branch</h3>
-                    <p class="text-gray-600 mb-4">
-                        Makutano House<br>
-                        Safaricom Shop
-                    </p>
-                    <div class="space-y-1">
-                        <a href="tel:+254743451983" class="block text-teal-800 hover:text-teal-700 font-medium transition-colors">
-                            +254 743 451 983
-                        </a>
-                        <a href="tel:+254797628301" class="block text-teal-800 hover:text-teal-700 font-medium transition-colors">
-                            +254 797 628 301
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Olkalou Branch -->
-                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all">
-                    <div class="w-12 h-12 bg-gradient-to-br from-teal-700 to-teal-800 rounded-lg flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Olkalou Branch</h3>
-                    <p class="text-gray-600 mb-4">
-                        Tower Sacco<br>
-                        1st Floor Right wing
-                    </p>
-                    <a href="tel:+254714429675" class="text-teal-800 hover:text-teal-700 font-medium transition-colors">
-                        +254 714 429 675
-                    </a>
-                </div>
-
-                <!-- Nyahururu Branch -->
-                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all">
-                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Nyahururu Branch</h3>
-                    <p class="text-gray-600 mb-4">
-                        Mbaria Complex<br>
-                        2nd Floor
-                    </p>
-                    <a href="tel:+254792640802" class="text-teal-800 hover:text-teal-700 font-medium transition-colors">
-                        +254 792 640 802
-                    </a>
-                </div>
-
-                <!-- Rumuruti Branch -->
-                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all">
-                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Rumuruti Branch</h3>
-                    <p class="text-gray-600 mb-4">
-                        Home Business plaza
-                    </p>
-                    <a href="tel:+254715110163" class="text-teal-800 hover:text-teal-700 font-medium transition-colors">
-                        +254 715 110 163
-                    </a>
-                </div>
+                @endforelse
             </div>
         </div>
     </section>
 
     <!-- Google Maps Section -->
     <section class="py-12 sm:py-16 md:py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
             <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-6 sm:mb-8 md:mb-12 text-center px-4">Find Us on the Map</h2>
             <div class="bg-gray-200 rounded-xl overflow-hidden shadow-lg h-64 sm:h-96 md:h-[500px]">
                 <iframe 

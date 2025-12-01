@@ -12,7 +12,7 @@
             style="background-image: linear-gradient(to bottom right, #115e59, #0f766e, #134e4a);"
         @endif
     >
-        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="relative w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32 text-center">
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 px-4">About Fortress Lenders</h1>
             <p class="text-lg sm:text-xl text-teal-100 px-4">The Force Of Possibilities</p>
         </div>
@@ -20,7 +20,7 @@
 
     <!-- Introduction Section -->
     <section class="py-12 sm:py-16 md:py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
             <div class="max-w-4xl mx-auto">
                 <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Introduction</h2>
                 <div class="prose prose-lg text-gray-600 space-y-4">
@@ -43,7 +43,7 @@
 
     <!-- Mission, Vision, Values Section -->
     <section class="py-20 bg-gray-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
                 <!-- Mission -->
                 <div class="bg-white rounded-xl shadow-lg p-8">
@@ -129,7 +129,7 @@
 
     <!-- Governance Section -->
     <section class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
             <div class="max-w-4xl mx-auto">
                 <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center">Governance Statement</h2>
                 <div class="prose prose-lg text-gray-600 space-y-4">
@@ -165,7 +165,7 @@
 
     <!-- Team Section -->
     <section class="py-20 bg-gray-50" id="team">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">Our Team</h2>
             @if(isset($teamMembers) && $teamMembers->isNotEmpty())
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -200,7 +200,7 @@
 
     <!-- Organizational Structure Section -->
     <section class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
             <div class="max-w-4xl mx-auto">
                 <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center">Organizational Structure</h2>
                 <div class="prose prose-lg text-gray-600 space-y-4">

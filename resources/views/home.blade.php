@@ -17,7 +17,7 @@
             <div class="absolute top-0 right-0 w-72 h-72 bg-amber-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
             <div class="absolute bottom-0 left-1/2 w-72 h-72 bg-teal-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
         </div>
-        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 md:py-24 lg:py-32">
+        <div class="relative w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32 py-16 sm:py-20 md:py-24 lg:py-32">
             <div class="text-center">
                 <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 animate-fade-in-up leading-tight">
                     <span class="hero-word-animate-block">WELCOME TO</span><br>
@@ -43,7 +43,7 @@
 
     <!-- Stats Section -->
     <section class="py-12 sm:py-16 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
                 <div class="text-center animate-fade-in">
                     <div class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-teal-800 mb-1 sm:mb-2">3000+</div>
@@ -67,7 +67,7 @@
 
     <!-- Services Overview -->
     <section class="py-12 sm:py-16 md:py-20 bg-gray-50" id="services">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
             <div class="text-center mb-8 sm:mb-12 md:mb-16">
                 <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 px-4">Our Services</h2>
                 <p class="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
@@ -115,7 +115,7 @@
 
     <!-- About Preview Section -->
     <section class="py-12 sm:py-16 md:py-20 bg-white" id="about-preview">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12 items-center">
                 <div class="animate-fade-in px-4 lg:px-0">
                     <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">About Fortress Lenders</h2>
@@ -172,7 +172,7 @@
 
     <!-- Leadership Team Section -->
     <section class="py-12 sm:py-16 md:py-20 bg-gray-50" id="team">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
             <div class="text-center mb-8 sm:mb-12 md:mb-16">
                 <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 px-4">Meet Our Team</h2>
                 <p class="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
@@ -230,7 +230,7 @@
 
     <!-- Testimonials Section -->
     <section class="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-gray-900 to-gray-800 text-white" id="testimonials">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
             <div class="text-center mb-8 sm:mb-12 md:mb-16">
                 <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-4">What Our Clients Say</h2>
                 <p class="text-base sm:text-lg text-gray-300 max-w-2xl mx-auto px-4">
@@ -283,7 +283,7 @@
 
     <!-- CTA Section -->
     <section class="py-12 sm:py-16 md:py-20 bg-gradient-to-r from-teal-800 to-teal-700 text-white" id="apply-loan">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32 text-center">
             <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 px-4">Ready to Get Started?</h2>
             <p class="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-teal-100 max-w-2xl mx-auto px-4">
                 Whether you need a loan for your business, education, or personal needs, we're here to help you achieve your goals.

@@ -5,7 +5,7 @@
 @section('content')
     <!-- Hero Section -->
     <section class="bg-gradient-to-br from-teal-800 via-teal-700 to-teal-900 text-white py-12 sm:py-16 md:py-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-24 text-center">
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 px-4">Our Products & Services</h1>
             <p class="text-lg sm:text-xl text-teal-100 px-4">Comprehensive financial solutions tailored to your needs</p>
         </div>
@@ -15,7 +15,7 @@
 
     <!-- Loans Section -->
     <section class="py-12 sm:py-16 md:py-20 bg-white" id="loans">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
             <div class="text-center mb-8 sm:mb-12 md:mb-16">
                 <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 px-4">Loan Products</h2>
                 <p class="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
@@ -34,7 +34,7 @@
                 ];
             @endphp
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 sm:gap-8 xl:gap-10">
                 @forelse($products as $product)
                     @php($colors = $colorMap[$product->highlight_color] ?? $colorMap['teal'])
                     <div class="bg-gradient-to-br {{ $colors['card'] }} rounded-xl shadow-lg p-6 sm:p-8 hover:shadow-2xl transition-all transform hover:-translate-y-2">
@@ -75,7 +75,7 @@
 
     <!-- Additional Services Section -->
     <section class="py-12 sm:py-16 md:py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
             <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 sm:p-8 md:p-12 text-center">
                 <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-6 px-4">Additional Services</h2>
                 <p class="text-base sm:text-lg text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
@@ -110,7 +110,7 @@
 
     <!-- CTA Section -->
     <section class="py-12 sm:py-16 md:py-20 bg-gradient-to-r from-teal-800 to-teal-700 text-white" id="apply-loan">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32 text-center">
             <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 px-4">Ready to Get Started?</h2>
             <p class="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-teal-100 max-w-2xl mx-auto px-4">
                 Contact us today to learn more about our products and services, or visit any of our branches for personalized assistance.
