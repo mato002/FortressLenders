@@ -8,12 +8,19 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ProductImageController as AdminProductImageController;
 use App\Http\Controllers\Admin\TeamMemberController as AdminTeamMemberController;
 use App\Http\Controllers\Admin\BranchController as AdminBranchController;
+use App\Http\Controllers\Admin\FaqController as AdminFaqController;
+use App\Http\Controllers\Admin\PostController as AdminPostController;
+use App\Http\Controllers\Admin\CeoMessageController as AdminCeoMessageController;
 use App\Http\Controllers\AboutPageController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\AboutSettingsController;
+use App\Http\Controllers\Admin\LogoSettingsController;
+use App\Http\Controllers\FaqController;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\CeoMessageController;
 use Illuminate\Support\Facades\Route;
 
 // Public Website Routes
@@ -26,6 +33,11 @@ Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])
     ->middleware('throttle:5,1')
     ->name('contact.store');
+
+Route::get('/faq', [FaqController::class, 'index'])->name('faq');
+Route::get('/news', [PostController::class, 'index'])->name('posts.index');
+Route::get('/news/{post:slug}', [PostController::class, 'show'])->name('posts.show');
+Route::get('/ceo-message', [CeoMessageController::class, 'index'])->name('ceo-message');
 
 // Dashboard Routes (Protected)
 Route::get('/dashboard', function () {
@@ -56,10 +68,15 @@ Route::middleware(['auth', 'verified', 'admin'])
         Route::post('/about', [AboutSettingsController::class, 'update'])->name('about.update');
         Route::get('/contact-page', [AdminContactSettingsController::class, 'edit'])->name('contact.edit');
         Route::post('/contact-page', [AdminContactSettingsController::class, 'update'])->name('contact.update');
+        Route::get('/logo', [LogoSettingsController::class, 'edit'])->name('logo.edit');
+        Route::post('/logo', [LogoSettingsController::class, 'update'])->name('logo.update');
         Route::resource('products', AdminProductController::class);
         Route::resource('team-members', AdminTeamMemberController::class)->except(['show']);
         Route::resource('branches', AdminBranchController::class)->except(['show']);
         Route::resource('contact-messages', AdminContactMessageController::class)->only(['index', 'show', 'update', 'destroy']);
+        Route::resource('faqs', AdminFaqController::class)->except(['show']);
+        Route::resource('posts', AdminPostController::class);
+        Route::resource('ceo-messages', AdminCeoMessageController::class)->except(['show']);
         Route::prefix('products/{product}/images')
             ->name('products.images.')
             ->group(function () {

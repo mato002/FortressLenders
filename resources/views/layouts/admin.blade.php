@@ -11,7 +11,11 @@
     <div class="min-h-screen bg-gradient-to-br from-white via-[#F0F9F8] to-[#E1F4F2]">
         <aside class="hidden lg:flex lg:flex-col w-72 h-screen bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 text-white border-r border-teal-900/40 shadow-2xl lg:fixed lg:inset-y-0 lg:left-0">
             <div class="px-6 py-8 border-b border-white/10 flex items-center gap-3">
-                <div class="w-12 h-12 rounded-2xl bg-amber-400/20 text-xl font-bold flex items-center justify-center text-amber-300">FL</div>
+                @if(isset($logoPath) && $logoPath)
+                    <img src="{{ asset('storage/'.$logoPath) }}" alt="Fortress Lenders" class="h-12 w-auto object-contain">
+                @else
+                    <div class="w-12 h-12 rounded-2xl bg-amber-400/20 text-xl font-bold flex items-center justify-center text-amber-300">FL</div>
+                @endif
                 <div>
                     <p class="text-xs uppercase tracking-[0.4em] text-white/70">Admin</p>
                     <p class="text-xl font-bold">Fortress Lenders</p>
@@ -26,6 +30,7 @@
                 <a href="{{ route('admin.about.edit') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.about.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}">About Page</a>
                 <a href="{{ route('admin.contact-messages.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.contact-messages.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}">Contact Messages</a>
                 <a href="{{ route('admin.contact.edit') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.contact.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}">Contact Page</a>
+                <a href="{{ route('admin.logo.edit') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.logo.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}">Logo Settings</a>
             </nav>
             <div class="px-6 py-6 border-t border-white/10 space-y-3">
                 <a href="{{ route('home') }}" class="w-full inline-flex items-center justify-center px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition text-sm font-semibold">View Website</a>
@@ -37,9 +42,16 @@
                 <div id="mobile-backdrop" class="fixed inset-0 bg-black/50 hidden z-40" onclick="toggleSidebar()"></div>
                 <aside id="mobile-menu" class="fixed inset-y-0 left-0 w-72 bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 text-white z-50 transform -translate-x-full transition-transform duration-300 shadow-2xl">
                     <div class="px-6 py-6 border-b border-white/10 flex items-center justify-between">
-                        <div>
-                            <p class="text-xs uppercase tracking-[0.4em] text-white/70">Admin</p>
-                            <p class="text-lg font-bold">Fortress Lenders</p>
+                        <div class="flex items-center gap-3">
+                            @if(isset($logoPath) && $logoPath)
+                                <img src="{{ asset('storage/'.$logoPath) }}" alt="Fortress Lenders" class="h-10 w-auto object-contain">
+                            @else
+                                <div class="w-10 h-10 rounded-2xl bg-amber-400/20 text-lg font-bold flex items-center justify-center text-amber-300">FL</div>
+                            @endif
+                            <div>
+                                <p class="text-xs uppercase tracking-[0.4em] text-white/70">Admin</p>
+                                <p class="text-lg font-bold">Fortress Lenders</p>
+                            </div>
                         </div>
                         <button class="p-2 rounded-lg border border-white/20" onclick="toggleSidebar()">✕</button>
                     </div>
@@ -52,6 +64,7 @@
                         <a href="{{ route('admin.about.edit') }}" class="block px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.about.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">About Page</a>
                         <a href="{{ route('admin.contact-messages.index') }}" class="block px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.contact-messages.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">Contact Messages</a>
                         <a href="{{ route('admin.contact.edit') }}" class="block px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.contact.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">Contact Page</a>
+                        <a href="{{ route('admin.logo.edit') }}" class="block px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.logo.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">Logo Settings</a>
                     </nav>
                 </aside>
             </div>

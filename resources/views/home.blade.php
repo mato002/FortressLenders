@@ -191,12 +191,33 @@
                                         {{ strtoupper(substr($member->name, 0, 2)) }}
                                     @endif
                                 </div>
-                                <div>
-                                    <p class="text-lg font-semibold text-gray-900">{{ $member->name }}</p>
-                                    <p class="text-sm text-teal-700">{{ $member->role }}</p>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-lg font-semibold text-gray-900 break-words">{{ ucwords(strtolower($member->name)) }}</p>
+                                    <p class="text-sm text-teal-700 break-words line-clamp-2">{{ $member->role }}</p>
                                 </div>
                             </div>
-                            <p class="text-sm text-gray-600 mb-4">{{ Str::limit($member->bio, 160) }}</p>
+                            <p class="text-sm text-gray-600 mb-3 leading-relaxed">
+                                @if($member->bio && strlen($member->bio) > 160)
+                                    {{ Str::words($member->bio, 25, '...') }}
+                                @else
+                                    {{ $member->bio ?? '' }}
+                                @endif
+                            </p>
+                            @if($member->bio && strlen(trim($member->bio)) > 160)
+                                <button 
+                                    class="w-full mt-2 px-4 py-2 bg-teal-50 border border-teal-200 text-teal-700 hover:bg-teal-100 hover:border-teal-300 font-semibold text-sm rounded-lg cursor-pointer transition-colors"
+                                    data-team-member
+                                    data-id="{{ $member->id }}"
+                                    data-name="{{ $member->name }}"
+                                    data-role="{{ $member->role }}"
+                                    data-bio="{{ $member->bio }}"
+                                    data-photo="{{ $member->photo_path ? asset('storage/'.$member->photo_path) : '' }}"
+                                    data-email="{{ $member->email ?? '' }}"
+                                    data-phone="{{ $member->phone ?? '' }}"
+                                    data-linkedin="{{ $member->linkedin_url ?? '' }}">
+                                    Read Full Bio →
+                                </button>
+                            @endif
                             <div class="space-y-1 text-sm text-gray-600">
                                 @if ($member->email)
                                     <div class="flex items-center gap-2">
@@ -227,6 +248,43 @@
             @endif
         </div>
     </section>
+
+    <!-- Team Member Modal -->
+    <div id="teamModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- Background overlay - transparent with blur effect -->
+        <div class="fixed inset-0 transition-opacity z-40" onclick="closeTeamModal()" style="backdrop-filter: blur(10px) saturate(180%); -webkit-backdrop-filter: blur(10px) saturate(180%); pointer-events: auto;"></div>
+        
+        <!-- Modal container -->
+        <div class="relative flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0 z-50">
+            <!-- Modal panel -->
+            <div class="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+                        <!-- Smaller photo on left -->
+                        <div class="flex-shrink-0 mx-auto sm:mx-0">
+                            <div id="modalPhoto" class="w-20 h-20 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-gradient-to-br from-teal-600 to-teal-800 text-white flex items-center justify-center text-lg font-semibold border-2 border-gray-100">
+                                <!-- Photo will be inserted here -->
+                            </div>
+                        </div>
+                        <!-- Content on right -->
+                        <div class="flex-1 min-w-0 text-center sm:text-left">
+                            <h3 id="modalName" class="text-xl sm:text-2xl font-bold text-gray-900 mb-1 break-words"></h3>
+                            <p id="modalRole" class="text-base text-teal-700 mb-3 break-words"></p>
+                            <div id="modalBio" class="text-sm sm:text-base text-gray-600 leading-relaxed mb-4 break-words whitespace-normal"></div>
+                            <div id="modalContact" class="space-y-2 text-sm text-gray-600">
+                                <!-- Contact info will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" onclick="closeTeamModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Testimonials Section -->
     <section class="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-gray-900 to-gray-800 text-white" id="testimonials">
@@ -299,6 +357,106 @@
         </div>
     </section>
 @endsection
+
+@push('scripts')
+<script>
+    // Add click handlers to all "Read More" buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[data-team-member]').forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const name = this.getAttribute('data-name');
+                const role = this.getAttribute('data-role');
+                const bio = this.getAttribute('data-bio');
+                const photoPath = this.getAttribute('data-photo');
+                const email = this.getAttribute('data-email');
+                const phone = this.getAttribute('data-phone');
+                const linkedinUrl = this.getAttribute('data-linkedin');
+                
+                openTeamModal(id, name, role, bio, photoPath, email, phone, linkedinUrl);
+            });
+        });
+    });
+    
+    function openTeamModal(id, name, role, bio, photoPath, email, phone, linkedinUrl) {
+        const modal = document.getElementById('teamModal');
+        const modalName = document.getElementById('modalName');
+        const modalRole = document.getElementById('modalRole');
+        const modalBio = document.getElementById('modalBio');
+        const modalPhoto = document.getElementById('modalPhoto');
+        const modalContact = document.getElementById('modalContact');
+        
+        // Set name and role with proper formatting
+        modalName.textContent = name;
+        modalRole.textContent = role;
+        // Set bio with proper text wrapping
+        modalBio.textContent = bio;
+        modalBio.style.wordWrap = 'break-word';
+        modalBio.style.overflowWrap = 'break-word';
+        
+        // Set photo or initials
+        if (photoPath) {
+            modalPhoto.innerHTML = `<img src="${photoPath}" alt="${name}" class="w-full h-full object-cover">`;
+        } else {
+            modalPhoto.textContent = name.substring(0, 2).toUpperCase();
+        }
+        
+        // Build contact info
+        let contactHtml = '';
+        if (email) {
+            contactHtml += `
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    <a href="mailto:${email}" class="hover:text-teal-700">${email}</a>
+                </div>
+            `;
+        }
+        if (phone) {
+            const phoneClean = phone.replace(/\s+/g, '');
+            contactHtml += `
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2H6a3 3 0 01-3-3V5z"/>
+                    </svg>
+                    <a href="tel:${phoneClean}" class="hover:text-teal-700">${phone}</a>
+                </div>
+            `;
+        }
+        if (linkedinUrl) {
+            contactHtml += `
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-teal-700" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/>
+                        <path d="M2 9h4v12H2z"/>
+                        <circle cx="4" cy="4" r="2"/>
+                    </svg>
+                    <a href="${linkedinUrl}" target="_blank" rel="noopener" class="hover:text-teal-700">LinkedIn</a>
+                </div>
+            `;
+        }
+        modalContact.innerHTML = contactHtml || '<p class="text-gray-400">No contact information available</p>';
+        
+        // Show modal
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+    
+    function closeTeamModal() {
+        const modal = document.getElementById('teamModal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+    
+    // Close modal on ESC key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeTeamModal();
+        }
+    });
+</script>
+@endpush
 
 @push('styles')
 <style>

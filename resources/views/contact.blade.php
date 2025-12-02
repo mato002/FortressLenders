@@ -229,12 +229,30 @@
     </section>
 
     <!-- Google Maps Section -->
+    {{-- 
+        TO UPDATE THE MAP LOCATION:
+        1. Go to https://www.google.com/maps
+        2. Search for your exact location: "Fortress Lenders, Barnabas Muguga Road, Nakuru, Kenya"
+        3. Once you find the correct location, click "Share" button
+        4. Click "Embed a map" tab
+        5. Copy the iframe src URL and replace the src attribute below
+        OR
+        If you have coordinates (latitude, longitude), you can use:
+        src="https://www.google.com/maps?q=LATITUDE,LONGITUDE&output=embed&zoom=15"
+    --}}
     <section class="py-12 sm:py-16 md:py-20 bg-white">
         <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
             <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-6 sm:mb-8 md:mb-12 text-center px-4">Find Us on the Map</h2>
             <div class="bg-gray-200 rounded-xl overflow-hidden shadow-lg h-64 sm:h-96 md:h-[500px]">
+                @php
+                    // Google Maps location: https://maps.app.goo.gl/pffuMDz24srLVizD9
+                    $googleMapsLink = 'https://maps.app.goo.gl/pffuMDz24srLVizD9';
+                    
+                    // Accurate embed URL from Google Maps
+                    $embedUrl = 'https://www.google.com/maps/embed?pb=!4v1764659724175!6m8!1m7!1stulhXHyj76WEwUCFqQt4Uw!2m2!1d-0.3192877795733329!2d36.15273649844357!3f178.91267444612296!4f-7.178498962649044!5f0.7820865974627469';
+                @endphp
                 <iframe 
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.7486325235076!2d36.07294351465555!3d-0.2888150998959102!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMMKwMTcnMTkuNyJTIDM2wrAwNCcyMi42IkU!5e0!3m2!1sen!2ske!4v1234567890123!5m2!1sen!2ske"
+                    src="{{ $embedUrl }}"
                     width="100%" 
                     height="100%" 
                     style="border:0;" 
@@ -246,6 +264,12 @@
             </div>
             <p class="text-center text-gray-600 mt-6">
                 <strong>Head Office Location:</strong> Fortress Lenders Hse, Nakuru County - Barnabas Muguga Opp. Epic ridge Academy
+            </p>
+            <p class="text-center text-sm text-gray-500 mt-2">
+                <a href="{{ $googleMapsLink }}" target="_blank" class="text-teal-700 hover:text-teal-800 underline">View on Google Maps / Get Directions</a>
+            </p>
+            <p class="text-center text-xs text-gray-400 mt-1">
+                <em>If the map location is incorrect, please open the link above and click "Share" → "Embed a map" to get the correct embed code</em>
             </p>
         </div>
     </section>
