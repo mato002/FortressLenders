@@ -15,12 +15,14 @@ use App\Http\Controllers\AboutPageController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\LoanApplicationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\AboutSettingsController;
 use App\Http\Controllers\Admin\LogoSettingsController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\CeoMessageController;
+use App\Http\Controllers\Admin\LoanApplicationController as AdminLoanApplicationController;
 use Illuminate\Support\Facades\Route;
 
 // Public Website Routes
@@ -28,6 +30,11 @@ Route::get('/', HomeController::class)->name('home');
 Route::get('/about', AboutPageController::class)->name('about');
 
 Route::get('/products', [ProductController::class, 'index'])->name('products');
+
+Route::get('/apply-loan', [LoanApplicationController::class, 'create'])->name('loan.apply');
+Route::post('/apply-loan', [LoanApplicationController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('loan.apply.submit');
 
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])
@@ -74,6 +81,7 @@ Route::middleware(['auth', 'verified', 'admin'])
         Route::resource('team-members', AdminTeamMemberController::class)->except(['show']);
         Route::resource('branches', AdminBranchController::class)->except(['show']);
         Route::resource('contact-messages', AdminContactMessageController::class)->only(['index', 'show', 'update', 'destroy']);
+        Route::resource('loan-applications', AdminLoanApplicationController::class)->only(['index', 'show', 'update', 'destroy']);
         Route::resource('faqs', AdminFaqController::class)->except(['show']);
         Route::resource('posts', AdminPostController::class);
         Route::resource('ceo-messages', AdminCeoMessageController::class)->except(['show']);

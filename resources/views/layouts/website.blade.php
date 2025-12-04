@@ -44,7 +44,7 @@
                     <a href="{{ route('products') }}" class="nav-link {{ request()->routeIs('products') ? 'text-teal-700 font-semibold' : 'text-gray-700 hover:text-teal-700' }} transition-colors">Products</a>
                     <a href="{{ route('contact') }}" class="nav-link {{ request()->routeIs('contact') ? 'text-teal-700 font-semibold' : 'text-gray-700 hover:text-teal-700' }} transition-colors">Contact</a>
                     <div class="flex items-center space-x-3">
-                        <a href="#apply-loan" class="px-4 py-2 bg-teal-800 text-white rounded-lg hover:bg-teal-900 transition-colors font-semibold">Apply for Loan</a>
+                        <a href="{{ route('loan.apply') }}" class="px-4 py-2 bg-teal-800 text-white rounded-lg hover:bg-teal-900 transition-colors font-semibold">Apply for Loan</a>
                     </div>
                 </div>
 
@@ -67,7 +67,7 @@
                 <a href="{{ route('products') }}" class="block py-3 text-gray-700 hover:text-teal-700 transition-colors font-medium border-b border-gray-100">Products</a>
                 <a href="{{ route('contact') }}" class="block py-3 text-gray-700 hover:text-teal-700 transition-colors font-medium border-b border-gray-100">Contact</a>
                 <div class="pt-2">
-                    <a href="#apply-loan" class="block text-center px-4 py-3 bg-teal-800 text-white rounded-lg hover:bg-teal-900 transition-colors font-semibold">Apply for Loan</a>
+                    <a href="{{ route('loan.apply') }}" class="block text-center px-4 py-3 bg-teal-800 text-white rounded-lg hover:bg-teal-900 transition-colors font-semibold">Apply for Loan</a>
                 </div>
             </div>
         </div>

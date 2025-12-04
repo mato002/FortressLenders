@@ -116,11 +116,11 @@
                 Contact us today to learn more about our products and services, or visit any of our branches for personalized assistance.
             </p>
             <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
-                <a href="{{ route('contact') }}" class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-teal-800 rounded-lg font-semibold hover:bg-teal-50 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base">
-                    Contact Us
+                <a href="{{ route('loan.apply') }}" class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-teal-800 rounded-lg font-semibold hover:bg-teal-50 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base">
+                    Apply for a Loan
                 </a>
-                <a href="{{ route('home') }}" class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base">
-                    Back to Home
+                <a href="{{ route('contact') }}" class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base">
+                    Contact Us
                 </a>
             </div>
         </div>

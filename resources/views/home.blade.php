@@ -30,7 +30,7 @@
                     Empowering communities through accessible financial solutions. We enable people to achieve their dreams through customer-centric microfinance and microcredit services.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-fade-in-up animation-delay-600 px-4">
-                    <a href="#apply-loan" class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-teal-800 rounded-lg font-semibold hover:bg-teal-50 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base">
+                    <a href="{{ route('loan.apply') }}" class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-teal-800 rounded-lg font-semibold hover:bg-teal-50 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base">
                         Apply for a Loan
                     </a>
                     <a href="{{ route('products') }}" class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base">

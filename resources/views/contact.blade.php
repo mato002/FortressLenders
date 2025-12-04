@@ -164,7 +164,7 @@
                                 <div>
                                     <h3 class="text-xl font-bold text-gray-900 mb-2">Quick Actions</h3>
                                     <div class="space-y-2">
-                                        <a href="#apply-loan" class="block text-teal-800 hover:text-teal-700 font-medium transition-colors">Apply for a Loan</a>
+                                        <a href="{{ route('loan.apply') }}" class="block text-teal-800 hover:text-teal-700 font-medium transition-colors">Apply for a Loan</a>
                                         <a href="{{ route('products') }}" class="block text-teal-800 hover:text-teal-700 font-medium transition-colors">View Our Products</a>
                                     </div>
                                 </div>
