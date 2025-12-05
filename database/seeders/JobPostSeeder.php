@@ -207,6 +207,298 @@ class JobPostSeeder extends Seeder
                 'application_deadline' => now()->addDays(35),
                 'is_active' => true,
             ],
+            [
+                'title' => 'Senior Loan Officer',
+                'description' => 'Lead our loan origination team and handle complex loan applications. You will work with high-value clients and help expand our loan portfolio while maintaining quality standards.',
+                'requirements' => '• Bachelor\'s degree in Finance, Business, or related field
+• 5+ years of experience in lending or financial services
+• Proven track record of meeting and exceeding loan targets
+• Strong relationship-building skills
+• Knowledge of commercial and personal lending
+• Excellent negotiation skills
+• Leadership experience preferred',
+                'responsibilities' => '• Originate and process complex loan applications
+• Build and maintain relationships with high-value clients
+• Mentor junior loan officers
+• Review and approve loans within authority limits
+• Develop new business opportunities
+• Ensure portfolio quality and compliance
+• Participate in strategic planning',
+                'location' => 'Nairobi',
+                'department' => 'Operations',
+                'employment_type' => 'full-time',
+                'experience_level' => 'Senior Level',
+                'application_deadline' => now()->addDays(40),
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Collections Officer',
+                'description' => 'Manage loan collections and work with customers to ensure timely repayments. You will handle overdue accounts while maintaining positive customer relationships.',
+                'requirements' => '• High school diploma or equivalent
+• 2+ years of collections or customer service experience
+• Strong communication and negotiation skills
+• Ability to handle difficult conversations professionally
+• Computer literacy
+• Knowledge of debt collection regulations
+• Patience and empathy',
+                'responsibilities' => '• Contact customers with overdue payments
+• Negotiate payment plans and arrangements
+• Maintain accurate collection records
+• Update customer accounts
+• Escalate complex cases to management
+• Provide excellent customer service
+• Meet collection targets',
+                'location' => 'Nakuru',
+                'department' => 'Collections',
+                'employment_type' => 'full-time',
+                'experience_level' => 'Entry Level',
+                'application_deadline' => now()->addDays(28),
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Accountant',
+                'description' => 'Manage our financial records, prepare reports, and ensure accurate accounting. You will play a key role in financial planning and analysis.',
+                'requirements' => '• Bachelor\'s degree in Accounting or Finance
+• CPA or equivalent qualification preferred
+• 3+ years of accounting experience
+• Proficiency in accounting software
+• Strong analytical skills
+• Attention to detail
+• Knowledge of financial regulations',
+                'responsibilities' => '• Prepare financial statements and reports
+• Maintain general ledger and accounts
+• Process accounts payable and receivable
+• Reconcile bank statements
+• Assist with budgeting and forecasting
+• Prepare tax returns and filings
+• Support audits and compliance reviews',
+                'location' => 'Nakuru',
+                'department' => 'Finance',
+                'employment_type' => 'full-time',
+                'experience_level' => 'Mid Level',
+                'application_deadline' => now()->addDays(30),
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Business Development Officer',
+                'description' => 'Drive business growth by identifying new opportunities, building partnerships, and expanding our customer base. You will be instrumental in our expansion strategy.',
+                'requirements' => '• Bachelor\'s degree in Business, Marketing, or related field
+• 3+ years of business development experience
+• Strong networking and relationship-building skills
+• Excellent communication and presentation skills
+• Self-motivated and results-oriented
+• Knowledge of microfinance industry
+• Valid driver\'s license',
+                'responsibilities' => '• Identify and pursue new business opportunities
+• Build relationships with potential partners
+• Develop and execute business development strategies
+• Organize marketing events and campaigns
+• Conduct market research
+• Prepare business proposals
+• Meet business growth targets',
+                'location' => 'Nairobi',
+                'department' => 'Business Development',
+                'employment_type' => 'full-time',
+                'experience_level' => 'Mid Level',
+                'application_deadline' => now()->addDays(35),
+                'is_active' => true,
+            ],
+            [
+                'title' => 'HR Assistant',
+                'description' => 'Support our human resources department with recruitment, employee relations, and administrative tasks. Great opportunity to learn HR operations in a growing organization.',
+                'requirements' => '• Bachelor\'s degree in HR, Business, or related field
+• 1-2 years of HR experience preferred
+• Good communication and interpersonal skills
+• Computer literacy (MS Office)
+• Attention to detail
+• Discretion and confidentiality
+• Willingness to learn',
+                'responsibilities' => '• Assist with recruitment and onboarding
+• Maintain employee records
+• Process payroll and benefits
+• Coordinate training programs
+• Handle employee inquiries
+• Assist with performance management
+• Support HR projects and initiatives',
+                'location' => 'Nakuru',
+                'department' => 'Human Resources',
+                'employment_type' => 'full-time',
+                'experience_level' => 'Entry Level',
+                'application_deadline' => now()->addDays(25),
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Data Analyst',
+                'description' => 'Analyze business data to provide insights that drive decision-making. You will work with various departments to understand trends and improve operations.',
+                'requirements' => '• Bachelor\'s degree in Statistics, Mathematics, Economics, or related field
+• 2+ years of data analysis experience
+• Proficiency in Excel, SQL, and data visualization tools
+• Strong analytical and problem-solving skills
+• Attention to detail
+• Good communication skills
+• Experience with BI tools preferred',
+                'responsibilities' => '• Collect and analyze business data
+• Create reports and dashboards
+• Identify trends and patterns
+• Support decision-making with data insights
+• Maintain data quality and accuracy
+• Present findings to management
+• Collaborate with various departments',
+                'location' => 'Nakuru',
+                'department' => 'Analytics',
+                'employment_type' => 'full-time',
+                'experience_level' => 'Mid Level',
+                'application_deadline' => now()->addDays(30),
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Security Officer',
+                'description' => 'Ensure the safety and security of our premises, staff, and customers. You will monitor security systems and respond to incidents.',
+                'requirements' => '• High school diploma or equivalent
+• Security training or certification preferred
+• 2+ years of security experience
+• Good physical condition
+• Alert and observant
+• Good communication skills
+• Ability to handle stressful situations
+• Clean criminal record',
+                'responsibilities' => '• Monitor premises and security systems
+• Control access to facilities
+• Patrol areas regularly
+• Respond to security incidents
+• Report suspicious activities
+• Maintain security logs
+• Assist with emergency procedures
+• Provide customer service',
+                'location' => 'Nakuru',
+                'department' => 'Security',
+                'employment_type' => 'full-time',
+                'experience_level' => 'Entry Level',
+                'application_deadline' => now()->addDays(20),
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Part-time Customer Service Representative',
+                'description' => 'Join our customer service team on a part-time basis. Perfect for students or those seeking flexible work hours while helping customers with their financial needs.',
+                'requirements' => '• High school diploma or equivalent
+• Previous customer service experience preferred
+• Excellent communication skills
+• Friendly and professional demeanor
+• Ability to work flexible hours
+• Computer literacy
+• Weekend availability preferred',
+                'responsibilities' => '• Assist customers with inquiries
+• Provide information about products and services
+• Process basic transactions
+• Maintain customer records
+• Handle customer complaints
+• Support full-time staff during peak hours',
+                'location' => 'Nakuru',
+                'department' => 'Customer Service',
+                'employment_type' => 'part-time',
+                'experience_level' => 'Entry Level',
+                'application_deadline' => now()->addDays(15),
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Operations Manager',
+                'description' => 'Oversee daily operations and ensure efficient service delivery. You will manage multiple teams and processes to achieve operational excellence.',
+                'requirements' => '• Bachelor\'s degree in Business, Operations, or related field
+• 5+ years of operations management experience
+• Strong leadership and team management skills
+• Excellent problem-solving abilities
+• Process improvement experience
+• Knowledge of financial services operations
+• Ability to work under pressure',
+                'responsibilities' => '• Manage daily operations
+• Oversee multiple departments
+• Develop and implement operational policies
+• Monitor performance metrics
+• Identify and implement process improvements
+• Manage budgets and resources
+• Ensure compliance with regulations
+• Lead operational projects',
+                'location' => 'Nairobi',
+                'department' => 'Operations',
+                'employment_type' => 'full-time',
+                'experience_level' => 'Senior Level',
+                'application_deadline' => now()->addDays(45),
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Digital Marketing Specialist',
+                'description' => 'Drive our digital presence and online marketing efforts. You will manage social media, create content, and run digital campaigns to attract customers.',
+                'requirements' => '• Bachelor\'s degree in Marketing, Communications, or related field
+• 2+ years of digital marketing experience
+• Strong social media management skills
+• Content creation abilities
+• Knowledge of SEO and SEM
+• Experience with analytics tools
+• Creative thinking
+• Excellent writing skills',
+                'responsibilities' => '• Manage social media accounts
+• Create engaging content
+• Run digital marketing campaigns
+• Monitor and analyze performance
+• Optimize website and online presence
+• Engage with online community
+• Support brand building efforts',
+                'location' => 'Nakuru',
+                'department' => 'Marketing',
+                'employment_type' => 'full-time',
+                'experience_level' => 'Mid Level',
+                'application_deadline' => now()->addDays(30),
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Legal Officer',
+                'description' => 'Provide legal support and ensure our operations comply with all legal requirements. You will handle contracts, legal documentation, and regulatory matters.',
+                'requirements' => '• Bachelor of Laws (LLB) degree
+• Admitted to practice law in Kenya
+• 3+ years of legal experience, preferably in financial services
+• Strong knowledge of financial regulations
+• Excellent research and writing skills
+• Attention to detail
+• Good communication skills',
+                'responsibilities' => '• Review and draft contracts
+• Provide legal advice to management
+• Ensure regulatory compliance
+• Handle legal documentation
+• Liaise with external counsel
+• Conduct legal research
+• Support risk management
+• Represent company in legal matters',
+                'location' => 'Nairobi',
+                'department' => 'Legal',
+                'employment_type' => 'full-time',
+                'experience_level' => 'Mid Level',
+                'application_deadline' => now()->addDays(40),
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Field Officer',
+                'description' => 'Work directly in communities to serve customers, process loan applications, and build relationships. This role involves field visits and customer outreach.',
+                'requirements' => '• High school diploma or equivalent
+• 1+ years of field work or sales experience
+• Excellent communication skills
+• Ability to work independently
+• Valid driver\'s license or motorcycle license
+• Physical fitness for field work
+• Customer service orientation',
+                'responsibilities' => '• Visit customers in their locations
+• Process loan applications in the field
+• Collect loan repayments
+• Build community relationships
+• Conduct customer education
+• Maintain field records
+• Report on field activities',
+                'location' => 'Nakuru',
+                'department' => 'Operations',
+                'employment_type' => 'full-time',
+                'experience_level' => 'Entry Level',
+                'application_deadline' => now()->addDays(25),
+                'is_active' => true,
+            ],
         ];
 
         foreach ($jobs as $job) {

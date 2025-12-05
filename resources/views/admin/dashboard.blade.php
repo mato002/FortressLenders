@@ -43,6 +43,14 @@
                 <p class="text-sm text-gray-500">Total Loan Applications</p>
                 <p class="text-3xl font-bold text-gray-900 mt-2">{{ $stats['total_applications'] }}</p>
             </div>
+            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+                <p class="text-sm text-gray-500">Total Branches</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ $stats['branches'] }}</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+                <p class="text-sm text-gray-500">Active Branches</p>
+                <p class="text-3xl font-bold text-teal-700 mt-2">{{ $stats['active_branches'] }}</p>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

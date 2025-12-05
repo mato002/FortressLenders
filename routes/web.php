@@ -80,6 +80,7 @@ Route::middleware(['auth', 'verified', 'admin'])
     ->name('admin.')
     ->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/search', [\App\Http\Controllers\Admin\SearchController::class, 'search'])->name('search');
         Route::get('/profile', [ProfileController::class, 'editAdmin'])->name('profile');
         Route::get('/home', [AdminHomeSettingsController::class, 'edit'])->name('home.edit');
         Route::post('/home', [AdminHomeSettingsController::class, 'update'])->name('home.update');

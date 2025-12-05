@@ -67,10 +67,20 @@
                             </div>
                         </div>
                         <div class="flex items-center justify-between pt-4 border-t border-gray-200">
-                            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-teal-100 text-teal-800">
-                                {{ ucfirst(str_replace('-', ' ', $job->employment_type)) }}
-                            </span>
-                            <a href="{{ route('careers.show', $job) }}" class="px-4 py-2 bg-teal-800 text-white rounded-lg hover:bg-teal-900 transition-colors font-semibold text-sm">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-semibold px-3 py-1 rounded-full bg-teal-100 text-teal-800">
+                                    {{ ucfirst(str_replace('-', ' ', $job->employment_type)) }}
+                                </span>
+                                @php
+                                    $deadlinePassed = $job->application_deadline && $job->application_deadline->isPast();
+                                @endphp
+                                @if($deadlinePassed)
+                                    <span class="text-xs font-semibold px-3 py-1 rounded-full bg-red-100 text-red-800">
+                                        Deadline Passed
+                                    </span>
+                                @endif
+                            </div>
+                            <a href="{{ route('careers.show', $job->slug) }}" class="px-4 py-2 bg-teal-800 text-white rounded-lg hover:bg-teal-900 transition-colors font-semibold text-sm">
                                 View Details
                             </a>
                         </div>

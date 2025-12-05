@@ -9,10 +9,6 @@ class BranchSeeder extends Seeder
 {
     public function run(): void
     {
-        if (Branch::count() > 0) {
-            return;
-        }
-
         $branches = [
             [
                 'name' => 'Nakuru Branch',
@@ -22,6 +18,7 @@ class BranchSeeder extends Seeder
                 'phone_primary' => '+254 743 838 312',
                 'accent_color' => 'teal',
                 'display_order' => 1,
+                'is_active' => true,
             ],
             [
                 'name' => 'Gilgil Branch',
@@ -32,6 +29,7 @@ class BranchSeeder extends Seeder
                 'phone_secondary' => '+254 797 628 301',
                 'accent_color' => 'amber',
                 'display_order' => 2,
+                'is_active' => true,
             ],
             [
                 'name' => 'Olkalou Branch',
@@ -41,6 +39,7 @@ class BranchSeeder extends Seeder
                 'phone_primary' => '+254 714 429 675',
                 'accent_color' => 'teal',
                 'display_order' => 3,
+                'is_active' => true,
             ],
             [
                 'name' => 'Nyahururu Branch',
@@ -50,6 +49,7 @@ class BranchSeeder extends Seeder
                 'phone_primary' => '+254 792 640 802',
                 'accent_color' => 'green',
                 'display_order' => 4,
+                'is_active' => true,
             ],
             [
                 'name' => 'Rumuruti Branch',
@@ -58,11 +58,15 @@ class BranchSeeder extends Seeder
                 'phone_primary' => '+254 715 110 163',
                 'accent_color' => 'purple',
                 'display_order' => 5,
+                'is_active' => true,
             ],
         ];
 
-        foreach ($branches as $branch) {
-            Branch::create($branch);
+        foreach ($branches as $branchData) {
+            Branch::updateOrCreate(
+                ['name' => $branchData['name']],
+                $branchData
+            );
         }
     }
 }

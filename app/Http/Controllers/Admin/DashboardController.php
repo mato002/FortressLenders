@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\ContactMessage;
 use App\Models\LoanApplication;
 use App\Models\Product;
@@ -18,6 +19,8 @@ class DashboardController extends Controller
             'total_messages' => ContactMessage::count(),
             'pending_applications' => LoanApplication::where('status', 'pending')->count(),
             'total_applications' => LoanApplication::count(),
+            'branches' => Branch::count(),
+            'active_branches' => Branch::where('is_active', true)->count(),
         ];
 
         $recentMessages = ContactMessage::latest()->limit(5)->get();

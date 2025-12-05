@@ -18,12 +18,24 @@ class JobApplicationController extends Controller
             abort(404);
         }
 
+        // Check if application deadline has passed
+        if ($job->application_deadline && $job->application_deadline->isPast()) {
+            return redirect()->route('careers.show', $job->slug)
+                ->with('error', 'The application deadline for this position has passed.');
+        }
+
         return view('careers.apply', compact('job'));
     }
 
     public function store(Request $request, $slug)
     {
         $job = JobPost::where('slug', $slug)->firstOrFail();
+        
+        // Check if application deadline has passed
+        if ($job->application_deadline && $job->application_deadline->isPast()) {
+            return redirect()->route('careers.show', $job->slug)
+                ->with('error', 'The application deadline for this position has passed. Applications are no longer being accepted.');
+        }
         
         $validated = $request->validate([
             // Page 1
