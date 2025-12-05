@@ -19,9 +19,26 @@ class JobApplicationController extends Controller
         return view('admin.job-applications.index', compact('applications'));
     }
 
-    public function show(JobApplication $application)
+    public function show(JobApplication $job_application)
     {
+        // Use the route model binding parameter name
+        $application = $job_application;
+        
+        // Refresh the model to ensure we have the latest data
+        $application->refresh();
+        
+        // Make sure all attributes are loaded
+        $application->makeVisible($application->getFillable());
+        
+        // Load relationships
         $application->load(['jobPost', 'reviews.reviewer', 'interviews.conductedBy']);
+        
+        // Ensure jobPost relationship is available even if null
+        if (!$application->jobPost && $application->job_post_id) {
+            // Job post might have been deleted, set to null
+            $application->job_post_id = null;
+        }
+        
         return view('admin.job-applications.show', compact('application'));
     }
 

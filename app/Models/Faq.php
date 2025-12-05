@@ -28,3 +28,4 @@ class Faq extends Model
 
 
 
+

@@ -39,13 +39,23 @@ class JobApplicationController extends Controller
         
         $validated = $request->validate([
             // Page 1
-            'name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
+            'name' => 'required|string|max:255|regex:/^[a-zA-Z\s\-\']+$/',
+            'phone' => ['required', 'string', 'regex:/^\+[1-9]\d{1,14}$/', 'max:20'],
             'email' => 'required|email|max:255',
+            // Job-related questions
+            'why_interested' => 'required|string',
+            'why_good_fit' => 'required|string',
+            'career_goals' => 'required|string',
+            'salary_expectations' => 'nullable|string|max:255',
+            'availability_date' => 'required|date',
+            'relevant_skills' => 'required|string',
             'education_level' => 'nullable|string|max:255',
             'area_of_study' => 'nullable|string|max:255',
             'institution' => 'nullable|string|max:255',
             'education_status' => 'nullable|string|max:255',
+            'education_start_year' => 'nullable|integer|min:1950|max:' . (date('Y') + 5),
+            'education_end_year' => 'nullable|integer|min:1950|max:' . date('Y'),
+            'education_expected_completion_year' => 'nullable|integer|min:' . date('Y') . '|max:' . (date('Y') + 10),
             'other_achievements' => 'nullable|string',
             'work_experience' => 'nullable|array',
             'current_job_title' => 'nullable|string|max:255',
@@ -55,8 +65,15 @@ class JobApplicationController extends Controller
             'other_experiences' => 'nullable|string',
             'cv' => 'required|file|mimes:pdf,doc,docx|max:5120', // 5MB max
             
-            // Page 2
+            // Page 3: Support Details
             'support_details' => 'nullable|string',
+            'certifications' => 'nullable|string',
+            'languages' => 'nullable|string',
+            'professional_memberships' => 'nullable|string',
+            'awards_recognition' => 'nullable|string',
+            'portfolio_links' => 'nullable|string',
+            'availability_travel' => 'nullable|string|in:Yes,No,Limited',
+            'availability_relocation' => 'nullable|string|in:Yes,No,Maybe',
             
             // Page 3
             'referrers' => 'nullable|array',
@@ -65,6 +82,11 @@ class JobApplicationController extends Controller
             
             // Application message
             'application_message' => 'nullable|string',
+        ], [
+            'name.regex' => 'Name should only contain letters, spaces, hyphens, and apostrophes.',
+            'phone.regex' => 'Phone number must include country code starting with + (e.g., +254712345678).',
+            'phone.required' => 'Phone number is required.',
+            'email.email' => 'Please enter a valid email address.',
         ]);
 
         // Handle CV upload

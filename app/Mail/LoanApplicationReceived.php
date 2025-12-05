@@ -26,3 +26,4 @@ class LoanApplicationReceived extends Mailable
 }
 
 
+

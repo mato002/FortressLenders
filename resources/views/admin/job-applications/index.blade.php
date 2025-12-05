@@ -33,7 +33,7 @@
                             <p class="text-xs text-gray-400">{{ $application->email }}</p>
                         </td>
                         <td class="px-6 py-4">
-                            <p class="text-gray-900">{{ $application->jobPost->title }}</p>
+                            <p class="text-gray-900">{{ optional($application->jobPost)->title ?? 'Unknown Position' }}</p>
                         </td>
                         <td class="px-6 py-4 text-gray-600">{{ $application->phone }}</td>
                         <td class="px-6 py-4">
