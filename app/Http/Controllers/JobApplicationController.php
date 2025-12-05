@@ -10,9 +10,9 @@ use Illuminate\Validation\Rule;
 
 class JobApplicationController extends Controller
 {
-    public function create($slug)
+    public function create(JobPost $jobPost)
     {
-        $job = JobPost::where('slug', $slug)->firstOrFail();
+        $job = $jobPost;
         
         if (!$job->is_active) {
             abort(404);
@@ -27,9 +27,9 @@ class JobApplicationController extends Controller
         return view('careers.apply', compact('job'));
     }
 
-    public function store(Request $request, $slug)
+    public function store(Request $request, JobPost $jobPost)
     {
-        $job = JobPost::where('slug', $slug)->firstOrFail();
+        $job = $jobPost;
         
         // Check if application deadline has passed
         if ($job->application_deadline && $job->application_deadline->isPast()) {

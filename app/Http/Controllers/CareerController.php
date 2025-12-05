@@ -16,9 +16,9 @@ class CareerController extends Controller
         return view('careers.index', compact('jobs'));
     }
 
-    public function show($slug)
+    public function show(JobPost $jobPost)
     {
-        $job = JobPost::where('slug', $slug)->firstOrFail();
+        $job = $jobPost;
         
         if (!$job->is_active) {
             abort(404);

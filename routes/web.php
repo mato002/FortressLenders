@@ -52,9 +52,9 @@ Route::get('/ceo-message', [CeoMessageController::class, 'index'])->name('ceo-me
 
 // Career Routes
 Route::get('/careers', [CareerController::class, 'index'])->name('careers.index');
-Route::get('/careers/{slug}', [CareerController::class, 'show'])->name('careers.show');
-Route::get('/careers/{slug}/apply', [JobApplicationController::class, 'create'])->name('careers.apply');
-Route::post('/careers/{slug}/apply', [JobApplicationController::class, 'store'])
+Route::get('/careers/{jobPost:slug}', [CareerController::class, 'show'])->name('careers.show');
+Route::get('/careers/{jobPost:slug}/apply', [JobApplicationController::class, 'create'])->name('careers.apply');
+Route::post('/careers/{jobPost:slug}/apply', [JobApplicationController::class, 'store'])
     ->middleware('throttle:5,1')
     ->name('careers.apply.store');
 

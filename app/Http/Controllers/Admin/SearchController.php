@@ -69,7 +69,8 @@ class SearchController extends Controller
             });
 
         // Search Job Applications
-        $results['job_applications'] = JobApplication::where('name', 'like', "%{$query}%")
+        $results['job_applications'] = JobApplication::with('jobPost')
+            ->where('name', 'like', "%{$query}%")
             ->orWhere('email', 'like', "%{$query}%")
             ->orWhere('phone', 'like', "%{$query}%")
             ->limit(5)
@@ -78,7 +79,7 @@ class SearchController extends Controller
                 return [
                     'id' => $application->id,
                     'title' => $application->name,
-                    'description' => $application->email . ' - ' . ($application->jobPost->title ?? 'N/A'),
+                    'description' => $application->email . ' - ' . ($application->jobPost?->title ?? 'N/A'),
                     'url' => route('admin.job-applications.show', $application->id),
                     'type' => 'Job Application',
                     'icon' => 'file-text'
