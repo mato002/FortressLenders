@@ -37,4 +37,9 @@ class ContactMessage extends Model
             'admin_notes' => $notes ?? $this->admin_notes,
         ]);
     }
+
+    public function replies()
+    {
+        return $this->hasMany(ContactMessageReply::class);
+    }
 }

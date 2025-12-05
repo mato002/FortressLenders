@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    'bulksms' => [
+        'api_url' => env('BULKSMS_API_URL', 'https://crm.pradytecai.com/api'),
+        'api_key' => env('BULKSMS_API_KEY'),
+        'client_id' => env('BULKSMS_CLIENT_ID'),
+        'sender_id' => env('BULKSMS_SENDER_ID', 'FORTRESS'),
+    ],
+
+    'whatsapp' => [
+        'api_url' => env('WHATSAPP_API_URL'),
+        'api_key' => env('WHATSAPP_API_KEY'),
+    ],
+
 ];

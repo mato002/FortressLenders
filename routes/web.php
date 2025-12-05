@@ -93,6 +93,7 @@ Route::middleware(['auth', 'verified', 'admin'])
         Route::resource('team-members', AdminTeamMemberController::class)->except(['show']);
         Route::resource('branches', AdminBranchController::class)->except(['show']);
         Route::resource('contact-messages', AdminContactMessageController::class)->only(['index', 'show', 'update', 'destroy']);
+        Route::post('contact-messages/{contactMessage}/reply', [AdminContactMessageController::class, 'sendReply'])->name('contact-messages.reply');
         Route::resource('loan-applications', AdminLoanApplicationController::class)->only(['index', 'show', 'update', 'destroy']);
         Route::resource('faqs', AdminFaqController::class)->except(['show']);
         Route::resource('posts', AdminPostController::class);

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContactMessage;
+use App\Models\ContactMessageReply;
+use App\Services\MessagingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -31,7 +33,49 @@ class ContactMessageController extends Controller
 
     public function show(ContactMessage $contactMessage)
     {
+        $contactMessage->load('replies.sender');
         return view('admin.contact-messages.show', compact('contactMessage'));
+    }
+
+    public function sendReply(Request $request, ContactMessage $contactMessage): RedirectResponse
+    {
+        $validated = $request->validate([
+            'channel' => 'required|in:email,sms,whatsapp',
+            'message' => 'required|string|max:5000',
+            'recipient' => 'required|string',
+        ]);
+
+        // Validate recipient based on channel
+        if ($validated['channel'] === 'email') {
+            $request->validate(['recipient' => 'email']);
+        } else {
+            $request->validate(['recipient' => 'regex:/^[0-9+\-\s()]+$/']);
+        }
+
+        // Create reply record
+        $reply = ContactMessageReply::create([
+            'contact_message_id' => $contactMessage->id,
+            'sent_by' => auth()->id(),
+            'channel' => $validated['channel'],
+            'message' => $validated['message'],
+            'recipient' => $validated['recipient'],
+            'status' => 'pending',
+        ]);
+
+        // Send the message
+        $messagingService = new MessagingService();
+        $sent = $messagingService->send($reply);
+
+        if ($sent) {
+            // Update contact message status if needed
+            if ($contactMessage->status === 'new') {
+                $contactMessage->update(['status' => 'in_progress']);
+            }
+
+            return back()->with('status', 'Reply sent successfully via ' . strtoupper($validated['channel']) . '!');
+        } else {
+            return back()->withErrors(['message' => 'Failed to send reply. Please check the error and try again.']);
+        }
     }
 
     public function update(Request $request, ContactMessage $contactMessage): RedirectResponse

@@ -174,10 +174,29 @@
                             <!-- CV Upload -->
                             <div class="border-t border-gray-200 pt-6">
                                 <label for="cv" class="block text-sm font-medium text-gray-700 mb-1">Upload CV <span class="text-red-500">*</span></label>
-                                <p class="text-sm text-gray-500 mb-2">Accepted formats: PDF, DOC, DOCX (Max: 5MB)</p>
-                                <input type="file" id="cv" name="cv" accept=".pdf,.doc,.docx" required
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent">
-                                @error('cv')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                                <p class="text-sm text-gray-500 mb-3">Accepted formats: PDF, DOC, DOCX (Max: 5MB)</p>
+                                
+                                <div class="relative">
+                                    <input type="file" id="cv" name="cv" accept=".pdf,.doc,.docx" required
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-teal-800 file:text-white hover:file:bg-teal-900 file:cursor-pointer"
+                                           onchange="displayFileName(this)">
+                                    @error('cv')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                                    
+                                    <!-- File name display -->
+                                    <div id="cv-file-name" class="mt-2 text-sm text-gray-600 hidden">
+                                        <div class="flex items-center gap-2 p-2 bg-teal-50 border border-teal-200 rounded-lg">
+                                            <svg class="w-5 h-5 text-teal-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            <span id="cv-file-name-text" class="flex-1"></span>
+                                            <button type="button" onclick="clearFileInput()" class="text-red-600 hover:text-red-800">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -403,6 +422,47 @@
 
         function removeReferrer(button) {
             button.closest('.referrer-entry').remove();
+        }
+
+        // CV File Upload Functions
+        function displayFileName(input) {
+            const fileNameDiv = document.getElementById('cv-file-name');
+            const fileNameText = document.getElementById('cv-file-name-text');
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const fileName = file.name;
+                const fileSize = (file.size / 1024 / 1024).toFixed(2); // Convert to MB
+                
+                // Validate file size (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size exceeds 5MB. Please upload a smaller file.');
+                    input.value = '';
+                    fileNameDiv.classList.add('hidden');
+                    return;
+                }
+                
+                // Validate file type
+                const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Invalid file type. Please upload a PDF, DOC, or DOCX file.');
+                    input.value = '';
+                    fileNameDiv.classList.add('hidden');
+                    return;
+                }
+                
+                fileNameText.textContent = `${fileName} (${fileSize} MB)`;
+                fileNameDiv.classList.remove('hidden');
+            } else {
+                fileNameDiv.classList.add('hidden');
+            }
+        }
+
+        function clearFileInput() {
+            const fileInput = document.getElementById('cv');
+            const fileNameDiv = document.getElementById('cv-file-name');
+            fileInput.value = '';
+            fileNameDiv.classList.add('hidden');
         }
 
         // Initialize
