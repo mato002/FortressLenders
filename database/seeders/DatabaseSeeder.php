@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             TeamMemberSeeder::class,
             BranchSeeder::class,
+            JobPostSeeder::class,
         ]);
     }
 

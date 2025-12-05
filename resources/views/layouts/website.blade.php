@@ -42,6 +42,7 @@
                     <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'text-teal-700 font-semibold' : 'text-gray-700 hover:text-teal-700' }} transition-colors">Home</a>
                     <a href="{{ route('about') }}" class="nav-link {{ request()->routeIs('about') ? 'text-teal-700 font-semibold' : 'text-gray-700 hover:text-teal-700' }} transition-colors">About Us</a>
                     <a href="{{ route('products') }}" class="nav-link {{ request()->routeIs('products') ? 'text-teal-700 font-semibold' : 'text-gray-700 hover:text-teal-700' }} transition-colors">Products</a>
+                    <a href="{{ route('careers.index') }}" class="nav-link {{ request()->routeIs('careers.*') ? 'text-teal-700 font-semibold' : 'text-gray-700 hover:text-teal-700' }} transition-colors">Careers</a>
                     <a href="{{ route('contact') }}" class="nav-link {{ request()->routeIs('contact') ? 'text-teal-700 font-semibold' : 'text-gray-700 hover:text-teal-700' }} transition-colors">Contact</a>
                     <div class="flex items-center space-x-3">
                         <a href="{{ route('loan.apply') }}" class="px-4 py-2 bg-teal-800 text-white rounded-lg hover:bg-teal-900 transition-colors font-semibold">Apply for Loan</a>
@@ -65,6 +66,7 @@
                 <a href="{{ route('home') }}" class="block py-3 text-gray-700 hover:text-teal-700 transition-colors font-medium border-b border-gray-100">Home</a>
                 <a href="{{ route('about') }}" class="block py-3 text-gray-700 hover:text-teal-700 transition-colors font-medium border-b border-gray-100">About Us</a>
                 <a href="{{ route('products') }}" class="block py-3 text-gray-700 hover:text-teal-700 transition-colors font-medium border-b border-gray-100">Products</a>
+                <a href="{{ route('careers.index') }}" class="block py-3 text-gray-700 hover:text-teal-700 transition-colors font-medium border-b border-gray-100">Careers</a>
                 <a href="{{ route('contact') }}" class="block py-3 text-gray-700 hover:text-teal-700 transition-colors font-medium border-b border-gray-100">Contact</a>
                 <div class="pt-2">
                     <a href="{{ route('loan.apply') }}" class="block text-center px-4 py-3 bg-teal-800 text-white rounded-lg hover:bg-teal-900 transition-colors font-semibold">Apply for Loan</a>
@@ -141,6 +143,7 @@
                         <li><a href="{{ route('home') }}" class="hover:text-white transition-colors">Home</a></li>
                         <li><a href="{{ route('about') }}" class="hover:text-white transition-colors">About Us</a></li>
                         <li><a href="{{ route('products') }}" class="hover:text-white transition-colors">Products</a></li>
+                        <li><a href="{{ route('careers.index') }}" class="hover:text-white transition-colors">Careers</a></li>
                         <li><a href="{{ route('contact') }}" class="hover:text-white transition-colors">Contact</a></li>
                     </ul>
                 </div>

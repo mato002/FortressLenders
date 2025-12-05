@@ -23,6 +23,10 @@ use App\Http\Controllers\FaqController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\CeoMessageController;
 use App\Http\Controllers\Admin\LoanApplicationController as AdminLoanApplicationController;
+use App\Http\Controllers\CareerController;
+use App\Http\Controllers\JobApplicationController;
+use App\Http\Controllers\Admin\JobPostController;
+use App\Http\Controllers\Admin\JobApplicationController as AdminJobApplicationController;
 use Illuminate\Support\Facades\Route;
 
 // Public Website Routes
@@ -45,6 +49,14 @@ Route::get('/faq', [FaqController::class, 'index'])->name('faq');
 Route::get('/news', [PostController::class, 'index'])->name('posts.index');
 Route::get('/news/{post:slug}', [PostController::class, 'show'])->name('posts.show');
 Route::get('/ceo-message', [CeoMessageController::class, 'index'])->name('ceo-message');
+
+// Career Routes
+Route::get('/careers', [CareerController::class, 'index'])->name('careers.index');
+Route::get('/careers/{slug}', [CareerController::class, 'show'])->name('careers.show');
+Route::get('/careers/{slug}/apply', [JobApplicationController::class, 'create'])->name('careers.apply');
+Route::post('/careers/{slug}/apply', [JobApplicationController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('careers.apply.store');
 
 // Dashboard Routes (Protected)
 Route::get('/dashboard', function () {
@@ -85,6 +97,12 @@ Route::middleware(['auth', 'verified', 'admin'])
         Route::resource('faqs', AdminFaqController::class)->except(['show']);
         Route::resource('posts', AdminPostController::class);
         Route::resource('ceo-messages', AdminCeoMessageController::class)->except(['show']);
+        Route::resource('jobs', JobPostController::class);
+        Route::resource('job-applications', AdminJobApplicationController::class)->only(['index', 'show']);
+        Route::post('job-applications/{application}/review', [AdminJobApplicationController::class, 'review'])->name('job-applications.review');
+        Route::post('job-applications/{application}/schedule-interview', [AdminJobApplicationController::class, 'scheduleInterview'])->name('job-applications.schedule-interview');
+        Route::post('job-applications/{application}/update-status', [AdminJobApplicationController::class, 'updateStatus'])->name('job-applications.update-status');
+        Route::post('interviews/{interview}/update-result', [AdminJobApplicationController::class, 'updateInterviewResult'])->name('interviews.update-result');
         Route::prefix('products/{product}/images')
             ->name('products.images.')
             ->group(function () {
