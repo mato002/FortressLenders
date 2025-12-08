@@ -74,6 +74,11 @@ class JobApplication extends Model
         return $this->hasMany(Interview::class);
     }
 
+    public function messages()
+    {
+        return $this->hasMany(JobApplicationMessage::class);
+    }
+
     public function scopePending($query)
     {
         return $query->where('status', 'pending');

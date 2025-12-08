@@ -110,6 +110,44 @@
                 </div>
             </div>
         </div>
+
+        <!-- Recent Activity Logs -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">Recent Activity Logs</h2>
+                <a href="{{ route('admin.activity-logs.index') }}" class="text-sm text-teal-700 font-medium">View all</a>
+            </div>
+            <div class="divide-y divide-gray-100">
+                @forelse ($recentActivityLogs as $log)
+                    <a href="{{ route('admin.activity-logs.show', $log) }}" class="py-4 block hover:bg-gray-50 rounded-lg px-2 -mx-2 transition">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold
+                                        @class([
+                                            'bg-green-100 text-green-800' => in_array($log->action, ['login', 'create']),
+                                            'bg-blue-100 text-blue-800' => in_array($log->action, ['update', 'view']),
+                                            'bg-red-100 text-red-800' => in_array($log->action, ['delete', 'logout', 'login_failed']),
+                                            'bg-amber-100 text-amber-800' => !in_array($log->action, ['login', 'create', 'update', 'view', 'delete', 'logout', 'login_failed']),
+                                        ])">
+                                        {{ \Illuminate\Support\Str::headline($log->action) }}
+                                    </span>
+                                    @if($log->user)
+                                        <span class="text-sm font-semibold text-gray-900">{{ $log->user->name }}</span>
+                                    @else
+                                        <span class="text-sm text-gray-500 italic">System</span>
+                                    @endif
+                                </div>
+                                <p class="text-sm text-gray-700 line-clamp-1">{{ $log->description }}</p>
+                                <p class="text-xs text-gray-400 mt-1">{{ $log->created_at->format('M d, Y g:i A') }} • {{ $log->created_at->diffForHumans() }}</p>
+                            </div>
+                        </div>
+                    </a>
+                @empty
+                    <p class="text-sm text-gray-500 py-4">No activity logs yet.</p>
+                @endforelse
+            </div>
+        </div>
     </div>
 @endsection
 

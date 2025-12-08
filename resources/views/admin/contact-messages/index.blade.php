@@ -13,12 +13,35 @@
 
 @section('content')
 
+    <form method="GET" action="{{ route('admin.contact-messages.index') }}" class="mb-4">
+        <div class="flex flex-col sm:flex-row gap-4">
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name, email, phone, subject, or message..." 
+                       class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+            </div>
+            @if(request('status'))
+                <input type="hidden" name="status" value="{{ request('status') }}">
+            @endif
+            <div class="flex items-end gap-2">
+                <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-colors font-semibold">
+                    Search
+                </button>
+                @if(request('search'))
+                    <a href="{{ route('admin.contact-messages.index', request()->only('status')) }}" class="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors font-semibold">
+                        Clear
+                    </a>
+                @endif
+            </div>
+        </div>
+    </form>
+
     <div class="mb-4 flex items-center gap-3 text-sm">
-        <a href="{{ route('admin.contact-messages.index') }}" class="px-3 py-1 rounded-full border {{ request('status') ? 'border-gray-200 text-gray-500' : 'border-teal-600 text-teal-700' }}">
+        <a href="{{ route('admin.contact-messages.index', request()->only('search')) }}" class="px-3 py-1 rounded-full border {{ request('status') ? 'border-gray-200 text-gray-500' : 'border-teal-600 text-teal-700' }}">
             All ({{ array_sum($statusCounts) }})
         </a>
         @foreach ($statusCounts as $key => $count)
-            <a href="{{ route('admin.contact-messages.index', ['status' => $key]) }}" class="px-3 py-1 rounded-full border {{ request('status') === $key ? 'border-teal-600 text-teal-700' : 'border-gray-200 text-gray-500' }}">
+            <a href="{{ route('admin.contact-messages.index', array_merge(request()->only('search'), ['status' => $key])) }}" class="px-3 py-1 rounded-full border {{ request('status') === $key ? 'border-teal-600 text-teal-700' : 'border-gray-200 text-gray-500' }}">
                 {{ Str::headline($key) }} ({{ $count }})
             </a>
         @endforeach

@@ -46,6 +46,11 @@ class LoanApplication extends Model
             'admin_notes' => $notes ?? $this->admin_notes,
         ]);
     }
+
+    public function messages()
+    {
+        return $this->hasMany(LoanApplicationMessage::class);
+    }
 }
 
 

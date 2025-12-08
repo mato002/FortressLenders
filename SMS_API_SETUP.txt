@@ -1,21 +1,2 @@
-===========================================
-SMS API Configuration Instructions
-===========================================
 
-Add these lines to your .env file:
-
-BULKSMS_API_URL=https://crm.pradytecai.com/api
-BULKSMS_API_KEY=USr4kTWk6nEcolzwiSTZJgMjZ0c4F2uh
-BULKSMS_CLIENT_ID=2
-BULKSMS_SENDER_ID=FORTRESS
-
-After adding, run:
-php artisan config:clear
-
-Then test sending an SMS from the contact messages page.
-
-For API documentation, visit:
-https://crm.pradytecai.com/api-documentation
-
-===========================================
 

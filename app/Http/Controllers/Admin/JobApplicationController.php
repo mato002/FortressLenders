@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\JobApplication;
+use App\Models\JobApplicationMessage;
 use App\Models\JobApplicationReview;
 use App\Models\Interview;
+use App\Services\MessagingService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class JobApplicationController extends Controller
@@ -31,7 +34,7 @@ class JobApplicationController extends Controller
         $application->makeVisible($application->getFillable());
         
         // Load relationships
-        $application->load(['jobPost', 'reviews.reviewer', 'interviews.conductedBy']);
+        $application->load(['jobPost', 'reviews.reviewer', 'interviews.conductedBy', 'messages.sender']);
         
         // Ensure jobPost relationship is available even if null
         if (!$application->jobPost && $application->job_post_id) {
@@ -40,6 +43,42 @@ class JobApplicationController extends Controller
         }
         
         return view('admin.job-applications.show', compact('application'));
+    }
+
+    public function sendMessage(Request $request, JobApplication $application): RedirectResponse
+    {
+        $validated = $request->validate([
+            'channel' => 'required|in:email,sms,whatsapp',
+            'message' => 'required|string|max:5000',
+            'recipient' => 'required|string',
+        ]);
+
+        // Validate recipient based on channel
+        if ($validated['channel'] === 'email') {
+            $request->validate(['recipient' => 'email']);
+        } else {
+            $request->validate(['recipient' => 'regex:/^[0-9+\-\s()]+$/']);
+        }
+
+        // Create message record
+        $jobMessage = JobApplicationMessage::create([
+            'job_application_id' => $application->id,
+            'sent_by' => auth()->id(),
+            'channel' => $validated['channel'],
+            'message' => $validated['message'],
+            'recipient' => $validated['recipient'],
+            'status' => 'pending',
+        ]);
+
+        // Send the message
+        $messagingService = new MessagingService();
+        $sent = $messagingService->send($jobMessage);
+
+        if ($sent) {
+            return back()->with('success', 'Message sent successfully via ' . strtoupper($validated['channel']) . '!');
+        } else {
+            return back()->withErrors(['message' => 'Failed to send message. Please check the error and try again.']);
+        }
     }
 
     public function review(Request $request, JobApplication $application)
