@@ -14,9 +14,10 @@
     </section>
 
     <!-- Loan Application Form -->
-    <section class="py-12 sm:py-16 md:py-20 bg-gray-50" id="apply-loan">
-        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32 max-w-5xl mx-auto">
-            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8 md:p-10">
+    <section class="py-12 sm:py-16 md:py-20 relative" id="apply-loan" style="background-image: url('https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'); background-size: cover; background-position: center; background-attachment: fixed;">
+        <div class="absolute inset-0 bg-gradient-to-br from-teal-900/90 via-teal-800/85 to-teal-900/90 backdrop-blur-md"></div>
+        <div class="relative w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32 max-w-5xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 sm:p-8 md:p-10">
                 <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">Loan Application Form</h2>
 
                 @if (session('status'))
@@ -185,6 +186,7 @@
         </div>
     </section>
 @endsection
+
 
 
 

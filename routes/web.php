@@ -27,6 +27,7 @@ use App\Http\Controllers\CareerController;
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\Admin\JobPostController;
 use App\Http\Controllers\Admin\JobApplicationController as AdminJobApplicationController;
+use App\Http\Controllers\CookieConsentController;
 use Illuminate\Support\Facades\Route;
 
 // Public Website Routes
@@ -49,6 +50,11 @@ Route::get('/faq', [FaqController::class, 'index'])->name('faq');
 Route::get('/news', [PostController::class, 'index'])->name('posts.index');
 Route::get('/news/{post:slug}', [PostController::class, 'show'])->name('posts.show');
 Route::get('/ceo-message', [CeoMessageController::class, 'index'])->name('ceo-message');
+
+// Cookie Consent Routes
+Route::post('/cookie-consent/accept', [CookieConsentController::class, 'accept'])->name('cookie.consent.accept');
+Route::post('/cookie-consent/reject', [CookieConsentController::class, 'reject'])->name('cookie.consent.reject');
+Route::get('/cookie-consent/check', [CookieConsentController::class, 'check'])->name('cookie.consent.check');
 
 // Career Routes
 Route::get('/careers', [CareerController::class, 'index'])->name('careers.index');
