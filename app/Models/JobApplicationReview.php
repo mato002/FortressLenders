@@ -29,3 +29,4 @@ class JobApplicationReview extends Model
     }
 }
 
+

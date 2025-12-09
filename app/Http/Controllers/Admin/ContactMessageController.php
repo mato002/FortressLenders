@@ -18,6 +18,17 @@ class ContactMessageController extends Controller
                 $request->filled('status'),
                 fn ($query) => $query->where('status', $request->string('status'))
             )
+            ->when(
+                $request->filled('search'),
+                fn ($query) => $query->where(function ($q) use ($request) {
+                    $search = $request->string('search');
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%")
+                      ->orWhere('subject', 'like', "%{$search}%")
+                      ->orWhere('message', 'like', "%{$search}%");
+                })
+            )
             ->orderByDesc('created_at')
             ->paginate(20)
             ->withQueryString();

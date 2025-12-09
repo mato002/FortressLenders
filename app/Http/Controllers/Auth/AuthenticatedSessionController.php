@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\ActivityLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,10 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
+    public function __construct(
+        protected ActivityLogService $activityLogService
+    ) {}
+
     /**
      * Display the login view.
      */
@@ -24,11 +29,25 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        try {
+            $request->authenticate();
 
-        $request->session()->regenerate();
+            $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+            $user = Auth::user();
+            
+            // Log successful login
+            if ($user) {
+                $this->activityLogService->logLogin($user, true);
+            }
+
+            return redirect()->intended(route('dashboard', absolute: false));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Log failed login attempt
+            $this->activityLogService->logLogin(null, false);
+            
+            throw $e;
+        }
     }
 
     /**
@@ -36,11 +55,18 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $user = Auth::user();
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
 
         $request->session()->regenerateToken();
+
+        // Log logout
+        if ($user) {
+            $this->activityLogService->logLogout($user);
+        }
 
         return redirect('/');
     }

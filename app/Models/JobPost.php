@@ -57,3 +57,4 @@ class JobPost extends Model
     }
 }
 
+

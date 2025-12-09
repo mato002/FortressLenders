@@ -19,6 +19,7 @@ use App\Http\Controllers\LoanApplicationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\AboutSettingsController;
 use App\Http\Controllers\Admin\LogoSettingsController;
+use App\Http\Controllers\Admin\ApiSettingsController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\CeoMessageController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\CareerController;
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\Admin\JobPostController;
 use App\Http\Controllers\Admin\JobApplicationController as AdminJobApplicationController;
+use App\Http\Controllers\Admin\ActivityLogController as AdminActivityLogController;
 use App\Http\Controllers\CookieConsentController;
 use Illuminate\Support\Facades\Route;
 
@@ -96,12 +98,15 @@ Route::middleware(['auth', 'verified', 'admin'])
         Route::post('/contact-page', [AdminContactSettingsController::class, 'update'])->name('contact.update');
         Route::get('/logo', [LogoSettingsController::class, 'edit'])->name('logo.edit');
         Route::post('/logo', [LogoSettingsController::class, 'update'])->name('logo.update');
+        Route::get('/api', [ApiSettingsController::class, 'edit'])->name('api.edit');
+        Route::post('/api', [ApiSettingsController::class, 'update'])->name('api.update');
         Route::resource('products', AdminProductController::class);
         Route::resource('team-members', AdminTeamMemberController::class)->except(['show']);
         Route::resource('branches', AdminBranchController::class)->except(['show']);
         Route::resource('contact-messages', AdminContactMessageController::class)->only(['index', 'show', 'update', 'destroy']);
         Route::post('contact-messages/{contactMessage}/reply', [AdminContactMessageController::class, 'sendReply'])->name('contact-messages.reply');
         Route::resource('loan-applications', AdminLoanApplicationController::class)->only(['index', 'show', 'update', 'destroy']);
+        Route::post('loan-applications/{loanApplication}/message', [AdminLoanApplicationController::class, 'sendMessage'])->name('loan-applications.message');
         Route::resource('faqs', AdminFaqController::class)->except(['show']);
         Route::resource('posts', AdminPostController::class);
         Route::resource('ceo-messages', AdminCeoMessageController::class)->except(['show']);
@@ -110,7 +115,9 @@ Route::middleware(['auth', 'verified', 'admin'])
         Route::post('job-applications/{application}/review', [AdminJobApplicationController::class, 'review'])->name('job-applications.review');
         Route::post('job-applications/{application}/schedule-interview', [AdminJobApplicationController::class, 'scheduleInterview'])->name('job-applications.schedule-interview');
         Route::post('job-applications/{application}/update-status', [AdminJobApplicationController::class, 'updateStatus'])->name('job-applications.update-status');
+        Route::post('job-applications/{application}/send-message', [AdminJobApplicationController::class, 'sendMessage'])->name('job-applications.send-message');
         Route::post('interviews/{interview}/update-result', [AdminJobApplicationController::class, 'updateInterviewResult'])->name('interviews.update-result');
+        Route::resource('activity-logs', AdminActivityLogController::class)->only(['index', 'show']);
         Route::prefix('products/{product}/images')
             ->name('products.images.')
             ->group(function () {

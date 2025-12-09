@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Branch;
 use App\Models\ContactMessage;
 use App\Models\LoanApplication;
@@ -26,7 +27,8 @@ class DashboardController extends Controller
         $recentMessages = ContactMessage::latest()->limit(5)->get();
         $recentApplications = LoanApplication::latest()->limit(5)->get();
         $latestProducts = Product::latest()->limit(5)->get();
+        $recentActivityLogs = ActivityLog::with('user')->latest()->limit(10)->get();
 
-        return view('admin.dashboard', compact('stats', 'recentMessages', 'recentApplications', 'latestProducts'));
+        return view('admin.dashboard', compact('stats', 'recentMessages', 'recentApplications', 'latestProducts', 'recentActivityLogs'));
     }
 }

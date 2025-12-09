@@ -418,6 +418,127 @@
                     </form>
                 </div>
 
+                <!-- Send Message -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
+                    <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Send Message</h2>
+                    
+                    @if(session('success'))
+                        <div class="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
+                    @if($errors->any())
+                        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                            <ul class="list-disc list-inside">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('admin.job-applications.send-message', $application) }}" class="space-y-4" id="message-form">
+                        @csrf
+                        
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-2">Message Channel <span class="text-red-500">*</span></label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <label class="flex items-center p-2 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-teal-500 transition-colors message-channel-option">
+                                    <input type="radio" name="channel" value="email" class="sr-only" checked onchange="updateMessageRecipient()">
+                                    <div class="flex items-center gap-2 w-full">
+                                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                        </svg>
+                                        <span class="text-xs font-medium">Email</span>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-2 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-teal-500 transition-colors message-channel-option">
+                                    <input type="radio" name="channel" value="sms" class="sr-only" onchange="updateMessageRecipient()">
+                                    <div class="flex items-center gap-2 w-full">
+                                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                        </svg>
+                                        <span class="text-xs font-medium">SMS</span>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-2 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-teal-500 transition-colors message-channel-option">
+                                    <input type="radio" name="channel" value="whatsapp" class="sr-only" onchange="updateMessageRecipient()">
+                                    <div class="flex items-center gap-2 w-full">
+                                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                        </svg>
+                                        <span class="text-xs font-medium">WhatsApp</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="message_recipient" class="block text-xs font-medium text-slate-600 mb-1">Recipient <span class="text-red-500">*</span></label>
+                            <input type="text" id="message_recipient" name="recipient" value="{{ $application->email }}" required
+                                   class="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent">
+                            <p class="text-xs text-slate-500 mt-1" id="message-recipient-hint">Enter email address</p>
+                        </div>
+
+                        <div>
+                            <label for="message_content" class="block text-xs font-medium text-slate-600 mb-1">Message <span class="text-red-500">*</span></label>
+                            <textarea id="message_content" name="message" rows="4" required maxlength="5000"
+                                      class="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-600 focus:border-transparent"
+                                      placeholder="Type your message here..."></textarea>
+                            <p class="text-xs text-slate-500 mt-1">
+                                <span id="message-char-count">0</span> / 5000 characters
+                                <span id="message-sms-count" class="hidden"> (Approx. <span id="message-sms-messages">0</span> SMS)</span>
+                            </p>
+                        </div>
+
+                        <button type="submit" class="w-full inline-flex justify-center items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-teal-700 hover:bg-teal-800">
+                            Send Message
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Message History -->
+                @if($application->messages && $application->messages->count() > 0)
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
+                        <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Message History</h2>
+                        <div class="space-y-3 max-h-96 overflow-y-auto">
+                            @foreach($application->messages->sortByDesc('created_at') as $message)
+                                <div class="border border-slate-200 rounded-lg p-3 {{ $message->status === 'failed' ? 'bg-red-50' : 'bg-slate-50' }}">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold
+                                                @if($message->status === 'sent') bg-green-100 text-green-800
+                                                @elseif($message->status === 'failed') bg-red-100 text-red-800
+                                                @else bg-yellow-100 text-yellow-800
+                                                @endif">
+                                                {{ strtoupper($message->channel) }} - {{ \Illuminate\Support\Str::headline($message->status) }}
+                                            </span>
+                                            <span class="text-xs text-slate-500">
+                                                {{ $message->created_at->format('M d, Y g:i A') }}
+                                            </span>
+                                        </div>
+                                        <span class="text-xs text-slate-500">
+                                            By {{ $message->sender->name ?? 'Admin' }}
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-700 mb-1">
+                                        <strong>To:</strong> {{ $message->recipient }}
+                                    </p>
+                                    <div class="text-xs text-slate-800 whitespace-pre-line bg-white rounded p-2 border border-slate-200">
+                                        {{ $message->message }}
+                                    </div>
+                                    @if($message->error_message)
+                                        <p class="text-xs text-red-600 mt-2">
+                                            <strong>Error:</strong> {{ $message->error_message }}
+                                        </p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Review Application -->
                 @if($application->status === 'pending')
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
@@ -605,6 +726,77 @@
                         }
                     });
                 }
+            }
+
+            // Handle message form channel switching
+            updateMessageRecipient();
+        });
+
+        // Update message recipient field based on selected channel
+        function updateMessageRecipient() {
+            const channel = document.querySelector('input[name="channel"]:checked')?.value;
+            if (!channel) return;
+            
+            const recipientInput = document.getElementById('message_recipient');
+            const recipientHint = document.getElementById('message-recipient-hint');
+            const channelOptions = document.querySelectorAll('.message-channel-option');
+
+            // Update visual selection
+            channelOptions.forEach(option => {
+                const input = option.querySelector('input[type="radio"]');
+                if (input && input.checked) {
+                    option.classList.add('border-teal-500', 'bg-teal-50');
+                } else {
+                    option.classList.remove('border-teal-500', 'bg-teal-50');
+                }
+            });
+
+            // Update recipient field based on channel
+            if (channel === 'email') {
+                recipientInput.type = 'email';
+                recipientInput.value = '{{ $application->email }}';
+                recipientHint.textContent = 'Enter email address';
+            } else {
+                recipientInput.type = 'tel';
+                recipientInput.value = '{{ $application->phone ?? "" }}';
+                recipientHint.textContent = 'Enter phone number (e.g., 0712345678 or +254712345678)';
+            }
+        }
+
+        // Character counter and SMS calculator for message form
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageInput = document.getElementById('message_content');
+            if (messageInput) {
+                messageInput.addEventListener('input', function() {
+                    const message = this.value;
+                    const charCount = message.length;
+                    const charCountEl = document.getElementById('message-char-count');
+                    const smsCountEl = document.getElementById('message-sms-count');
+                    const smsMessagesEl = document.getElementById('message-sms-messages');
+                    const channel = document.querySelector('input[name="channel"]:checked')?.value;
+
+                    if (charCountEl) {
+                        charCountEl.textContent = charCount;
+                    }
+
+                    // Show SMS count for SMS channel
+                    if (channel === 'sms' && smsCountEl && smsMessagesEl) {
+                        const smsCount = Math.ceil(charCount / 160);
+                        smsMessagesEl.textContent = smsCount;
+                        smsCountEl.classList.remove('hidden');
+                    } else if (smsCountEl) {
+                        smsCountEl.classList.add('hidden');
+                    }
+                });
+
+                // Update on channel change
+                document.querySelectorAll('input[name="channel"]').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        updateMessageRecipient();
+                        // Trigger character count update
+                        messageInput.dispatchEvent(new Event('input'));
+                    });
+                });
             }
         });
     </script>
