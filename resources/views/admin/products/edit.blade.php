@@ -48,7 +48,7 @@
                                             </button>
                                         </form>
                                     @endif
-                                    <form method="POST" action="{{ route('admin.products.images.destroy', [$product, $image]) }}" onsubmit="return confirm('Remove this image?')">
+                                    <form method="POST" action="{{ route('admin.products.images.destroy', [$product, $image]) }}" class="delete-image-form">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="px-3 py-2 text-xs font-semibold text-red-700 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100">
@@ -72,4 +72,48 @@
         @endif
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle image delete forms with SweetAlert
+        document.querySelectorAll('.delete-image-form').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formElement = this;
+                
+                Swal.fire({
+                    title: 'Delete Image?',
+                    text: 'Are you sure you want to delete this image? This action cannot be undone.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading state
+                        Swal.fire({
+                            title: 'Deleting...',
+                            text: 'Please wait while we delete the image.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                        
+                        // Submit the form
+                        formElement.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
+@endpush
 

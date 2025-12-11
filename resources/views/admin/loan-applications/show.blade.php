@@ -5,16 +5,16 @@
 @section('header-description', 'Review the full details of this loan application.')
 
 @section('content')
-    <div class="space-y-6">
-        <div class="flex items-center justify-between gap-4">
-            <div>
-                <h1 class="text-xl font-semibold text-slate-900">Loan Application</h1>
-                <p class="text-sm text-slate-500 mt-1">
+    <div class="space-y-4 sm:space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div class="min-w-0 flex-1">
+                <h1 class="text-lg sm:text-xl font-semibold text-slate-900 truncate">Loan Application</h1>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">
                     Submitted {{ $loanApplication->created_at->format('M d, Y H:i') }}
                 </p>
             </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ route('admin.loan-applications.index') }}" class="px-3 py-2 text-sm rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50">
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <a href="{{ route('admin.loan-applications.index') }}" class="px-3 py-2 text-xs sm:text-sm rounded-lg sm:rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 whitespace-nowrap">
                     Back to list
                 </a>
             </div>
@@ -26,10 +26,10 @@
             </div>
         @endif
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             <!-- Main details -->
-            <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
+            <div class="lg:col-span-2 space-y-4 sm:space-y-6">
+                <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-5 lg:p-6">
                     <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Client Personal Information</h2>
                     <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                         <div>
@@ -67,7 +67,7 @@
                     </dl>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
+                <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-5 lg:p-6">
                     <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Loan Information</h2>
                     <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                         <div>
@@ -100,9 +100,9 @@
             </div>
 
             <!-- Status / admin notes -->
-            <div class="space-y-6">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
-                    <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Status</h2>
+            <div class="space-y-4 sm:space-y-6">
+                <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-5 lg:p-6">
+                    <h2 class="text-xs sm:text-sm font-semibold text-slate-700 uppercase tracking-wide mb-3 sm:mb-4">Status</h2>
 
                     @php
                         $status = $loanApplication->status;
@@ -126,7 +126,7 @@
                         @endif
                     </div>
 
-                    <form method="POST" action="{{ route('admin.loan-applications.update', $loanApplication) }}" class="space-y-4">
+                    <form method="POST" action="{{ route('admin.loan-applications.update', $loanApplication) }}" class="space-y-3 sm:space-y-4">
                         @csrf
                         @method('PUT')
 
@@ -149,19 +149,18 @@
                         </div>
 
                         <button type="submit"
-                                class="w-full inline-flex justify-center items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-teal-700 hover:bg-teal-800 focus:ring-2 focus:ring-offset-1 focus:ring-teal-600">
+                                class="w-full inline-flex justify-center items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold text-white bg-teal-700 hover:bg-teal-800 focus:ring-2 focus:ring-offset-1 focus:ring-teal-600">
                             Save Changes
                         </button>
                     </form>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-rose-100 p-4">
-                    <form method="POST" action="{{ route('admin.loan-applications.destroy', $loanApplication) }}"
-                          onsubmit="return confirm('Are you sure you want to delete this application? This action cannot be undone.');">
+                <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-rose-100 p-3 sm:p-4">
+                    <form method="POST" action="{{ route('admin.loan-applications.destroy', $loanApplication) }}" class="delete-loan-application-form">
                         @csrf
                         @method('DELETE')
                         <button type="submit"
-                                class="w-full inline-flex justify-center items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200">
+                                class="w-full inline-flex justify-center items-center gap-2 px-3 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200">
                             Delete Application
                         </button>
                     </form>
@@ -170,8 +169,8 @@
         </div>
 
         <!-- Message Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 space-y-4">
-            <h2 class="text-lg font-semibold text-slate-900">Send Message to Applicant</h2>
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-5 lg:p-6 space-y-3 sm:space-y-4">
+            <h2 class="text-base sm:text-lg font-semibold text-slate-900">Send Message to Applicant</h2>
             
             @if(session('status'))
                 <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg">
@@ -189,7 +188,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('admin.loan-applications.message', $loanApplication) }}" class="space-y-4" id="message-form">
+            <form method="POST" action="{{ route('admin.loan-applications.message', $loanApplication) }}" class="space-y-3 sm:space-y-4" id="message-form">
                 @csrf
                 
                 <div>
@@ -243,12 +242,12 @@
                     </p>
                 </div>
 
-                <div class="flex justify-end gap-3">
+                <div class="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
                     <button type="button" onclick="document.getElementById('message-form').reset(); updateRecipient();" 
-                            class="px-4 py-2 border border-slate-200 rounded-xl text-slate-700 font-semibold hover:bg-slate-50">
+                            class="px-3 sm:px-4 py-2 border border-slate-200 rounded-lg sm:rounded-xl text-xs sm:text-sm text-slate-700 font-semibold hover:bg-slate-50 whitespace-nowrap">
                         Clear
                     </button>
-                    <button type="submit" class="px-6 py-2 bg-teal-700 text-white rounded-xl font-semibold hover:bg-teal-800">
+                    <button type="submit" class="px-4 sm:px-6 py-2 bg-teal-700 text-white rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold hover:bg-teal-800 whitespace-nowrap">
                         Send Message
                     </button>
                 </div>
@@ -260,7 +259,7 @@
             $messages = $loanApplication->messages ?? collect();
         @endphp
         @if($messages->count() > 0)
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 space-y-4">
+            <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-5 lg:p-6 space-y-3 sm:space-y-4">
                 <h2 class="text-lg font-semibold text-slate-900">Message History</h2>
                 <div class="space-y-3">
                     @foreach($messages->sortByDesc('created_at') as $message)
@@ -385,9 +384,46 @@
 
         // Initialize
         updateRecipient();
+
+        // Handle delete form with SweetAlert
+        document.querySelector('.delete-loan-application-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formElement = this;
+            
+            Swal.fire({
+                title: 'Delete Application?',
+                text: 'Are you sure you want to delete this loan application? This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading state
+                    Swal.fire({
+                        title: 'Deleting...',
+                        text: 'Please wait while we delete the application.',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    // Submit the form
+                    formElement.submit();
+                }
+            });
+        });
     </script>
     @endpush
 @endsection
+
 
 
 

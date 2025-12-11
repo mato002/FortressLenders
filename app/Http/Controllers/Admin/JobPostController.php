@@ -84,12 +84,16 @@ class JobPostController extends Controller
             ->with('success', 'Job post updated successfully!');
     }
 
-    public function destroy(JobPost $job)
+    public function toggleStatus(JobPost $job)
     {
-        $job->delete();
+        $job->update([
+            'is_active' => !$job->is_active
+        ]);
 
+        $status = $job->is_active ? 'activated' : 'deactivated';
+        
         return redirect()->route('admin.jobs.index')
-            ->with('success', 'Job post deleted successfully!');
+            ->with('success', "Job post {$status} successfully!");
     }
 }
 

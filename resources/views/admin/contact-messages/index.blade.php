@@ -6,8 +6,9 @@
 @section('header-description', 'View and respond to inquiries submitted through the website.')
 
 @section('header-actions')
-    <a href="{{ route('admin.contact-messages.index') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50">
-        Refresh
+    <a href="{{ route('admin.contact-messages.index') }}" class="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 border border-slate-200 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-50 whitespace-nowrap">
+        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.5 12h15m-7.5 7.5v-15"/></svg>
+        <span class="hidden sm:inline">Refresh</span>
     </a>
 @endsection
 
@@ -47,25 +48,26 @@
         @endforeach
     </div>
 
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <table class="w-full text-sm">
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+        <table class="w-full text-sm min-w-[640px]">
             <thead class="bg-gray-50 text-gray-500 uppercase tracking-wide text-xs">
                 <tr>
-                    <th class="px-6 py-3">Name</th>
-                    <th class="px-6 py-3">Email</th>
-                    <th class="px-6 py-3">Subject</th>
-                    <th class="px-6 py-3">Status</th>
-                    <th class="px-6 py-3">Date</th>
-                    <th class="px-6 py-3 text-right">Actions</th>
+                    <th class="px-3 sm:px-6 py-3">Name</th>
+                    <th class="px-3 sm:px-6 py-3 hidden sm:table-cell">Email</th>
+                    <th class="px-3 sm:px-6 py-3 hidden md:table-cell">Subject</th>
+                    <th class="px-3 sm:px-6 py-3">Status</th>
+                    <th class="px-3 sm:px-6 py-3 hidden sm:table-cell">Date</th>
+                    <th class="px-3 sm:px-6 py-3 text-right">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse ($messages as $message)
                     <tr>
-                        <td class="px-6 py-4 font-semibold text-gray-900">{{ $message->name }}</td>
-                        <td class="px-6 py-4 text-gray-600">{{ $message->email }}</td>
-                        <td class="px-6 py-4 text-gray-600">{{ $message->subject ?? '—' }}</td>
-                        <td class="px-6 py-4">
+                        <td class="px-3 sm:px-6 py-4 font-semibold text-gray-900 text-sm sm:text-base">{{ $message->name }}</td>
+                        <td class="px-3 sm:px-6 py-4 text-gray-600 text-xs sm:text-sm hidden sm:table-cell truncate max-w-[200px]">{{ $message->email }}</td>
+                        <td class="px-3 sm:px-6 py-4 text-gray-600 text-xs sm:text-sm hidden md:table-cell truncate max-w-[200px]">{{ $message->subject ?? '—' }}</td>
+                        <td class="px-3 sm:px-6 py-4">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
                                 @class([
                                     'bg-gray-200 text-gray-700' => $message->status === 'new',
@@ -75,9 +77,9 @@
                                 {{ Str::headline($message->status) }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-gray-600">{{ $message->created_at->format('M d, Y g:i A') }}</td>
-                        <td class="px-6 py-4 text-right">
-                            <a href="{{ route('admin.contact-messages.show', $message) }}" class="text-teal-700 font-semibold">View</a>
+                        <td class="px-3 sm:px-6 py-4 text-gray-600 text-xs sm:text-sm hidden sm:table-cell">{{ $message->created_at->format('M d, Y g:i A') }}</td>
+                        <td class="px-3 sm:px-6 py-4 text-right">
+                            <a href="{{ route('admin.contact-messages.show', $message) }}" class="text-teal-700 font-semibold text-xs sm:text-sm">View</a>
                         </td>
                     </tr>
                 @empty
@@ -87,9 +89,10 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
 
-    <div class="mt-6">
+    <div class="mt-4 sm:mt-6">
         {{ $messages->links() }}
     </div>
 @endsection

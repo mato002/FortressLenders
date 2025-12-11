@@ -5,43 +5,43 @@
 @section('content')
     <!-- Hero Section -->
     <section class="bg-gradient-to-br from-teal-800 via-teal-700 to-teal-900 text-white py-12 sm:py-16 md:py-20">
-        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-24 text-center">
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 px-4">Apply for {{ $job->title }}</h1>
-            <p class="text-lg sm:text-xl text-teal-100 px-4">Complete the application form below</p>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">Apply for {{ $job->title }}</h1>
+            <p class="text-lg sm:text-xl text-teal-100">Complete the application form below</p>
         </div>
     </section>
 
     <!-- Application Form -->
-    <section class="py-12 sm:py-16 md:py-20 bg-gray-50">
-        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32 max-w-5xl mx-auto">
+    <section class="py-12 sm:py-16 md:py-20 bg-gray-50 overflow-x-hidden">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8 md:p-10">
                 <!-- Progress Indicator -->
-                <div class="mb-8">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 rounded-full bg-teal-800 text-white flex items-center justify-center font-semibold" id="step-1-indicator">1</div>
-                            <span class="ml-3 text-sm font-medium text-gray-900">Personal & Education</span>
+                <div class="mb-8 overflow-x-auto">
+                    <div class="flex items-center justify-between mb-4 min-w-max sm:min-w-0">
+                        <div class="flex items-center flex-shrink-0">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-teal-800 text-white flex items-center justify-center font-semibold text-xs sm:text-sm" id="step-1-indicator">1</div>
+                            <span class="ml-2 sm:ml-3 text-xs sm:text-sm font-medium text-gray-900 whitespace-nowrap">Personal & Education</span>
                         </div>
-                        <div class="flex-1 mx-2 h-1 bg-gray-200">
-                            <div class="h-1 bg-teal-800 transition-all duration-300" id="progress-bar" style="width: 0%"></div>
+                        <div class="flex-1 mx-1 sm:mx-2 h-1 bg-gray-200 min-w-[20px] sm:min-w-[40px]">
+                            <div class="h-1 bg-teal-800 transition-all duration-300" id="progress-bar-1" style="width: 0%"></div>
                         </div>
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-semibold" id="step-2-indicator">2</div>
-                            <span class="ml-3 text-sm font-medium text-gray-600">Job Questions</span>
+                        <div class="flex items-center flex-shrink-0">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-semibold text-xs sm:text-sm" id="step-2-indicator">2</div>
+                            <span class="ml-2 sm:ml-3 text-xs sm:text-sm font-medium text-gray-600 whitespace-nowrap">Job Questions</span>
                         </div>
-                        <div class="flex-1 mx-2 h-1 bg-gray-200">
-                            <div class="h-1 bg-gray-200"></div>
+                        <div class="flex-1 mx-1 sm:mx-2 h-1 bg-gray-200 min-w-[20px] sm:min-w-[40px]">
+                            <div class="h-1 bg-gray-200 transition-all duration-300" id="progress-bar-2" style="width: 0%"></div>
                         </div>
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-semibold" id="step-3-indicator">3</div>
-                            <span class="ml-3 text-sm font-medium text-gray-600">Support Details</span>
+                        <div class="flex items-center flex-shrink-0">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-semibold text-xs sm:text-sm" id="step-3-indicator">3</div>
+                            <span class="ml-2 sm:ml-3 text-xs sm:text-sm font-medium text-gray-600 whitespace-nowrap">Support Details</span>
                         </div>
-                        <div class="flex-1 mx-2 h-1 bg-gray-200">
-                            <div class="h-1 bg-gray-200"></div>
+                        <div class="flex-1 mx-1 sm:mx-2 h-1 bg-gray-200 min-w-[20px] sm:min-w-[40px]">
+                            <div class="h-1 bg-gray-200 transition-all duration-300" id="progress-bar-3" style="width: 0%"></div>
                         </div>
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-semibold" id="step-4-indicator">4</div>
-                            <span class="ml-3 text-sm font-medium text-gray-600">References & Agreement</span>
+                        <div class="flex items-center flex-shrink-0">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-semibold text-xs sm:text-sm" id="step-4-indicator">4</div>
+                            <span class="ml-2 sm:ml-3 text-xs sm:text-sm font-medium text-gray-600 whitespace-nowrap">References & Agreement</span>
                         </div>
                     </div>
                 </div>
@@ -538,33 +538,71 @@
         let currentPage = 1;
         let referrerCount = 1;
 
+        // Ensure DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize progress on page load
+            updateProgress();
+            updateProgressBars();
+        });
+
         function updateProgress() {
+            // Update main progress bar
             const progress = ((currentPage - 1) / 3) * 100;
-            document.getElementById('progress-bar').style.width = progress + '%';
+            const progressBar = document.getElementById('progress-bar-1');
+            if (progressBar) {
+                progressBar.style.width = progress + '%';
+                if (currentPage > 1) {
+                    progressBar.className = 'h-1 bg-teal-800 transition-all duration-300';
+                }
+            }
 
             // Update step indicators
             for (let i = 1; i <= 4; i++) {
                 const indicator = document.getElementById(`step-${i}-indicator`);
-                const label = indicator.nextElementSibling;
+                if (!indicator) continue;
+                
+                const parentDiv = indicator.closest('.flex.items-center');
+                const label = parentDiv ? parentDiv.querySelector('span') : null;
+                
                 if (i < currentPage) {
-                    indicator.className = 'w-10 h-10 rounded-full bg-teal-800 text-white flex items-center justify-center font-semibold';
-                    label.className = 'ml-3 text-sm font-medium text-gray-900';
+                    // Completed step - show checkmark
+                    indicator.className = 'w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-green-600 text-white flex items-center justify-center font-semibold flex-shrink-0';
+                    // Use a checkmark SVG that's more visible
+                    indicator.innerHTML = '<svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>';
+                    if (label) {
+                        label.className = 'ml-2 sm:ml-3 text-xs sm:text-sm font-medium text-gray-900 whitespace-nowrap';
+                    }
                 } else if (i === currentPage) {
-                    indicator.className = 'w-10 h-10 rounded-full bg-teal-600 text-white flex items-center justify-center font-semibold';
-                    label.className = 'ml-3 text-sm font-medium text-gray-900';
+                    // Current step - show number
+                    indicator.className = 'w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-teal-800 text-white flex items-center justify-center font-semibold text-xs sm:text-sm flex-shrink-0';
+                    indicator.innerHTML = String(i);
+                    if (label) {
+                        label.className = 'ml-2 sm:ml-3 text-xs sm:text-sm font-medium text-gray-900 whitespace-nowrap';
+                    }
                 } else {
-                    indicator.className = 'w-10 h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-semibold';
-                    label.className = 'ml-3 text-sm font-medium text-gray-600';
+                    // Future step - show number in gray
+                    indicator.className = 'w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-semibold text-xs sm:text-sm flex-shrink-0';
+                    indicator.innerHTML = String(i);
+                    if (label) {
+                        label.className = 'ml-2 sm:ml-3 text-xs sm:text-sm font-medium text-gray-600 whitespace-nowrap';
+                    }
                 }
             }
         }
 
         function showPage(page) {
             for (let i = 1; i <= 4; i++) {
-                document.getElementById(`page-${i}`).classList.toggle('hidden', i !== page);
+                const pageElement = document.getElementById(`page-${i}`);
+                if (pageElement) {
+                    pageElement.classList.toggle('hidden', i !== page);
+                }
             }
             currentPage = page;
-            updateProgress();
+            // Force immediate update
+            setTimeout(function() {
+                updateProgress();
+                updateProgressBars();
+            }, 10);
         }
 
         function nextPage() {
@@ -980,8 +1018,39 @@
             fileNameDiv.classList.add('hidden');
         }
 
-        // Initialize
-        updateProgress();
+        // Update progress bars between steps
+        function updateProgressBars() {
+            for (let i = 1; i < 4; i++) {
+                const progressBar = document.getElementById(`progress-bar-${i}`);
+                if (progressBar) {
+                    if (i < currentPage) {
+                        // Completed - show full green bar
+                        progressBar.className = 'h-1 bg-teal-800 transition-all duration-300';
+                        progressBar.style.width = '100%';
+                    } else if (i === currentPage - 1) {
+                        // Current step - show partial progress
+                        progressBar.className = 'h-1 bg-teal-800 transition-all duration-300';
+                        progressBar.style.width = '50%';
+                    } else {
+                        // Future step - show gray
+                        progressBar.className = 'h-1 bg-gray-200 transition-all duration-300';
+                        progressBar.style.width = '0%';
+                    }
+                }
+            }
+        }
+
+        // Initialize on page load (after DOM is ready)
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                updateProgress();
+                updateProgressBars();
+            });
+        } else {
+            // DOM is already ready
+            updateProgress();
+            updateProgressBars();
+        }
     </script>
     @endpush
 @endsection

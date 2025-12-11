@@ -17,7 +17,7 @@
     
     @stack('styles')
 </head>
-<body class="bg-gray-50 text-gray-900 antialiased">
+<body class="bg-gray-50 text-gray-900 antialiased overflow-x-hidden">
     <!-- Navigation -->
     <nav class="fixed top-0 left-0 right-0 z-50 bg-white shadow-md transition-all duration-300" id="navbar">
         <div class="w-full px-4 sm:px-6 lg:px-12">
@@ -72,7 +72,7 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="pt-16 md:pt-20">
+    <main class="pt-16 md:pt-20 overflow-x-hidden">
         @yield('content')
     </main>
 

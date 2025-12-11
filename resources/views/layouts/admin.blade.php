@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Admin · Fortress Lenders')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     @stack('styles')
 </head>
 <body class="bg-[#F0F9F8] text-teal-950 antialiased">
     <div class="min-h-screen bg-gradient-to-br from-white via-[#F0F9F8] to-[#E1F4F2]">
-        <aside id="sidebar" class="hidden lg:flex lg:flex-col h-screen bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 text-white border-r border-teal-900/40 shadow-2xl lg:fixed lg:inset-y-0 lg:left-0 transition-all duration-300 ease-in-out" style="width: 288px;">
+        <aside id="sidebar" class="hidden lg:flex lg:flex-col h-screen bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 text-white border-r border-teal-900/40 shadow-2xl lg:fixed lg:inset-y-0 lg:left-0 transition-all duration-300 ease-in-out overflow-hidden" style="width: 288px;">
             <div class="px-4 py-6 border-b border-white/10 flex items-center gap-3 flex-shrink-0 relative">
                 @if(isset($logoPath) && $logoPath)
                     <img src="{{ asset('storage/'.$logoPath) }}" alt="Fortress Lenders" class="h-10 w-auto object-contain sidebar-logo flex-shrink-0">
@@ -26,7 +30,7 @@
                     </svg>
                 </button>
             </div>
-            <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto overflow-x-hidden sidebar-nav" style="scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.3) transparent;">
+            <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto overflow-x-hidden sidebar-nav min-h-0" style="scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.3) transparent;">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.dashboard') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Dashboard">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                     <span class="sidebar-text">Dashboard</span>
@@ -105,7 +109,7 @@
                 
                 <!-- Settings Dropdown -->
                 <div class="nav-dropdown">
-                    <button type="button" onclick="toggleDropdown('settings-dropdown')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.logo.*') || request()->routeIs('admin.api.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Settings">
+                    <button type="button" onclick="toggleDropdown('settings-dropdown')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.profile') || request()->routeIs('admin.logo.*') || request()->routeIs('admin.api.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Settings">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         <span class="sidebar-text flex-1 text-left">Settings</span>
                         <svg id="settings-dropdown-arrow" class="w-4 h-4 flex-shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,6 +117,10 @@
                         </svg>
                     </button>
                     <div id="settings-dropdown" class="dropdown-menu hidden ml-4 mt-1 space-y-1">
+                        <a href="{{ route('admin.profile') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition {{ request()->routeIs('admin.profile') ? 'bg-amber-400/20 text-white' : 'text-white/75 hover:bg-white/10' }}" title="Profile Settings">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            <span class="sidebar-text">Profile Settings</span>
+                        </a>
                         <a href="{{ route('admin.logo.edit') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition {{ request()->routeIs('admin.logo.*') ? 'bg-amber-400/20 text-white' : 'text-white/75 hover:bg-white/10' }}" title="Logo Settings">
                             <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             <span class="sidebar-text">Logo Settings</span>
@@ -131,11 +139,11 @@
             </div>
         </aside>
 
-        <div id="main-content" class="flex flex-col min-h-screen" style="padding-left: 288px;">
+        <div id="main-content" class="flex flex-col min-h-screen pl-0 lg:pl-[288px]">
             <div class="lg:hidden">
                 <div id="mobile-backdrop" class="fixed inset-0 bg-black/50 hidden z-40" onclick="toggleSidebar()"></div>
-                <aside id="mobile-menu" class="fixed inset-y-0 left-0 w-72 bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 text-white z-50 transform -translate-x-full transition-transform duration-300 shadow-2xl">
-                    <div class="px-6 py-6 border-b border-white/10 flex items-center justify-between">
+                <aside id="mobile-menu" class="fixed inset-y-0 left-0 w-72 bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 text-white z-50 transform -translate-x-full transition-transform duration-300 shadow-2xl flex flex-col overflow-hidden">
+                    <div class="px-6 py-6 border-b border-white/10 flex items-center justify-between flex-shrink-0">
                         <div class="flex items-center gap-3">
                             @if(isset($logoPath) && $logoPath)
                                 <img src="{{ asset('storage/'.$logoPath) }}" alt="Fortress Lenders" class="h-10 w-auto object-contain">
@@ -149,37 +157,142 @@
                         </div>
                         <button class="p-2 rounded-lg border border-white/20" onclick="toggleSidebar()">✕</button>
                     </div>
-                    <nav class="px-4 py-6 space-y-2">
-                        <a href="{{ route('admin.dashboard') }}" class="block px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.dashboard') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">Dashboard</a>
-                        <a href="{{ route('admin.products.index') }}" class="block px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.products.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">Products</a>
-                        <a href="{{ route('admin.team-members.index') }}" class="block px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.team-members.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">Team</a>
-                        <a href="{{ route('admin.branches.index') }}" class="block px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.branches.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">Branches</a>
-                        <a href="{{ route('admin.home.edit') }}" class="block px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.home.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">Home Page</a>
-                        <a href="{{ route('admin.about.edit') }}" class="block px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.about.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">About Page</a>
-                        <a href="{{ route('admin.contact-messages.index') }}" class="block px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.contact-messages.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">Contact Messages</a>
-                        <a href="{{ route('admin.loan-applications.index') }}" class="block px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.loan-applications.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">Loan Applications</a>
-                        <a href="{{ route('admin.contact.edit') }}" class="block px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.contact.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">Contact Page</a>
-                        <a href="{{ route('admin.jobs.index') }}" class="block px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.jobs.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">Job Posts</a>
-                        <a href="{{ route('admin.job-applications.index') }}" class="block px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.job-applications.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">Job Applications</a>
-                        <a href="{{ route('admin.logo.edit') }}" class="block px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.logo.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">Logo Settings</a>
+                    <nav class="px-4 py-6 space-y-2 overflow-y-auto overflow-x-hidden flex-1 min-h-0" style="scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.3) transparent;">
+                        <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.dashboard') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.products.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                            <span>Products</span>
+                        </a>
+                        <a href="{{ route('admin.team-members.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.team-members.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <span>Team</span>
+                        </a>
+                        <a href="{{ route('admin.branches.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.branches.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <span>Branches</span>
+                        </a>
+                        
+                        <!-- Pages Dropdown -->
+                        <div class="mobile-dropdown">
+                            <button type="button" onclick="toggleMobileDropdown('mobile-pages-dropdown')" class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.home.*') || request()->routeIs('admin.about.*') || request()->routeIs('admin.contact.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">
+                                <div class="flex items-center gap-3">
+                                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span>Pages</span>
+                                </div>
+                                <svg id="mobile-pages-dropdown-arrow" class="w-4 h-4 flex-shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div id="mobile-pages-dropdown" class="mobile-dropdown-menu hidden ml-4 mt-1 space-y-1">
+                                <a href="{{ route('admin.home.edit') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm {{ request()->routeIs('admin.home.*') ? 'bg-amber-400/20 text-white' : 'text-white/75 hover:bg-white/10' }}">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                                    <span>Home Page</span>
+                                </a>
+                                <a href="{{ route('admin.about.edit') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm {{ request()->routeIs('admin.about.*') ? 'bg-amber-400/20 text-white' : 'text-white/75 hover:bg-white/10' }}">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>About Page</span>
+                                </a>
+                                <a href="{{ route('admin.contact.edit') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm {{ request()->routeIs('admin.contact.*') ? 'bg-amber-400/20 text-white' : 'text-white/75 hover:bg-white/10' }}">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                    <span>Contact Page</span>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <a href="{{ route('admin.contact-messages.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.contact-messages.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            <span>Contact Messages</span>
+                        </a>
+                        <a href="{{ route('admin.loan-applications.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.loan-applications.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Loan Applications</span>
+                        </a>
+                        <a href="{{ route('admin.activity-logs.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.activity-logs.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                            <span>Activity Logs</span>
+                        </a>
+                        
+                        <!-- Careers Dropdown -->
+                        <div class="mobile-dropdown">
+                            <button type="button" onclick="toggleMobileDropdown('mobile-careers-dropdown')" class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.jobs.*') || request()->routeIs('admin.job-applications.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">
+                                <div class="flex items-center gap-3">
+                                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                    <span>Careers</span>
+                                </div>
+                                <svg id="mobile-careers-dropdown-arrow" class="w-4 h-4 flex-shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div id="mobile-careers-dropdown" class="mobile-dropdown-menu hidden ml-4 mt-1 space-y-1">
+                                <a href="{{ route('admin.jobs.index') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm {{ request()->routeIs('admin.jobs.*') ? 'bg-amber-400/20 text-white' : 'text-white/75 hover:bg-white/10' }}">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                    <span>Job Posts</span>
+                                </a>
+                                <a href="{{ route('admin.job-applications.index') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm {{ request()->routeIs('admin.job-applications.*') ? 'bg-amber-400/20 text-white' : 'text-white/75 hover:bg-white/10' }}">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span>Job Applications</span>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Settings Dropdown -->
+                        <div class="mobile-dropdown">
+                            <button type="button" onclick="toggleMobileDropdown('mobile-settings-dropdown')" class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.profile') || request()->routeIs('admin.logo.*') || request()->routeIs('admin.api.*') ? 'bg-amber-400/20 text-white border border-amber-200/40' : 'text-white/80 hover:bg-white/10' }}">
+                                <div class="flex items-center gap-3">
+                                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    <span>Settings</span>
+                                </div>
+                                <svg id="mobile-settings-dropdown-arrow" class="w-4 h-4 flex-shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                                </button>
+                            <div id="mobile-settings-dropdown" class="mobile-dropdown-menu hidden ml-4 mt-1 space-y-1">
+                                <a href="{{ route('admin.profile') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm {{ request()->routeIs('admin.profile') ? 'bg-amber-400/20 text-white' : 'text-white/75 hover:bg-white/10' }}">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                    <span>Profile Settings</span>
+                                </a>
+                                <a href="{{ route('admin.logo.edit') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm {{ request()->routeIs('admin.logo.*') ? 'bg-amber-400/20 text-white' : 'text-white/75 hover:bg-white/10' }}">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                    <span>Logo Settings</span>
+                                </a>
+                                <a href="{{ route('admin.api.edit') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm {{ request()->routeIs('admin.api.*') ? 'bg-amber-400/20 text-white' : 'text-white/75 hover:bg-white/10' }}">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                                    <span>API Settings</span>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-white/10 my-2"></div>
+                        <a href="{{ route('home') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/80 hover:bg-white/10">
+                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            <span>View Website</span>
+                        </a>
                     </nav>
                 </aside>
             </div>
 
             <div class="flex-1 flex flex-col min-h-screen">
                 <header class="bg-white/80 backdrop-blur border-b border-teal-100 shadow-sm sticky top-0 z-20">
-                <div class="px-4 sm:px-6 lg:px-10 py-5 space-y-4">
-                    <div class="flex items-center justify-between gap-4">
-                        <div class="flex items-center gap-3">
-                                <button class="lg:hidden p-2 rounded-lg border border-teal-200 text-teal-700" onclick="toggleSidebar()">☰</button>
-                            <div>
-                                    <p class="text-xs uppercase tracking-[0.3em] text-teal-500">Admin Panel</p>
-                                    <h1 class="text-2xl font-bold text-teal-900">@yield('title', 'Dashboard')</h1>
-                                    <p class="text-sm text-teal-600">@yield('header-description', "Monitor everything that's happening today.")</p>
+                <div class="px-3 sm:px-4 lg:px-10 py-3 sm:py-4 lg:py-5 space-y-3 sm:space-y-4">
+                    <div class="flex items-start sm:items-center justify-between gap-2 sm:gap-4">
+                        <div class="flex items-start sm:items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                                <button class="lg:hidden p-2 rounded-lg border border-teal-200 text-teal-700 flex-shrink-0" onclick="toggleSidebar()" aria-label="Toggle menu">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
+                                </button>
+                            <div class="min-w-0 flex-1">
+                                    <p class="text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-teal-500">Admin Panel</p>
+                                    <h1 class="text-lg sm:text-xl lg:text-2xl font-bold text-teal-900 truncate">@yield('title', 'Dashboard')</h1>
+                                    <p class="text-xs sm:text-sm text-teal-600 line-clamp-2">@yield('header-description', "Monitor everything that's happening today.")</p>
                             </div>
                         </div>
-                            <div class="hidden sm:flex items-center gap-4">
-                                <a href="{{ route('admin.contact-messages.index') }}" class="relative p-2 rounded-full border border-teal-100 text-teal-500 hover:text-amber-500 bg-white">
+                            <div class="flex items-center gap-2 sm:gap-4">
+                                <!-- Messages Icon - Hidden on mobile -->
+                                <a href="{{ route('admin.contact-messages.index') }}" class="hidden sm:flex relative p-2 rounded-full border border-teal-100 text-teal-500 hover:text-amber-500 bg-white">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.4-4.2A2 2 0 0 0 16.7 11H15V7a3 3 0 1 0-6 0v4H7.3a2 2 0 0 0-1.9 1.8L4 17h5"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 21h6"/>
@@ -190,20 +303,21 @@
                                         </span>
                                     @endif
                                 </a>
+                                <!-- Profile Menu -->
                                 <div class="relative">
-                                    <button id="profile-menu-trigger" class="flex items-center gap-3 bg-white border border-teal-100 rounded-2xl px-3 py-1 shadow-sm hover:border-amber-200 transition" onclick="toggleProfileMenu()" aria-haspopup="true" aria-expanded="false">
+                                    <button id="profile-menu-trigger" class="flex items-center gap-1.5 sm:gap-3 bg-white border border-teal-100 rounded-xl sm:rounded-2xl px-2 sm:px-3 py-1.5 sm:py-1 shadow-sm hover:border-amber-200 transition" onclick="toggleProfileMenu()" aria-haspopup="true" aria-expanded="false">
                                         <div class="text-right leading-tight hidden md:block">
                                             <p class="text-xs text-teal-500">Welcome back</p>
                                             <p class="text-sm font-semibold text-teal-800">{{ auth()->user()->name ?? 'Admin User' }}</p>
                                         </div>
-                                        <span class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-600 to-emerald-500 text-white font-semibold flex items-center justify-center">
+                                        <span class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-teal-600 to-emerald-500 text-white font-semibold flex items-center justify-center text-xs sm:text-sm flex-shrink-0">
                                             {{ strtoupper(substr(auth()->user()->name ?? 'AU', 0, 2)) }}
                                         </span>
-                                        <svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-500 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 9l6 6 6-6" />
                                         </svg>
                                     </button>
-                                    <div id="profile-menu" class="hidden absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-teal-50 overflow-hidden z-30">
+                                    <div id="profile-menu" class="hidden absolute right-0 mt-2 sm:mt-3 w-56 max-w-[calc(100vw-2rem)] bg-white rounded-xl sm:rounded-2xl shadow-xl border border-teal-50 overflow-hidden z-50">
                                         <div class="px-4 py-3 border-b border-teal-50">
                                             <p class="text-sm font-semibold text-teal-900">{{ auth()->user()->name ?? 'Admin User' }}</p>
                                             <p class="text-xs text-teal-500 truncate">{{ auth()->user()->email ?? 'admin@example.com' }}</p>
@@ -227,29 +341,30 @@
                                 </div>
                         </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-3">
-                        <div class="relative flex-1 min-w-[220px] max-w-md">
-                            <input type="text" id="admin-search-input" placeholder="Search..." class="w-full pl-10 pr-4 py-2 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent" autocomplete="off">
-                            <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                        <div class="relative flex-1 min-w-0 sm:min-w-[220px] sm:max-w-md">
+                            <input type="text" id="admin-search-input" placeholder="Search..." class="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 text-sm rounded-xl sm:rounded-2xl border border-slate-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent" autocomplete="off">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z"/>
                             </svg>
                             <div id="search-results" class="hidden absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 max-h-96 overflow-y-auto"></div>
                         </div>
-                        <div class="flex flex-wrap gap-3">
+                        <div class="flex flex-wrap gap-2 sm:gap-3">
                             @hasSection('header-actions')
                                 @yield('header-actions')
                             @else
-                                <button class="inline-flex items-center gap-2 px-4 py-2 border border-teal-200 rounded-xl text-sm font-semibold text-teal-700 hover:bg-white">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <button class="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 border border-teal-200 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold text-teal-700 hover:bg-white whitespace-nowrap">
+                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.5 12h15m-7.5 7.5v-15"/>
                                     </svg>
-                                    Refresh
+                                    <span class="hidden sm:inline">Refresh</span>
                                 </button>
-                                <a href="{{ route('admin.products.create') }}" class="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-teal-900 bg-amber-400 hover:bg-amber-300">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <a href="{{ route('admin.products.create') }}" class="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 lg:px-5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold text-teal-900 bg-amber-400 hover:bg-amber-300 whitespace-nowrap">
+                                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4v16m8-8H4"/>
                                     </svg>
-                                    New Entry
+                                    <span class="hidden sm:inline">New Entry</span>
+                                    <span class="sm:hidden">New</span>
                                 </a>
                             @endif
                         </div>
@@ -257,7 +372,7 @@
                 </div>
                 </header>
 
-                <main class="flex-1 px-4 sm:px-6 lg:px-10 py-8">
+                <main class="flex-1 px-3 sm:px-4 lg:px-10 py-4 sm:py-6 lg:py-8">
                     @if (session('status'))
                         <div class="mb-6 rounded-xl border border-teal-200 bg-white px-4 py-3 text-teal-900 shadow-sm">
                             {{ session('status') }}
@@ -266,8 +381,8 @@
                     @yield('content')
                 </main>
 
-                <footer class="bg-white/80 border-t border-teal-100 py-4">
-                    <div class="px-4 sm:px-6 lg:px-10 text-sm text-teal-600 flex justify-between items-center flex-wrap gap-2">
+                <footer class="bg-white/80 border-t border-teal-100 py-3 sm:py-4">
+                    <div class="px-3 sm:px-4 lg:px-10 text-xs sm:text-sm text-teal-600 flex flex-col sm:flex-row justify-between items-center gap-2">
                         <span>© {{ now()->year }} Fortress Lenders Ltd.</span>
                         <span>Need help? <a href="{{ route('contact') }}" class="text-amber-600 font-semibold">Contact support</a></span>
                     </div>
@@ -277,18 +392,42 @@
     </div>
 
     <style>
+        /* Mobile responsive improvements */
+        @media (max-width: 640px) {
+            .line-clamp-2 {
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+        }
+        
+        /* Responsive table wrapper */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .table-responsive table {
+            min-width: 640px;
+        }
+        
         /* Custom scrollbar for sidebar */
-        .sidebar-nav::-webkit-scrollbar {
+        .sidebar-nav::-webkit-scrollbar,
+        #mobile-menu nav::-webkit-scrollbar {
             width: 6px;
         }
-        .sidebar-nav::-webkit-scrollbar-track {
+        .sidebar-nav::-webkit-scrollbar-track,
+        #mobile-menu nav::-webkit-scrollbar-track {
             background: transparent;
         }
-        .sidebar-nav::-webkit-scrollbar-thumb {
+        .sidebar-nav::-webkit-scrollbar-thumb,
+        #mobile-menu nav::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.3);
             border-radius: 3px;
         }
-        .sidebar-nav::-webkit-scrollbar-thumb:hover {
+        .sidebar-nav::-webkit-scrollbar-thumb:hover,
+        #mobile-menu nav::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.5);
         }
 
@@ -346,6 +485,23 @@
             max-height: 0;
             opacity: 0;
         }
+        
+        /* Mobile dropdown styles */
+        .mobile-dropdown-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, opacity 0.2s ease-out;
+            opacity: 0;
+        }
+        .mobile-dropdown-menu.open {
+            max-height: 500px;
+            opacity: 1;
+        }
+        .mobile-dropdown-menu.hidden {
+            display: none;
+            max-height: 0;
+            opacity: 0;
+        }
         #sidebar.collapsed .dropdown-menu {
             display: none !important;
         }
@@ -356,17 +512,27 @@
             transform: rotate(180deg);
         }
         
-        /* Main content padding */
+        /* Main content padding - desktop only */
         @media (min-width: 1024px) {
             #main-content {
                 transition: padding-left 0.3s ease-in-out;
             }
         }
+        
+        /* Ensure no padding on mobile */
+        @media (max-width: 1023px) {
+            #main-content {
+                padding-left: 0 !important;
+            }
+        }
     </style>
 
     <script>
-        // Sidebar collapse functionality
+        // Sidebar collapse functionality (desktop only)
         function toggleSidebarCollapse() {
+            // Only work on desktop (lg screens and above)
+            if (window.innerWidth < 1024) return;
+            
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('main-content');
             const isCollapsed = sidebar.classList.contains('collapsed');
@@ -420,29 +586,68 @@
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('main-content');
-            const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
             
-            if (isCollapsed) {
-                sidebar.classList.add('collapsed');
-                mainContent.style.paddingLeft = '80px';
+            // Only apply sidebar collapse on desktop (lg screens and above)
+            if (window.innerWidth >= 1024) {
+                const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                
+                if (isCollapsed) {
+                    sidebar.classList.add('collapsed');
+                    mainContent.style.paddingLeft = '80px';
+                } else {
+                    mainContent.style.paddingLeft = '288px';
+                }
             } else {
-                mainContent.style.paddingLeft = '288px';
+                // On mobile, ensure no padding
+                mainContent.style.paddingLeft = '0';
             }
             
-            // Auto-open relevant dropdowns
+            // Handle window resize
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    if (window.innerWidth < 1024) {
+                        // Mobile: no padding
+                        mainContent.style.paddingLeft = '0';
+                    } else {
+                        // Desktop: apply saved state
+                        const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                        if (isCollapsed) {
+                            mainContent.style.paddingLeft = '80px';
+                        } else {
+                            mainContent.style.paddingLeft = '288px';
+                        }
+                    }
+                }, 250);
+            });
+            
+            // Auto-open relevant dropdowns (desktop)
             @if(request()->routeIs('admin.home.*') || request()->routeIs('admin.about.*') || request()->routeIs('admin.contact.*'))
                 if (!sidebar.classList.contains('collapsed')) {
                     toggleDropdown('pages-dropdown');
+                }
+                // Also open mobile dropdown if on mobile
+                if (window.innerWidth < 1024) {
+                    toggleMobileDropdown('mobile-pages-dropdown');
                 }
             @endif
             @if(request()->routeIs('admin.jobs.*') || request()->routeIs('admin.job-applications.*'))
                 if (!sidebar.classList.contains('collapsed')) {
                     toggleDropdown('careers-dropdown');
                 }
+                // Also open mobile dropdown if on mobile
+                if (window.innerWidth < 1024) {
+                    toggleMobileDropdown('mobile-careers-dropdown');
+                }
             @endif
-            @if(request()->routeIs('admin.logo.*') || request()->routeIs('admin.api.*'))
+            @if(request()->routeIs('admin.profile') || request()->routeIs('admin.logo.*') || request()->routeIs('admin.api.*'))
                 if (!sidebar.classList.contains('collapsed')) {
                     toggleDropdown('settings-dropdown');
+                }
+                // Also open mobile dropdown if on mobile
+                if (window.innerWidth < 1024) {
+                    toggleMobileDropdown('mobile-settings-dropdown');
                 }
             @endif
         });
@@ -453,6 +658,38 @@
             const isOpen = !menu.classList.contains('-translate-x-full');
             menu.classList.toggle('-translate-x-full', isOpen);
             backdrop.classList.toggle('hidden', isOpen);
+        }
+
+        // Mobile dropdown toggle functionality
+        function toggleMobileDropdown(dropdownId) {
+            const dropdown = document.getElementById(dropdownId);
+            const arrow = document.getElementById(dropdownId + '-arrow');
+            
+            if (!dropdown) return;
+            
+            // Close all other mobile dropdowns
+            document.querySelectorAll('.mobile-dropdown-menu').forEach(menu => {
+                if (menu.id !== dropdownId) {
+                    menu.classList.add('hidden');
+                    menu.classList.remove('open');
+                }
+            });
+            document.querySelectorAll('[id^="mobile-"][id$="-arrow"]').forEach(arr => {
+                if (arr.id !== dropdownId + '-arrow') {
+                    arr.classList.remove('dropdown-arrow-rotated');
+                }
+            });
+            
+            // Toggle current dropdown
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+                setTimeout(() => dropdown.classList.add('open'), 10);
+                if (arrow) arrow.classList.add('dropdown-arrow-rotated');
+            } else {
+                dropdown.classList.remove('open');
+                setTimeout(() => dropdown.classList.add('hidden'), 300);
+                if (arrow) arrow.classList.remove('dropdown-arrow-rotated');
+            }
         }
 
         function toggleProfileMenu() {
@@ -475,6 +712,18 @@
             }
 
             if (!menu.contains(event.target)) {
+                menu.classList.add('hidden');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // Close profile menu when clicking outside on mobile
+        document.addEventListener('touchstart', (event) => {
+            const menu = document.getElementById('profile-menu');
+            const trigger = document.getElementById('profile-menu-trigger');
+            if (!menu || !trigger) return;
+
+            if (!trigger.contains(event.target) && !menu.contains(event.target)) {
                 menu.classList.add('hidden');
                 trigger.setAttribute('aria-expanded', 'false');
             }

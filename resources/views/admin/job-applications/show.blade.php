@@ -26,6 +26,13 @@
                 <a href="{{ route('admin.job-applications.index') }}" class="px-3 py-2 text-sm rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50">
                     Back to list
                 </a>
+                <form action="{{ route('admin.job-applications.destroy', $application) }}" method="POST" class="inline-block delete-form" data-id="{{ $application->id }}" data-name="{{ $application->name }}">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="px-3 py-2 text-sm rounded-xl border border-red-200 text-red-600 hover:bg-red-50">
+                        Delete Application
+                    </button>
+                </form>
             </div>
         </div>
 
@@ -795,6 +802,51 @@
                         updateMessageRecipient();
                         // Trigger character count update
                         messageInput.dispatchEvent(new Event('input'));
+                    });
+                });
+            }
+        });
+    </script>
+    
+    <script>
+        // Handle delete form with SweetAlert
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteForm = document.querySelector('.delete-form');
+            if (deleteForm) {
+                deleteForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const formElement = this;
+                    const applicantName = formElement.getAttribute('data-name') || 'this application';
+                    
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        html: `<p>You are about to delete the application from <strong>${applicantName}</strong>.</p><p class="mt-2 text-sm text-gray-600">This will permanently delete:</p><ul class="text-sm text-left mt-2 ml-4 list-disc"><li>The application</li><li>All related reviews</li><li>All interview records</li><li>All messages</li><li>The CV file (if any)</li></ul><p class="mt-3 text-red-600 font-semibold">This action cannot be undone!</p>`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc2626',
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: 'Yes, delete it!',
+                        cancelButtonText: 'Cancel',
+                        reverseButtons: true,
+                        width: '500px'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Show loading state
+                            Swal.fire({
+                                title: 'Deleting...',
+                                text: 'Please wait while we delete the application and all related data.',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                showConfirmButton: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+                            
+                            // Submit the form
+                            formElement.submit();
+                        }
                     });
                 });
             }

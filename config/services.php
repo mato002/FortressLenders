@@ -42,9 +42,25 @@ return [
         'sender_id' => env('BULKSMS_SENDER_ID', 'FORTRESS'),
     ],
 
+    'ultrasms' => [
+        'api_url' => env('ULTRASMS_API_URL', 'https://api.ultramsg.com'),
+        'instance_id' => env('ULTRASMS_INSTANCE_ID', 'instance143390'),
+        'token' => env('ULTRASMS_TOKEN', 'ncrddo098e592whq'),
+    ],
+
     'whatsapp' => [
         'api_url' => env('WHATSAPP_API_URL'),
         'api_key' => env('WHATSAPP_API_KEY'),
+    ],
+
+    'emailjs' => [
+        'api_url' => env('EMAILJS_API_URL', 'https://api.emailjs.com/api/v1.0/email/send'),
+        'service_id' => env('EMAILJS_SERVICE_ID'),
+        'template_id' => env('EMAILJS_TEMPLATE_ID'),
+        'public_key' => env('EMAILJS_PUBLIC_KEY'),
+        'user_id' => env('EMAILJS_USER_ID'),
+        'from_name' => env('EMAILJS_FROM_NAME', 'Fortress Lenders'),
+        'from_email' => env('EMAILJS_FROM_EMAIL'),
     ],
 
 ];

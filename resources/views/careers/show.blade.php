@@ -4,8 +4,12 @@
 
 @section('content')
     <!-- Hero Section -->
-    <section class="bg-gradient-to-br from-teal-800 via-teal-700 to-teal-900 text-white py-12 sm:py-16 md:py-20">
-        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-24">
+    <section
+        class="relative text-white py-12 sm:py-16 md:py-20 overflow-hidden"
+        style="background-image: linear-gradient(to bottom right, rgba(4, 120, 87, 0.9), rgba(6, 78, 59, 0.9)), url('https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80'); background-size: cover; background-position: center;"
+    >
+        <div class="absolute inset-0 bg-black opacity-10"></div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="max-w-4xl mx-auto">
                 <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">{{ $job->title }}</h1>
                 <div class="flex flex-wrap gap-4 text-teal-100">

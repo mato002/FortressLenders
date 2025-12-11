@@ -73,6 +73,13 @@
                     <a href="{{ route('admin.job-applications.index', ['job' => $job->id]) }}" class="block w-full px-4 py-2 bg-blue-50 text-blue-800 rounded-lg hover:bg-blue-100 text-center font-semibold">
                         View Applications
                     </a>
+                    <form action="{{ route('admin.jobs.toggle-status', $job) }}" method="POST">
+                        @csrf
+                        @method('POST')
+                        <button type="submit" class="w-full px-4 py-2 rounded-lg text-center font-semibold transition-colors {{ $job->is_active ? 'bg-orange-50 text-orange-800 hover:bg-orange-100' : 'bg-green-50 text-green-800 hover:bg-green-100' }}">
+                            {{ $job->is_active ? 'Deactivate Job' : 'Activate Job' }}
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

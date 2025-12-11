@@ -10,6 +10,7 @@ use App\Models\Interview;
 use App\Services\MessagingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class JobApplicationController extends Controller
 {
@@ -177,6 +178,22 @@ class JobApplicationController extends Controller
 
         return redirect()->route('admin.job-applications.show', $application)
             ->with('success', 'Application status updated successfully!');
+    }
+
+    public function destroy(JobApplication $job_application)
+    {
+        $application = $job_application;
+        
+        // Delete CV file if it exists
+        if ($application->cv_path && Storage::disk('public')->exists($application->cv_path)) {
+            Storage::disk('public')->delete($application->cv_path);
+        }
+
+        // Delete the application (related records will be cascade deleted)
+        $application->delete();
+
+        return redirect()->route('admin.job-applications.index')
+            ->with('success', 'Job application deleted successfully!');
     }
 }
 

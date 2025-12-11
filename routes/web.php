@@ -110,8 +110,9 @@ Route::middleware(['auth', 'verified', 'admin'])
         Route::resource('faqs', AdminFaqController::class)->except(['show']);
         Route::resource('posts', AdminPostController::class);
         Route::resource('ceo-messages', AdminCeoMessageController::class)->except(['show']);
-        Route::resource('jobs', JobPostController::class);
-        Route::resource('job-applications', AdminJobApplicationController::class)->only(['index', 'show']);
+        Route::resource('jobs', JobPostController::class)->except(['destroy']);
+        Route::post('jobs/{job}/toggle-status', [JobPostController::class, 'toggleStatus'])->name('jobs.toggle-status');
+        Route::resource('job-applications', AdminJobApplicationController::class)->only(['index', 'show', 'destroy']);
         Route::post('job-applications/{application}/review', [AdminJobApplicationController::class, 'review'])->name('job-applications.review');
         Route::post('job-applications/{application}/schedule-interview', [AdminJobApplicationController::class, 'scheduleInterview'])->name('job-applications.schedule-interview');
         Route::post('job-applications/{application}/update-status', [AdminJobApplicationController::class, 'updateStatus'])->name('job-applications.update-status');

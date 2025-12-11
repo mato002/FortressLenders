@@ -9,12 +9,13 @@
         @if (!empty($contactSettings?->hero_image_path))
             style="background-image: linear-gradient(to bottom right, rgba(4, 120, 87, 0.9), rgba(6, 78, 59, 0.9)), url('{{ asset('storage/'.$contactSettings->hero_image_path) }}'); background-size: cover; background-position: center;"
         @else
-            style="background-image: linear-gradient(to bottom right, #115e59, #0f766e, #134e4a);"
+            style="background-image: linear-gradient(to bottom right, rgba(4, 120, 87, 0.9), rgba(6, 78, 59, 0.9)), url('https://images.unsplash.com/photo-1423666639041-f56000c27a9a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80'); background-size: cover; background-position: center;"
         @endif
     >
-        <div class="relative w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32 text-center">
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 px-4">Contact Us</h1>
-            <p class="text-lg sm:text-xl text-teal-100 px-4">Get in touch with Fortress Lenders today</p>
+        <div class="absolute inset-0 bg-black opacity-10"></div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">Contact Us</h1>
+            <p class="text-lg sm:text-xl text-teal-100">Get in touch with Fortress Lenders today</p>
         </div>
     </section>
 

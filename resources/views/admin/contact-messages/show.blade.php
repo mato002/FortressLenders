@@ -202,7 +202,7 @@
                 </div>
             </form>
 
-            <form action="{{ route('admin.contact-messages.destroy', $contactMessage) }}" method="POST" onsubmit="return confirm('Delete this message?')" class="text-right">
+            <form action="{{ route('admin.contact-messages.destroy', $contactMessage) }}" method="POST" class="delete-contact-message-form text-right">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="text-sm text-red-600 font-semibold">Delete message</button>
@@ -295,6 +295,42 @@
 
         // Initialize
         updateRecipient();
+
+        // Handle delete form with SweetAlert
+        document.querySelector('.delete-contact-message-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formElement = this;
+            
+            Swal.fire({
+                title: 'Delete Message?',
+                text: 'Are you sure you want to delete this contact message? This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading state
+                    Swal.fire({
+                        title: 'Deleting...',
+                        text: 'Please wait while we delete the message.',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    // Submit the form
+                    formElement.submit();
+                }
+            });
+        });
     </script>
     @endpush
 @endsection

@@ -6,18 +6,18 @@
 @section('header-description', 'Monitor admin activities and track user actions in the system.')
 
 @section('header-actions')
-    <a href="{{ route('admin.activity-logs.index') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <a href="{{ route('admin.activity-logs.index') }}" class="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 border border-slate-200 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-50 whitespace-nowrap">
+        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
-        Refresh
+        <span class="hidden sm:inline">Refresh</span>
     </a>
 @endsection
 
 @section('content')
     <!-- Filters -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-        <form method="GET" action="{{ route('admin.activity-logs.index') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-4 sm:mb-6">
+        <form method="GET" action="{{ route('admin.activity-logs.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <!-- Search -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
@@ -78,32 +78,33 @@
     </div>
 
     <!-- Activity Logs Table -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <table class="w-full text-sm">
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+        <table class="w-full text-sm min-w-[800px]">
             <thead class="bg-gray-50 text-gray-500 uppercase tracking-wide text-xs">
                 <tr>
-                    <th class="px-6 py-3 text-left">User</th>
-                    <th class="px-6 py-3 text-left">Action</th>
-                    <th class="px-6 py-3 text-left">Description</th>
-                    <th class="px-6 py-3 text-left">IP Address</th>
-                    <th class="px-6 py-3 text-left">Date & Time</th>
-                    <th class="px-6 py-3 text-right">Actions</th>
+                    <th class="px-3 sm:px-6 py-3 text-left">User</th>
+                    <th class="px-3 sm:px-6 py-3 text-left">Action</th>
+                    <th class="px-3 sm:px-6 py-3 text-left hidden md:table-cell">Description</th>
+                    <th class="px-3 sm:px-6 py-3 text-left hidden lg:table-cell">IP Address</th>
+                    <th class="px-3 sm:px-6 py-3 text-left">Date & Time</th>
+                    <th class="px-3 sm:px-6 py-3 text-right">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse ($logs as $log)
                     <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">
+                        <td class="px-3 sm:px-6 py-4">
                             @if($log->user)
                                 <div>
-                                    <div class="font-semibold text-gray-900">{{ $log->user->name }}</div>
-                                    <div class="text-xs text-gray-500">{{ $log->user->email }}</div>
+                                    <div class="font-semibold text-gray-900 text-sm sm:text-base">{{ $log->user->name }}</div>
+                                    <div class="text-xs text-gray-500 truncate max-w-[150px]">{{ $log->user->email }}</div>
                                 </div>
                             @else
-                                <span class="text-gray-400 italic">System / Guest</span>
+                                <span class="text-gray-400 italic text-xs sm:text-sm">System / Guest</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-3 sm:px-6 py-4">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
                                 @class([
                                     'bg-green-100 text-green-800' => in_array($log->action, ['login', 'create']),
@@ -114,21 +115,21 @@
                                 {{ Str::headline($log->action) }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-gray-700 max-w-md">
-                            <div class="truncate" title="{{ $log->description }}">
+                        <td class="px-3 sm:px-6 py-4 text-gray-700 max-w-md hidden md:table-cell">
+                            <div class="truncate text-xs sm:text-sm" title="{{ $log->description }}">
                                 {{ $log->description }}
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-gray-600 text-xs font-mono">
+                        <td class="px-3 sm:px-6 py-4 text-gray-600 text-xs font-mono hidden lg:table-cell">
                             {{ $log->ip_address ?? '—' }}
                         </td>
-                        <td class="px-6 py-4 text-gray-600">
-                            <div>{{ $log->created_at->format('M d, Y') }}</div>
+                        <td class="px-3 sm:px-6 py-4 text-gray-600">
+                            <div class="text-xs sm:text-sm">{{ $log->created_at->format('M d, Y') }}</div>
                             <div class="text-xs text-gray-500">{{ $log->created_at->format('g:i A') }}</div>
                         </td>
-                        <td class="px-6 py-4 text-right">
+                        <td class="px-3 sm:px-6 py-4 text-right">
                             <a href="{{ route('admin.activity-logs.show', $log) }}" 
-                               class="text-teal-700 font-semibold hover:text-teal-800">View Details</a>
+                               class="text-teal-700 font-semibold hover:text-teal-800 text-xs sm:text-sm">View</a>
                         </td>
                     </tr>
                 @empty
@@ -143,10 +144,11 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
 
     <!-- Pagination -->
-    <div class="mt-6">
+    <div class="mt-4 sm:mt-6">
         {{ $logs->appends(request()->query())->links() }}
     </div>
 @endsection

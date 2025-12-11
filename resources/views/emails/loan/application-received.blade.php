@@ -1,36 +1,30 @@
-@component('mail::message')
-# New Loan Application Received
+@component('emails.components.message')
+<h1>New Loan Application Received</h1>
 
-A new loan application has been submitted on the Fortress Lenders website.
+<p>A new loan application has been submitted on the Fortress Lenders website.</p>
 
-@component('mail::panel')
-- **Full Name**: {{ $application->full_name }}
-- **Phone**: {{ $application->phone }}
-- **Email**: {{ $application->email ?? 'N/A' }}
-- **Date of Birth**: {{ optional($application->date_of_birth)->format('d M Y') ?? 'N/A' }}
-- **Town**: {{ $application->town ?? 'N/A' }}
-- **Residence**: {{ $application->residence ?? 'N/A' }}
-- **Client Type**: {{ ucfirst($application->client_type ?? 'N/A') }}
-- **Loan Type**: {{ $application->loan_type }}
-- **Amount Requested**: KES {{ number_format($application->amount_requested, 2) }}
-- **Repayment Period**: {{ $application->repayment_period }}
+@component('emails.components.panel')
+<p style="margin: 0 0 12px 0;"><strong>Applicant Information:</strong></p>
+<ul style="margin: 0 0 20px 0; padding-left: 20px; color: #374151;">
+    <li style="margin-bottom: 8px;"><strong>Full Name:</strong> {{ $application->full_name }}</li>
+    <li style="margin-bottom: 8px;"><strong>Phone:</strong> {{ $application->phone }}</li>
+    <li style="margin-bottom: 8px;"><strong>Email:</strong> {{ $application->email ?? 'N/A' }}</li>
+    <li style="margin-bottom: 8px;"><strong>Date of Birth:</strong> {{ optional($application->date_of_birth)->format('d M Y') ?? 'N/A' }}</li>
+    <li style="margin-bottom: 8px;"><strong>Town:</strong> {{ $application->town ?? 'N/A' }}</li>
+    <li style="margin-bottom: 8px;"><strong>Residence:</strong> {{ $application->residence ?? 'N/A' }}</li>
+    <li style="margin-bottom: 8px;"><strong>Client Type:</strong> {{ ucfirst($application->client_type ?? 'N/A') }}</li>
+    <li style="margin-bottom: 8px;"><strong>Loan Type:</strong> {{ $application->loan_type }}</li>
+    <li style="margin-bottom: 8px;"><strong>Amount Requested:</strong> KES {{ number_format($application->amount_requested, 2) }}</li>
+    <li style="margin-bottom: 0;"><strong>Repayment Period:</strong> {{ $application->repayment_period }}</li>
+</ul>
+<p style="margin: 0;"><strong>Purpose of Loan:</strong><br>
+{{ $application->purpose ?? 'N/A' }}</p>
 @endcomponent
 
-**Purpose of Loan**
-
-{{ $application->purpose ?? 'N/A' }}
-
-@component('mail::button', ['url' => route('admin.loan-applications.index')])
+@component('emails.components.button', ['url' => route('admin.loan-applications.index')])
 View in Admin Dashboard
 @endcomponent
 
-Thanks,<br>
-{{ config('app.name') }}
+<p>Best regards,<br>
+<strong>Fortress Lenders Support Team</strong></p>
 @endcomponent
-
-
-
-
-
-
-

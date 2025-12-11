@@ -44,6 +44,11 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
+        // Redirect to admin profile if accessed from admin panel, otherwise to regular profile
+        if ($request->user()->is_admin) {
+            return Redirect::route('admin.profile')->with('status', 'profile-updated');
+        }
+
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
