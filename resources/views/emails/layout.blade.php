@@ -20,12 +20,12 @@
         }
         .email-header {
             background: linear-gradient(135deg, #0f766e 0%, #134e4a 100%);
-            padding: 35px 20px;
+            padding: 45px 30px;
             text-align: center;
         }
         .logo-container {
             display: inline-block;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         .logo-box {
             width: 60px;
@@ -59,23 +59,23 @@
             font-weight: 400;
         }
         .email-body {
-            padding: 45px 35px;
+            padding: 50px 40px;
         }
         .email-body h1 {
             font-size: 24px;
             font-weight: 700;
             color: #0f766e;
-            margin: 0 0 20px 0;
+            margin: 0 0 25px 0;
             line-height: 1.3;
         }
         .email-body h2 {
             font-size: 20px;
             font-weight: 600;
             color: #1f2937;
-            margin: 25px 0 15px 0;
+            margin: 30px 0 18px 0;
         }
         .email-body p {
-            margin: 0 0 18px 0;
+            margin: 0 0 20px 0;
             color: #374151;
             font-size: 15px;
             line-height: 1.7;
@@ -89,8 +89,8 @@
             border: 1px solid #e5e7eb;
             border-left: 4px solid #0f766e;
             border-radius: 6px;
-            padding: 24px;
-            margin: 25px 0;
+            padding: 28px;
+            margin: 30px 0;
             line-height: 1.8;
             color: #374151;
             font-size: 15px;
@@ -98,7 +98,7 @@
         .email-footer {
             background-color: #1f2937;
             color: #9ca3af;
-            padding: 35px 25px;
+            padding: 40px 30px;
             text-align: center;
             font-size: 12px;
             line-height: 1.6;
@@ -117,7 +117,7 @@
         .divider {
             height: 1px;
             background-color: #374151;
-            margin: 25px 0;
+            margin: 30px 0;
         }
     </style>
 </head>
@@ -138,9 +138,9 @@
         </div>
 
         <div class="email-footer">
-            <p style="margin: 0 0 12px 0;"><strong>Fortress Lenders Ltd</strong></p>
-            <p style="margin: 0 0 20px 0;">Head Office: Fortress Hse, Nakuru County<br>Barnabas Muguga Opp. Epic ridge Academy</p>
-            <p style="margin: 0 0 20px 0;">
+            <p style="margin: 0 0 16px 0;"><strong>Fortress Lenders Ltd</strong></p>
+            <p style="margin: 0 0 24px 0;">Head Office: Fortress Hse, Nakuru County<br>Barnabas Muguga Opp. Epic ridge Academy</p>
+            <p style="margin: 0 0 24px 0;">
                 <strong>Contact Us:</strong><br>
                 Phone: +254 743 838 312<br>
                 Email: <a href="mailto:info@fortresslenders.com">info@fortresslenders.com</a>
