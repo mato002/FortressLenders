@@ -152,6 +152,40 @@
                         <li>P.O BOX: 7214- 20110<br>Nakuru Town, KENYA</li>
                     </ul>
                 </div>
+
+                <!-- Newsletter Subscription -->
+                <div>
+                    <h3 class="text-white font-semibold mb-4">Newsletter</h3>
+                    <p class="text-sm mb-4">Subscribe to our newsletter to get the latest updates and news.</p>
+                    @if (session('newsletter_status'))
+                        <div class="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+                            {{ session('newsletter_status') }}
+                        </div>
+                    @endif
+                    @if (session('newsletter_error'))
+                        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                            {{ session('newsletter_error') }}
+                        </div>
+                    @endif
+                    @if ($errors->has('email'))
+                        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                            {{ $errors->first('email') }}
+                        </div>
+                    @endif
+                    <form action="{{ route('newsletter.subscribe') }}" method="POST" class="space-y-3">
+                        @csrf
+                        <div>
+                            <input type="email" name="email" required 
+                                value="{{ old('email') }}"
+                                placeholder="Enter your email address"
+                                class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all">
+                        </div>
+                        <button type="submit" 
+                            class="w-full bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">
+                            Subscribe
+                        </button>
+                    </form>
+                </div>
             </div>
 
             <div class="border-t border-gray-800 mt-8 pt-8 text-center text-sm">

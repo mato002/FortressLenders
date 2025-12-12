@@ -30,6 +30,7 @@ use App\Http\Controllers\Admin\JobPostController;
 use App\Http\Controllers\Admin\JobApplicationController as AdminJobApplicationController;
 use App\Http\Controllers\Admin\ActivityLogController as AdminActivityLogController;
 use App\Http\Controllers\CookieConsentController;
+use App\Http\Controllers\NewsletterController;
 use Illuminate\Support\Facades\Route;
 
 // Public Website Routes
@@ -57,6 +58,14 @@ Route::get('/ceo-message', [CeoMessageController::class, 'index'])->name('ceo-me
 Route::post('/cookie-consent/accept', [CookieConsentController::class, 'accept'])->name('cookie.consent.accept');
 Route::post('/cookie-consent/reject', [CookieConsentController::class, 'reject'])->name('cookie.consent.reject');
 Route::get('/cookie-consent/check', [CookieConsentController::class, 'check'])->name('cookie.consent.check');
+
+// Newsletter Routes
+Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])
+    ->middleware('throttle:5,1')
+    ->name('newsletter.subscribe');
+Route::post('/newsletter/unsubscribe', [NewsletterController::class, 'unsubscribe'])
+    ->middleware('throttle:5,1')
+    ->name('newsletter.unsubscribe');
 
 // Career Routes
 Route::get('/careers', [CareerController::class, 'index'])->name('careers.index');

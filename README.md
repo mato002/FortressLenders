@@ -1,15 +1,34 @@
 # Fortress Lenders Web Platform
 
-An end-to-end marketing site and lightweight operations dashboard for Fortress Lenders Ltd. The stack is Laravel 11 + Vite/Tailwind for the public pages, with an authenticated admin area for managing loan products and triaging contact form enquiries.
+An end-to-end marketing site and lightweight operations dashboard for Fortress Lenders Ltd. The stack is Laravel 11 + Vite/Tailwind for the public pages, with an authenticated admin area for managing loan products, job applications, contact enquiries, and comprehensive content management.
 
 ## Features
 
-- Responsive public site with Home, About, Products and Contact pages.
-- Dynamic product catalogue driven by the database (title, summary, CTA, highlight color and gallery images).
-- Contact form persistence plus an admin workflow for updating status/notes.
-- Admin dashboard with stats, product CRUD and message review.
-- Email notifications for inbound enquiries and automatic customer acknowledgements.
-- Role-gated admin access with seeding helpers for the initial administrator account.
+### Public Website
+- **Responsive Design**: Fully responsive public site with modern UI/UX
+- **Home Page**: Dynamic homepage with customizable content sections
+- **About Page**: Company information, team members, and CEO message
+- **Products**: Dynamic product catalogue with images, descriptions, and CTAs
+- **Careers**: Job posting system with application form and interview scheduling
+- **Contact**: Contact form with honeypot protection and email notifications
+- **Loan Applications**: Online loan application form with status tracking
+- **FAQ**: Frequently asked questions management
+- **Blog/News**: Content management system for posts and news
+- **Newsletter**: Email subscription system integrated in footer
+- **Cookie Consent**: GDPR-compliant cookie consent management
+
+### Admin Dashboard
+- **Admin Panel**: Role-gated admin access with comprehensive dashboard
+- **Product Management**: Full CRUD for products with image galleries
+- **Contact Management**: Review, reply, and track contact messages
+- **Loan Application Management**: Process loan applications with messaging
+- **Job Posting & Applications**: Manage job posts, applications, interviews, and reviews
+- **Content Management**: Manage FAQs, blog posts, CEO messages, and team members
+- **Branch Management**: Manage company branch locations
+- **Settings**: Configure home, about, contact, logo, and API settings
+- **Activity Logs**: Comprehensive activity logging system
+- **Session Management**: Track and manage user sessions with device information
+- **Profile Management**: User profile with active session monitoring and revocation
 
 ## Prerequisites
 
@@ -49,13 +68,58 @@ The seeder creates the initial admin user using the `ADMIN_NAME`, `ADMIN_EMAIL` 
 - Use the image management tools on the edit page to delete assets, update display order, or set the primary thumbnail.
 - Uploaded files are stored on the `public` disk (`storage/app/public`). Remember to sync or back up `storage/` in production.
 
-## Contact Form Flow
+## Key Features
 
+### Contact Form Flow
 1. Visitor submits the contact form (throttled + honeypot protected).
 2. Message is stored in the `contact_messages` table with status `new`.
 3. Team recipients configured in `CONTACT_NOTIFICATION_RECIPIENTS` get an email containing all details.
 4. The sender receives an acknowledgement email.
 5. Admin staff can change the status to `in_progress` or `handled`, add notes, and mark the time the request was resolved.
+6. Admin can send replies via email, SMS, or WhatsApp.
+
+### Loan Application Flow
+1. Visitor submits loan application form (throttled for security).
+2. Application is stored and confirmation email sent to applicant.
+3. Admin receives notification email.
+4. Admin can review, update status, and send messages to applicants.
+5. Full communication history tracked in the system.
+
+### Job Application & Interview Management
+1. Job posts published on careers page with detailed descriptions.
+2. Applicants submit applications with resumes and detailed information.
+3. Admin can review, shortlist, schedule interviews, and track status.
+4. Interview scheduling system with result tracking.
+5. Bulk email confirmation functionality.
+6. Status workflow: pending → reviewed → shortlisted → interview → hired/rejected.
+
+### Session Management & Security
+- **Active Session Tracking**: Monitor all active user sessions across devices
+- **Session Limit**: Maximum 2 concurrent sessions per user (configurable)
+- **Device Information**: Track browser, platform, IP address, and device type
+- **Session Revocation**: Users can revoke individual or all other sessions from profile
+- **Automatic Cleanup**: Scheduled daily cleanup of expired sessions via `sessions:cleanup` command
+- **Activity Logging**: Comprehensive logging of user actions and system events
+
+### Newsletter Subscription
+- Email subscription form in website footer
+- Duplicate prevention and resubscription handling
+- Unsubscribe functionality
+- Rate-limited subscription requests (5 per minute)
+
+### Content Management
+- **Home Settings**: Customize homepage content sections
+- **About Settings**: Manage about page content
+- **Contact Settings**: Configure contact page information
+- **Team Members**: Manage team member profiles with photos
+- **FAQs**: Dynamic FAQ management
+- **Blog Posts**: Full CMS for news/blog posts with slugs
+- **CEO Message**: Manage CEO message content
+- **Branches**: Manage branch locations and information
+
+## Artisan Commands
+
+- `sessions:cleanup` - Clean up expired user sessions (scheduled to run daily at 2 AM)
 
 ## Testing
 
@@ -68,6 +132,8 @@ Feature coverage includes:
 - Contact form persistence and mail notifications
 - Admin middleware/authorization
 - Basic product management scenarios
+- User authentication and session management
+- Profile management
 
 ## Deployment Checklist
 
@@ -76,7 +142,13 @@ Feature coverage includes:
 - Run `php artisan storage:link`.
 - Compile production assets: `npm run build`.
 - Configure a queue worker if you decide to queue outgoing mail in the future.
+- Set up cron job for scheduled tasks:
+  ```bash
+  * * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+  ```
 - Create an automated backup for the database and `storage/app/public`.
+- Configure session driver (default: database) in `.env`.
+- Ensure proper file permissions for `storage/` and `bootstrap/cache/` directories.
 
 ## License
 
