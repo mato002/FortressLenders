@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Services\SessionManagementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,9 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    public function __construct(
+        protected SessionManagementService $sessionManagementService
+    ) {}
     /**
      * Display the user's profile form.
      */
@@ -26,8 +30,14 @@ class ProfileController extends Controller
      */
     public function editAdmin(Request $request): View
     {
+        $user = $request->user();
+        $sessions = $user->activeSessions()->get();
+        $currentSessionId = $request->session()->getId();
+
         return view('admin.profile', [
-            'user' => $request->user(),
+            'user' => $user,
+            'sessions' => $sessions,
+            'currentSessionId' => $currentSessionId,
         ]);
     }
 
@@ -71,5 +81,43 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    /**
+     * Revoke a specific session.
+     */
+    public function revokeSession(Request $request, string $sessionId): RedirectResponse
+    {
+        $user = $request->user();
+        $currentSessionId = $request->session()->getId();
+
+        // Prevent revoking current session
+        if ($sessionId === $currentSessionId) {
+            return back()->withErrors(['session' => 'You cannot revoke your current session.']);
+        }
+
+        // Verify the session belongs to the user
+        $session = $user->sessions()->where('session_id', $sessionId)->first();
+        
+        if (!$session) {
+            return back()->withErrors(['session' => 'Session not found.']);
+        }
+
+        $this->sessionManagementService->revokeSession($sessionId);
+
+        return back()->with('status', 'Session revoked successfully.');
+    }
+
+    /**
+     * Revoke all other sessions.
+     */
+    public function revokeOtherSessions(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $currentSessionId = $request->session()->getId();
+
+        $count = $this->sessionManagementService->revokeOtherSessions($user, $currentSessionId);
+
+        return back()->with('status', "Revoked {$count} other session(s).");
     }
 }

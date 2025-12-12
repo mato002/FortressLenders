@@ -56,4 +56,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(ActivityLog::class);
     }
+
+    /**
+     * Get the user sessions for the user.
+     */
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(UserSession::class);
+    }
+
+    /**
+     * Get active sessions for the user.
+     */
+    public function activeSessions()
+    {
+        return $this->sessions()->active()->orderBy('last_activity', 'desc');
+    }
 }

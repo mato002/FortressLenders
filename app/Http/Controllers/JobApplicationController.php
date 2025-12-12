@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\JobApplicationConfirmation;
 use App\Models\JobApplication;
 use App\Models\JobPost;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -102,7 +104,10 @@ class JobApplicationController extends Controller
         $validated['ai_summary'] = $this->generateAISummary($validated);
         $validated['ai_details'] = $this->generateAIDetails($validated);
 
-        JobApplication::create($validated);
+        $application = JobApplication::create($validated);
+
+        // Send confirmation email to the applicant
+        $this->sendConfirmationEmail($application);
 
         return redirect()->route('careers.index')
             ->with('success', 'Your application has been submitted successfully!');
@@ -130,6 +135,15 @@ class JobApplicationController extends Controller
             $details .= "Work Experience: " . json_encode($data['work_experience']) . "\n";
         }
         return $details;
+    }
+
+    protected function sendConfirmationEmail(JobApplication $application): void
+    {
+        if (! $application->email) {
+            return;
+        }
+
+        Mail::to($application->email)->send(new JobApplicationConfirmation($application));
     }
 }
 

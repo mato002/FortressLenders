@@ -425,6 +425,21 @@
                     </form>
                 </div>
 
+                <!-- Send Confirmation Email -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
+                    <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Application Confirmation</h2>
+                    <p class="text-xs text-slate-600 mb-4">Send the application confirmation email to the candidate.</p>
+                    <form method="POST" action="{{ route('admin.job-applications.send-confirmation', $application) }}" class="mb-4">
+                        @csrf
+                        <button type="submit" class="w-full inline-flex justify-center items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-700 hover:bg-blue-800">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            Send Confirmation Email
+                        </button>
+                    </form>
+                </div>
+
                 <!-- Send Message -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
                     <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Send Message</h2>
@@ -511,9 +526,17 @@
                         <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Message History</h2>
                         <div class="space-y-3 max-h-96 overflow-y-auto">
                             @foreach($application->messages->sortByDesc('created_at') as $message)
-                                <div class="border border-slate-200 rounded-lg p-3 {{ $message->status === 'failed' ? 'bg-red-50' : 'bg-slate-50' }}">
+                                @php
+                                    $isConfirmationEmail = isset($message->metadata['type']) && $message->metadata['type'] === 'confirmation_email';
+                                @endphp
+                                <div class="border border-slate-200 rounded-lg p-3 {{ $message->status === 'failed' ? 'bg-red-50' : ($isConfirmationEmail ? 'bg-blue-50' : 'bg-slate-50') }}">
                                     <div class="flex items-start justify-between mb-2">
                                         <div class="flex items-center gap-2">
+                                            @if($isConfirmationEmail)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">
+                                                    📧 CONFIRMATION EMAIL
+                                                </span>
+                                            @endif
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold
                                                 @if($message->status === 'sent') bg-green-100 text-green-800
                                                 @elseif($message->status === 'failed') bg-red-100 text-red-800

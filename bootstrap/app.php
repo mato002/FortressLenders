@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
         ]);
+        
+        // Track user sessions for authenticated users
+        $middleware->web(append: [
+            \App\Http\Middleware\TrackUserSession::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Custom error page rendering

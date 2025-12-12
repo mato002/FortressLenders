@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\JobApplicationConfirmation;
 use App\Models\JobApplication;
 use App\Models\JobApplicationMessage;
 use App\Models\JobApplicationReview;
@@ -10,6 +11,7 @@ use App\Models\Interview;
 use App\Services\MessagingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class JobApplicationController extends Controller
@@ -194,6 +196,103 @@ class JobApplicationController extends Controller
 
         return redirect()->route('admin.job-applications.index')
             ->with('success', 'Job application deleted successfully!');
+    }
+
+    public function sendConfirmationEmail(JobApplication $application): RedirectResponse
+    {
+        if (! $application->email) {
+            return back()->withErrors(['email' => 'This application does not have an email address.']);
+        }
+
+        try {
+            Mail::to($application->email)->send(new JobApplicationConfirmation($application));
+            
+            // Record the confirmation email in message history
+            JobApplicationMessage::create([
+                'job_application_id' => $application->id,
+                'sent_by' => auth()->id(),
+                'channel' => 'email',
+                'message' => 'Application confirmation email sent automatically.',
+                'recipient' => $application->email,
+                'status' => 'sent',
+                'metadata' => ['type' => 'confirmation_email'],
+            ]);
+            
+            return back()->with('success', 'Confirmation email sent successfully to ' . $application->email . '!');
+        } catch (\Exception $e) {
+            // Record failed attempt
+            JobApplicationMessage::create([
+                'job_application_id' => $application->id,
+                'sent_by' => auth()->id(),
+                'channel' => 'email',
+                'message' => 'Application confirmation email - Failed to send.',
+                'recipient' => $application->email,
+                'status' => 'failed',
+                'error_message' => $e->getMessage(),
+                'metadata' => ['type' => 'confirmation_email'],
+            ]);
+            
+            return back()->withErrors(['email' => 'Failed to send email: ' . $e->getMessage()]);
+        }
+    }
+
+    public function sendBulkConfirmationEmails(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'application_ids' => 'required|array',
+            'application_ids.*' => 'exists:job_applications,id',
+        ]);
+
+        $applications = JobApplication::whereIn('id', $validated['application_ids'])
+            ->whereNotNull('email')
+            ->get();
+
+        if ($applications->isEmpty()) {
+            return back()->withErrors(['email' => 'No valid applications with email addresses found.']);
+        }
+
+        $sent = 0;
+        $failed = 0;
+
+        foreach ($applications as $application) {
+            try {
+                Mail::to($application->email)->send(new JobApplicationConfirmation($application));
+                
+                // Record the confirmation email in message history
+                JobApplicationMessage::create([
+                    'job_application_id' => $application->id,
+                    'sent_by' => auth()->id(),
+                    'channel' => 'email',
+                    'message' => 'Application confirmation email sent automatically.',
+                    'recipient' => $application->email,
+                    'status' => 'sent',
+                    'metadata' => ['type' => 'confirmation_email'],
+                ]);
+                
+                $sent++;
+            } catch (\Exception $e) {
+                // Record failed attempt
+                JobApplicationMessage::create([
+                    'job_application_id' => $application->id,
+                    'sent_by' => auth()->id(),
+                    'channel' => 'email',
+                    'message' => 'Application confirmation email - Failed to send.',
+                    'recipient' => $application->email,
+                    'status' => 'failed',
+                    'error_message' => $e->getMessage(),
+                    'metadata' => ['type' => 'confirmation_email'],
+                ]);
+                
+                $failed++;
+            }
+        }
+
+        $message = "Confirmation emails sent: {$sent} successful";
+        if ($failed > 0) {
+            $message .= ", {$failed} failed";
+        }
+
+        return back()->with('success', $message . '!');
     }
 }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Services\ActivityLogService;
+use App\Services\SessionManagementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,7 +14,8 @@ use Illuminate\View\View;
 class AuthenticatedSessionController extends Controller
 {
     public function __construct(
-        protected ActivityLogService $activityLogService
+        protected ActivityLogService $activityLogService,
+        protected SessionManagementService $sessionManagementService
     ) {}
 
     /**
@@ -36,8 +38,9 @@ class AuthenticatedSessionController extends Controller
 
             $user = Auth::user();
             
-            // Log successful login
+            // Track session
             if ($user) {
+                $this->sessionManagementService->trackSession($user, $request);
                 $this->activityLogService->logLogin($user, true);
             }
 
@@ -56,6 +59,7 @@ class AuthenticatedSessionController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         $user = Auth::user();
+        $sessionId = $request->session()->getId();
 
         Auth::guard('web')->logout();
 
@@ -63,8 +67,9 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        // Log logout
-        if ($user) {
+        // Remove session from tracking
+        if ($user && $sessionId) {
+            $this->sessionManagementService->revokeSession($sessionId);
             $this->activityLogService->logLogout($user);
         }
 

@@ -81,6 +81,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/profile/sessions/{sessionId}/revoke', [ProfileController::class, 'revokeSession'])->name('profile.sessions.revoke');
+    Route::post('/profile/sessions/revoke-others', [ProfileController::class, 'revokeOtherSessions'])->name('profile.sessions.revoke-others');
 });
 
 Route::middleware(['auth', 'verified', 'admin'])
@@ -112,11 +114,18 @@ Route::middleware(['auth', 'verified', 'admin'])
         Route::resource('ceo-messages', AdminCeoMessageController::class)->except(['show']);
         Route::resource('jobs', JobPostController::class)->except(['destroy']);
         Route::post('jobs/{job}/toggle-status', [JobPostController::class, 'toggleStatus'])->name('jobs.toggle-status');
+        
+        // Job Applications Routes
+        Route::prefix('job-applications')->name('job-applications.')->group(function () {
+            // Bulk actions must come before resource routes to avoid route conflicts
+            Route::post('bulk-send-confirmation', [AdminJobApplicationController::class, 'sendBulkConfirmationEmails'])->name('bulk-send-confirmation');
+        });
         Route::resource('job-applications', AdminJobApplicationController::class)->only(['index', 'show', 'destroy']);
         Route::post('job-applications/{application}/review', [AdminJobApplicationController::class, 'review'])->name('job-applications.review');
         Route::post('job-applications/{application}/schedule-interview', [AdminJobApplicationController::class, 'scheduleInterview'])->name('job-applications.schedule-interview');
         Route::post('job-applications/{application}/update-status', [AdminJobApplicationController::class, 'updateStatus'])->name('job-applications.update-status');
         Route::post('job-applications/{application}/send-message', [AdminJobApplicationController::class, 'sendMessage'])->name('job-applications.send-message');
+        Route::post('job-applications/{application}/send-confirmation', [AdminJobApplicationController::class, 'sendConfirmationEmail'])->name('job-applications.send-confirmation');
         Route::post('interviews/{interview}/update-result', [AdminJobApplicationController::class, 'updateInterviewResult'])->name('interviews.update-result');
         Route::resource('activity-logs', AdminActivityLogController::class)->only(['index', 'show']);
         Route::prefix('products/{product}/images')

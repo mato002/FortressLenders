@@ -32,3 +32,4 @@ class LoanApplicationConfirmation extends Mailable
 
 
 
+
