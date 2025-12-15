@@ -16,8 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
         ]);
         
-        // Track user sessions for authenticated users
+        // Track user sessions for authenticated users, check blocked IPs, and check banned users
         $middleware->web(append: [
+            \App\Http\Middleware\CheckBlockedIp::class,
+            \App\Http\Middleware\CheckBannedUser::class,
             \App\Http\Middleware\TrackUserSession::class,
         ]);
     })

@@ -6,18 +6,44 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\BranchRequest;
 use App\Models\Branch;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class BranchController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $branches = Branch::query()
-            ->orderBy('display_order')
-            ->orderBy('name')
-            ->paginate(12);
+        $query = Branch::query();
 
-        return view('admin.branches.index', compact('branches'));
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->string('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('address_line1', 'like', "%{$search}%")
+                  ->orWhere('address_line2', 'like', "%{$search}%")
+                  ->orWhere('city', 'like', "%{$search}%")
+                  ->orWhere('phone_primary', 'like', "%{$search}%")
+                  ->orWhere('phone_secondary', 'like', "%{$search}%");
+            });
+        }
+
+        // Status filter
+        if ($request->filled('is_active') && $request->string('is_active') !== 'all') {
+            $query->where('is_active', $request->boolean('is_active'));
+        }
+
+        $totalBranchesCount = Branch::count();
+        $activeBranchesCount = Branch::where('is_active', true)->count();
+        $hiddenBranchesCount = Branch::where('is_active', false)->count();
+        $filteredBranchesCount = $query->count();
+
+        $branches = $query->orderBy('display_order')
+            ->orderBy('name')
+            ->paginate(12)
+            ->withQueryString();
+
+        return view('admin.branches.index', compact('branches', 'totalBranchesCount', 'activeBranchesCount', 'hiddenBranchesCount', 'filteredBranchesCount'));
     }
 
     public function create(): View

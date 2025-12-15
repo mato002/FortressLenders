@@ -12,14 +12,46 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::withCount('images')
-            ->orderBy('display_order')
-            ->orderBy('title')
-            ->paginate(12);
+        $query = Product::withCount('images');
 
-        return view('admin.products.index', compact('products'));
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->string('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('category', 'like', "%{$search}%")
+                  ->orWhere('summary', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // Status filter
+        if ($request->filled('is_active') && $request->string('is_active') !== 'all') {
+            $query->where('is_active', $request->boolean('is_active'));
+        }
+
+        // Category filter
+        if ($request->filled('category') && $request->string('category') !== 'all') {
+            $query->where('category', $request->string('category'));
+        }
+
+        $totalProductsCount = Product::count();
+        $filteredProductsCount = $query->count();
+
+        $products = $query->orderBy('display_order')
+            ->orderBy('title')
+            ->paginate(12)
+            ->withQueryString();
+
+        $categories = Product::whereNotNull('category')
+            ->distinct()
+            ->pluck('category')
+            ->sort()
+            ->values();
+
+        return view('admin.products.index', compact('products', 'totalProductsCount', 'filteredProductsCount', 'categories'));
     }
 
     public function create()

@@ -13,7 +13,7 @@
 </head>
 <body class="bg-[#F0F9F8] text-teal-950 antialiased">
     <div class="min-h-screen bg-gradient-to-br from-white via-[#F0F9F8] to-[#E1F4F2]">
-        <aside id="sidebar" class="hidden lg:flex lg:flex-col h-screen bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 text-white border-r border-teal-900/40 shadow-2xl lg:fixed lg:inset-y-0 lg:left-0 transition-all duration-300 ease-in-out overflow-hidden" style="width: 288px;">
+        <aside id="sidebar" class="hidden lg:flex lg:flex-col h-screen bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 text-white border-r border-teal-900/40 shadow-2xl lg:fixed lg:inset-y-0 lg:left-0 transition-all duration-300 ease-in-out overflow-hidden" style="width: 288px;" aria-label="Admin sidebar navigation">
             <div class="px-4 py-6 border-b border-white/10 flex items-center gap-3 flex-shrink-0 relative">
                 @if(isset($logoPath) && $logoPath)
                     <img src="{{ asset('storage/'.$logoPath) }}" alt="Fortress Lenders" class="h-10 w-auto object-contain sidebar-logo flex-shrink-0">
@@ -31,22 +31,47 @@
                 </button>
             </div>
             <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto overflow-x-hidden sidebar-nav min-h-0" style="scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.3) transparent;">
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.dashboard') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Dashboard">
+                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.dashboard') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Dashboard" @if(request()->routeIs('admin.dashboard')) aria-current="page" @endif>
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                     <span class="sidebar-text">Dashboard</span>
                 </a>
-                <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.products.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Products">
+                <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.products.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Products" @if(request()->routeIs('admin.products.*')) aria-current="page" @endif>
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     <span class="sidebar-text">Products</span>
                 </a>
-                <a href="{{ route('admin.team-members.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.team-members.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Team">
+                <a href="{{ route('admin.team-members.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.team-members.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Team" @if(request()->routeIs('admin.team-members.*')) aria-current="page" @endif>
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     <span class="sidebar-text">Team</span>
                 </a>
-                <a href="{{ route('admin.branches.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.branches.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Branches">
+                <a href="{{ route('admin.branches.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.branches.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Branches" @if(request()->routeIs('admin.branches.*')) aria-current="page" @endif>
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     <span class="sidebar-text">Branches</span>
                 </a>
+
+                <!-- Content Dropdown (Blog, FAQs, CEO Message) -->
+                <div class="nav-dropdown">
+                    <button type="button" onclick="toggleDropdown('content-dropdown')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.posts.*') || request()->routeIs('admin.faqs.*') || request()->routeIs('admin.ceo-messages.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Content">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c.914 0 1.667-.746 1.667-1.667C13.667 5.42 12.913 4.667 12 4.667c-.914 0-1.667.754-1.667 1.666C10.333 7.254 11.086 8 12 8zm0 2c-1.84 0-3.333.746-3.333 1.667V14h6.666v-2.333C15.333 10.746 13.84 10 12 10zm0-10C5.373 0 0 5.373 0 12c0 6.628 5.373 12 12 12s12-5.372 12-12C24 5.373 18.627 0 12 0z"/></svg>
+                        <span class="sidebar-text flex-1 text-left">Content</span>
+                        <svg id="content-dropdown-arrow" class="w-4 h-4 flex-shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div id="content-dropdown" class="dropdown-menu hidden ml-4 mt-1 space-y-1">
+                        <a href="{{ route('admin.posts.index') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition {{ request()->routeIs('admin.posts.*') ? 'bg-amber-400/20 text-white' : 'text-white/75 hover:bg-white/10' }}" title="Blog Posts">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+                            <span class="sidebar-text">Blog Posts</span>
+                        </a>
+                        <a href="{{ route('admin.faqs.index') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition {{ request()->routeIs('admin.faqs.*') ? 'bg-amber-400/20 text-white' : 'text-white/75 hover:bg-white/10' }}" title="FAQs">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907C12.653 13.104 12.2 13.54 12.2 14.093M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span class="sidebar-text">FAQs</span>
+                        </a>
+                        <a href="{{ route('admin.ceo-messages.index') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition {{ request()->routeIs('admin.ceo-messages.*') ? 'bg-amber-400/20 text-white' : 'text-white/75 hover:bg-white/10' }}" title="CEO Message">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0v7" /></svg>
+                            <span class="sidebar-text">CEO Message</span>
+                        </a>
+                    </div>
+                </div>
                 
                 <!-- Pages Dropdown -->
                 <div class="nav-dropdown">
@@ -73,15 +98,15 @@
                     </div>
                 </div>
                 
-                <a href="{{ route('admin.contact-messages.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.contact-messages.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Contact Messages">
+                <a href="{{ route('admin.contact-messages.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.contact-messages.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Contact Messages" @if(request()->routeIs('admin.contact-messages.*')) aria-current="page" @endif>
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                     <span class="sidebar-text">Contact Messages</span>
                 </a>
-                <a href="{{ route('admin.loan-applications.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.loan-applications.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Loan Applications">
+                <a href="{{ route('admin.loan-applications.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.loan-applications.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Loan Applications" @if(request()->routeIs('admin.loan-applications.*')) aria-current="page" @endif>
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span class="sidebar-text">Loan Applications</span>
                 </a>
-                <a href="{{ route('admin.activity-logs.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.activity-logs.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Activity Logs">
+                <a href="{{ route('admin.activity-logs.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.activity-logs.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Activity Logs" @if(request()->routeIs('admin.activity-logs.*')) aria-current="page" @endif>
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
                     <span class="sidebar-text">Activity Logs</span>
                 </a>
@@ -109,7 +134,7 @@
                 
                 <!-- Settings Dropdown -->
                 <div class="nav-dropdown">
-                    <button type="button" onclick="toggleDropdown('settings-dropdown')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.profile') || request()->routeIs('admin.logo.*') || request()->routeIs('admin.api.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Settings">
+                    <button type="button" onclick="toggleDropdown('settings-dropdown')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition border border-transparent {{ request()->routeIs('admin.profile') || request()->routeIs('admin.logo.*') || request()->routeIs('admin.api.*') || request()->routeIs('admin.general.*') ? 'bg-amber-400/20 border-amber-200/40 text-white shadow-inner' : 'text-white/75 hover:bg-white/10' }}" title="Settings">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         <span class="sidebar-text flex-1 text-left">Settings</span>
                         <svg id="settings-dropdown-arrow" class="w-4 h-4 flex-shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,6 +142,10 @@
                         </svg>
                     </button>
                     <div id="settings-dropdown" class="dropdown-menu hidden ml-4 mt-1 space-y-1">
+                        <a href="{{ route('admin.general.edit') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition {{ request()->routeIs('admin.general.*') ? 'bg-amber-400/20 text-white' : 'text-white/75 hover:bg-white/10' }}" title="General Settings">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <span class="sidebar-text">General Settings</span>
+                        </a>
                         <a href="{{ route('admin.profile') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition {{ request()->routeIs('admin.profile') ? 'bg-amber-400/20 text-white' : 'text-white/75 hover:bg-white/10' }}" title="Profile Settings">
                             <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                             <span class="sidebar-text">Profile Settings</span>
@@ -133,8 +162,8 @@
                 </div>
             </nav>
             <div class="px-6 py-6 border-t border-white/10 space-y-3 flex-shrink-0 sidebar-footer">
-                <a href="{{ route('home') }}" class="w-full inline-flex items-center justify-center px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition text-sm font-semibold sidebar-link">
-                    <span class="sidebar-text">View Website</span>
+                <a href="{{ route('home') }}" class="w-full inline-flex items-center justify-center px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition text-sm font-semibold sidebar-link" target="_blank" rel="noopener" title="Open public website in a new tab">
+                    <span class="sidebar-text">View Website (opens in new tab)</span>
                 </a>
             </div>
         </aside>

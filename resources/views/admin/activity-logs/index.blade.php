@@ -128,8 +128,28 @@
                             <div class="text-xs text-gray-500">{{ $log->created_at->format('g:i A') }}</div>
                         </td>
                         <td class="px-3 sm:px-6 py-4 text-right">
-                            <a href="{{ route('admin.activity-logs.show', $log) }}" 
-                               class="text-teal-700 font-semibold hover:text-teal-800 text-xs sm:text-sm">View</a>
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="{{ route('admin.activity-logs.show', $log) }}" 
+                                   class="text-teal-700 font-semibold hover:text-teal-800 text-xs sm:text-sm">View</a>
+                                @if($log->ip_address && !in_array($log->ip_address, $blockedIps))
+                                    <form action="{{ route('admin.activity-logs.block-ip', $log) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to block IP address {{ $log->ip_address }}?');">
+                                        @csrf
+                                        <button type="submit" class="text-red-600 font-semibold hover:text-red-700 text-xs sm:text-sm" title="Block IP Address">
+                                            Block IP
+                                        </button>
+                                    </form>
+                                @elseif($log->ip_address && in_array($log->ip_address, $blockedIps))
+                                    <span class="text-xs text-gray-400">IP Blocked</span>
+                                @endif
+                                @if($log->user_id && !($log->user->is_banned ?? false))
+                                    <form action="{{ route('admin.activity-logs.ban-user', $log) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to ban user {{ $log->user->email }}? This will revoke all their sessions.');">
+                                        @csrf
+                                        <button type="submit" class="text-red-600 font-semibold hover:text-red-700 text-xs sm:text-sm" title="Ban User">
+                                            Ban User
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @empty

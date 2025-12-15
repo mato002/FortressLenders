@@ -9,12 +9,46 @@ use Illuminate\Support\Str;
 
 class JobPostController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $jobs = JobPost::withCount('applications')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
-        return view('admin.jobs.index', compact('jobs'));
+        $query = JobPost::withCount('applications');
+
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->string('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('department', 'like', "%{$search}%")
+                  ->orWhere('location', 'like', "%{$search}%")
+                  ->orWhere('employment_type', 'like', "%{$search}%");
+            });
+        }
+
+        // Status filter
+        if ($request->filled('is_active') && $request->string('is_active') !== 'all') {
+            $query->where('is_active', $request->boolean('is_active'));
+        }
+
+        // Department filter
+        if ($request->filled('department') && $request->string('department') !== 'all') {
+            $query->where('department', $request->string('department'));
+        }
+
+        $totalJobsCount = JobPost::count();
+        $filteredJobsCount = $query->count();
+
+        $jobs = $query->orderBy('created_at', 'desc')
+            ->paginate(15)
+            ->withQueryString();
+
+        $departments = JobPost::whereNotNull('department')
+            ->distinct()
+            ->pluck('department')
+            ->sort()
+            ->values();
+
+        return view('admin.jobs.index', compact('jobs', 'totalJobsCount', 'filteredJobsCount', 'departments'));
     }
 
     public function create()

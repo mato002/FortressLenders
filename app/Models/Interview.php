@@ -28,7 +28,8 @@ class Interview extends Model
 
     public function application()
     {
-        return $this->belongsTo(JobApplication::class);
+        // Explicitly specify the foreign key so Eloquent uses job_application_id
+        return $this->belongsTo(JobApplication::class, 'job_application_id');
     }
 
     public function conductedBy()

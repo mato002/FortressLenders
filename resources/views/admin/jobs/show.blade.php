@@ -33,9 +33,19 @@
                     <span class="text-sm text-gray-600">
                         <strong>Type:</strong> {{ ucfirst(str_replace('-', ' ', $job->employment_type)) }}
                     </span>
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $job->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700' }}">
-                        {{ $job->is_active ? 'Active' : 'Inactive' }}
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $job->status_badge_classes }}">
+                        {{ $job->status_label }}
                     </span>
+                    @if($job->application_deadline)
+                        <span class="text-sm text-gray-600">
+                            <strong>Deadline:</strong> {{ $job->application_deadline->format('M d, Y') }}
+                            @if($job->application_deadline->isPast())
+                                <span class="text-red-600">(Passed)</span>
+                            @else
+                                <span class="text-green-600">({{ $job->application_deadline->diffForHumans() }})</span>
+                            @endif
+                        </span>
+                    @endif
                 </div>
 
                 <div class="prose max-w-none mb-6">

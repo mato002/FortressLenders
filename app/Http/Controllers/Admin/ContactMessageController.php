@@ -13,23 +13,38 @@ class ContactMessageController extends Controller
 {
     public function index(Request $request)
     {
-        $messages = ContactMessage::query()
-            ->when(
-                $request->filled('status'),
-                fn ($query) => $query->where('status', $request->string('status'))
-            )
-            ->when(
-                $request->filled('search'),
-                fn ($query) => $query->where(function ($q) use ($request) {
-                    $search = $request->string('search');
-                    $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhere('phone', 'like', "%{$search}%")
-                      ->orWhere('subject', 'like', "%{$search}%")
-                      ->orWhere('message', 'like', "%{$search}%");
-                })
-            )
-            ->orderByDesc('created_at')
+        $query = ContactMessage::query();
+
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->string('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('subject', 'like', "%{$search}%")
+                  ->orWhere('message', 'like', "%{$search}%");
+            });
+        }
+
+        // Status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status'));
+        }
+
+        // Date range filter
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->date('start_date'));
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->date('end_date'));
+        }
+
+        $totalMessagesCount = ContactMessage::count();
+        $filteredMessagesCount = $query->count();
+
+        $messages = $query->orderByDesc('created_at')
             ->paginate(20)
             ->withQueryString();
 
@@ -39,7 +54,7 @@ class ContactMessageController extends Controller
             'handled' => ContactMessage::where('status', 'handled')->count(),
         ];
 
-        return view('admin.contact-messages.index', compact('messages', 'statusCounts'));
+        return view('admin.contact-messages.index', compact('messages', 'statusCounts', 'totalMessagesCount', 'filteredMessagesCount'));
     }
 
     public function show(ContactMessage $contactMessage)
@@ -116,5 +131,119 @@ class ContactMessageController extends Controller
         return redirect()
             ->route('admin.contact-messages.index')
             ->with('status', 'Message deleted.');
+    }
+
+    /**
+     * Bulk update status
+     */
+    public function bulkUpdateStatus(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'message_ids' => 'required|array',
+            'message_ids.*' => 'exists:contact_messages,id',
+            'status' => 'required|in:new,in_progress,handled',
+        ]);
+
+        $count = ContactMessage::whereIn('id', $validated['message_ids'])
+            ->update([
+                'status' => $validated['status'],
+                'handled_at' => $validated['status'] === 'handled' ? now() : null,
+            ]);
+
+        return back()->with('status', "Status updated for {$count} message(s).");
+    }
+
+    /**
+     * Bulk delete
+     */
+    public function bulkDelete(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'message_ids' => 'required|array',
+            'message_ids.*' => 'exists:contact_messages,id',
+        ]);
+
+        $count = ContactMessage::whereIn('id', $validated['message_ids'])->delete();
+
+        return back()->with('status', "{$count} message(s) deleted successfully.");
+    }
+
+    /**
+     * Export messages to CSV
+     */
+    public function export(Request $request)
+    {
+        $query = ContactMessage::query();
+
+        // Apply same filters as index
+        if ($request->filled('search')) {
+            $search = $request->string('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('subject', 'like', "%{$search}%")
+                  ->orWhere('message', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status'));
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->date('start_date'));
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->date('end_date'));
+        }
+
+        $messages = $query->orderByDesc('created_at')->get();
+
+        $filename = 'contact_messages_' . now()->format('Y-m-d_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function() use ($messages) {
+            $file = fopen('php://output', 'w');
+            
+            // CSV Headers
+            fputcsv($file, [
+                'ID',
+                'Name',
+                'Email',
+                'Phone',
+                'Subject',
+                'Message',
+                'Status',
+                'Admin Notes',
+                'Handled At',
+                'Created At',
+            ]);
+
+            // CSV Data
+            foreach ($messages as $message) {
+                fputcsv($file, [
+                    $message->id,
+                    $message->name,
+                    $message->email,
+                    $message->phone ?? 'N/A',
+                    $message->subject ?? 'N/A',
+                    $message->message,
+                    $message->status,
+                    $message->admin_notes ?? 'N/A',
+                    $message->handled_at ? $message->handled_at->format('Y-m-d H:i:s') : 'N/A',
+                    $message->created_at->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

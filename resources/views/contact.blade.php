@@ -165,7 +165,7 @@
                                     <h3 class="text-xl font-bold text-gray-900 mb-2">Working Hours</h3>
                                     <ul class="text-gray-600 space-y-1">
                                         <li><strong>Monday - Friday:</strong> 8:00 AM - 5:00 PM</li>
-                                        <li><strong>Saturday:</strong> 9:00 AM - 1:00 PM</li>
+                                        <li><strong>Saturday:</strong> 9:00 AM - 12:00 PM</li>
                                         <li><strong>Sunday:</strong> Closed</li>
                                     </ul>
                                 </div>

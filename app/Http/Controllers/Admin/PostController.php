@@ -11,14 +11,37 @@ use Illuminate\View\View;
 
 class PostController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $posts = Post::with('author')
-            ->orderBy('published_at', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $query = Post::with('author');
 
-        return view('admin.posts.index', compact('posts'));
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->string('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('excerpt', 'like', "%{$search}%")
+                  ->orWhere('content', 'like', "%{$search}%")
+                  ->orWhereHas('author', function ($q2) use ($search) {
+                      $q2->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Status filter
+        if ($request->filled('is_published') && $request->string('is_published') !== 'all') {
+            $query->where('is_published', $request->boolean('is_published'));
+        }
+
+        $totalPostsCount = Post::count();
+        $filteredPostsCount = $query->count();
+
+        $posts = $query->orderBy('published_at', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.posts.index', compact('posts', 'totalPostsCount', 'filteredPostsCount'));
     }
 
     public function create(): View

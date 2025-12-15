@@ -11,11 +11,34 @@ use Illuminate\View\View;
 
 class CeoMessageController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $ceoMessages = CeoMessage::orderBy('created_at', 'desc')->paginate(15);
+        $query = CeoMessage::query();
 
-        return view('admin.ceo-messages.index', compact('ceoMessages'));
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->string('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('position', 'like', "%{$search}%")
+                  ->orWhere('title', 'like', "%{$search}%")
+                  ->orWhere('message', 'like', "%{$search}%");
+            });
+        }
+
+        // Status filter
+        if ($request->filled('is_active') && $request->string('is_active') !== 'all') {
+            $query->where('is_active', $request->boolean('is_active'));
+        }
+
+        $totalCeoMessagesCount = CeoMessage::count();
+        $filteredCeoMessagesCount = $query->count();
+
+        $ceoMessages = $query->orderBy('created_at', 'desc')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.ceo-messages.index', compact('ceoMessages', 'totalCeoMessagesCount', 'filteredCeoMessagesCount'));
     }
 
     public function create(): View

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class JobApplication extends Model
 {
@@ -59,24 +61,29 @@ class JobApplication extends Model
         'agreement_accepted' => 'boolean',
     ];
 
-    public function jobPost()
+    public function jobPost(): BelongsTo
     {
         return $this->belongsTo(JobPost::class);
     }
 
-    public function reviews()
+    public function reviews(): HasMany
     {
         return $this->hasMany(JobApplicationReview::class);
     }
 
-    public function interviews()
+    public function interviews(): HasMany
     {
         return $this->hasMany(Interview::class);
     }
 
-    public function messages()
+    public function messages(): HasMany
     {
         return $this->hasMany(JobApplicationMessage::class);
+    }
+
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(JobApplicationStatusHistory::class);
     }
 
     public function scopePending($query)

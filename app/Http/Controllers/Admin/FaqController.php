@@ -10,13 +10,33 @@ use Illuminate\View\View;
 
 class FaqController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $faqs = Faq::orderBy('display_order')
-            ->orderBy('id')
-            ->paginate(15);
+        $query = Faq::query();
 
-        return view('admin.faqs.index', compact('faqs'));
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->string('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('question', 'like', "%{$search}%")
+                  ->orWhere('answer', 'like', "%{$search}%");
+            });
+        }
+
+        // Status filter
+        if ($request->filled('is_active') && $request->string('is_active') !== 'all') {
+            $query->where('is_active', $request->boolean('is_active'));
+        }
+
+        $totalFaqsCount = Faq::count();
+        $filteredFaqsCount = $query->count();
+
+        $faqs = $query->orderBy('display_order')
+            ->orderBy('id')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.faqs.index', compact('faqs', 'totalFaqsCount', 'filteredFaqsCount'));
     }
 
     public function create(): View

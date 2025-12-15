@@ -13,7 +13,15 @@
                     Submitted {{ $loanApplication->created_at->format('M d, Y H:i') }}
                 </p>
             </div>
-            <div class="flex items-center gap-2 flex-shrink-0">
+            <div class="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                @if($loanApplication->email)
+                    <form method="POST" action="{{ route('admin.loan-applications.send-confirmation', $loanApplication) }}" class="inline">
+                        @csrf
+                        <button type="submit" class="px-3 py-2 text-xs sm:text-sm rounded-lg sm:rounded-xl border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 whitespace-nowrap">
+                            Resend Confirmation Email
+                        </button>
+                    </form>
+                @endif
                 <a href="{{ route('admin.loan-applications.index') }}" class="px-3 py-2 text-xs sm:text-sm rounded-lg sm:rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 whitespace-nowrap">
                     Back to list
                 </a>

@@ -41,11 +41,33 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        // Check if user exists and is banned before attempting authentication
+        $user = \App\Models\User::where('email', $this->string('email'))->first();
+        
+        if ($user && ($user->is_banned ?? false)) {
+            RateLimiter::hit($this->throttleKey());
+            
+            throw ValidationException::withMessages([
+                'email' => 'Your account has been banned. Please contact the administrator.',
+            ]);
+        }
+
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
+            ]);
+        }
+
+        // Double-check after authentication (in case user was banned during session)
+        if (Auth::user() && (Auth::user()->is_banned ?? false)) {
+            Auth::logout();
+            $this->session()->invalidate();
+            $this->session()->regenerateToken();
+            
+            throw ValidationException::withMessages([
+                'email' => 'Your account has been banned. Please contact the administrator.',
             ]);
         }
 

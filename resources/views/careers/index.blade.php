@@ -37,7 +37,8 @@
             @endif
 
             <div class="mb-8">
-                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">Available Positions</h2>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">Job Openings</h2>
+                <p class="text-gray-600 text-sm sm:text-base">Browse our current and past job postings. Closed positions are kept for reference.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
@@ -71,18 +72,18 @@
                             </div>
                         </div>
                         <div class="flex items-center justify-between pt-4 border-t border-gray-200">
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 flex-wrap">
                                 <span class="text-xs font-semibold px-3 py-1 rounded-full bg-teal-100 text-teal-800">
                                     {{ ucfirst(str_replace('-', ' ', $job->employment_type)) }}
                                 </span>
                                 @php
-                                    $deadlinePassed = $job->application_deadline && $job->application_deadline->isPast();
+                                    $status = $job->application_status;
+                                    $statusClasses = $job->status_badge_classes;
+                                    $statusLabel = $job->status_label;
                                 @endphp
-                                @if($deadlinePassed)
-                                    <span class="text-xs font-semibold px-3 py-1 rounded-full bg-red-100 text-red-800">
-                                        Deadline Passed
-                                    </span>
-                                @endif
+                                <span class="text-xs font-semibold px-3 py-1 rounded-full {{ $statusClasses }}">
+                                    {{ $statusLabel }}
+                                </span>
                             </div>
                             <a href="{{ route('careers.show', $job->slug) }}" class="px-4 py-2 bg-teal-800 text-white rounded-lg hover:bg-teal-900 transition-colors font-semibold text-sm">
                                 View Details

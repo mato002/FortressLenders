@@ -2,6 +2,9 @@
 
 @section('title', 'Home - Fortress Lenders Ltd')
 
+@section('meta_description', 'Fortress Lenders Ltd offers accessible microfinance and microcredit services across Kenya, empowering individuals and businesses with flexible loan products.')
+@section('meta_keywords', 'Fortress Lenders, microfinance Kenya, loans Nakuru, business loans, group loans, emergency loans')
+
 @section('content')
 @php use Illuminate\Support\Str; @endphp
     <!-- Hero Section -->

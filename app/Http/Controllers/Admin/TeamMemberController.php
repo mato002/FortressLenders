@@ -11,11 +11,38 @@ use Illuminate\View\View;
 
 class TeamMemberController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $teamMembers = TeamMember::orderBy('display_order')->orderBy('name')->paginate(15);
+        $query = TeamMember::query();
 
-        return view('admin.team-members.index', compact('teamMembers'));
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->string('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('role', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('bio', 'like', "%{$search}%");
+            });
+        }
+
+        // Status filter
+        if ($request->filled('is_active') && $request->string('is_active') !== 'all') {
+            $query->where('is_active', $request->boolean('is_active'));
+        }
+
+        $totalTeamMembersCount = TeamMember::count();
+        $activeTeamMembersCount = TeamMember::where('is_active', true)->count();
+        $hiddenTeamMembersCount = TeamMember::where('is_active', false)->count();
+        $filteredTeamMembersCount = $query->count();
+
+        $teamMembers = $query->orderBy('display_order')
+            ->orderBy('name')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.team-members.index', compact('teamMembers', 'totalTeamMembersCount', 'activeTeamMembersCount', 'hiddenTeamMembersCount', 'filteredTeamMembersCount'));
     }
 
     public function create(): View
@@ -35,6 +62,11 @@ class TeamMemberController extends Controller
         $this->handlePhotoUpload($request, $teamMember);
 
         return redirect()->route('admin.team-members.index')->with('status', 'Team member added.');
+    }
+
+    public function show(TeamMember $teamMember): View
+    {
+        return view('admin.team-members.show', compact('teamMember'));
     }
 
     public function edit(TeamMember $teamMember): View

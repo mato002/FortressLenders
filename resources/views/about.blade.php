@@ -21,21 +21,97 @@
     <!-- Introduction Section -->
     <section class="py-12 sm:py-16 md:py-20 bg-white">
         <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
-            <div class="max-w-4xl mx-auto">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Introduction</h2>
-                <div class="prose prose-lg text-gray-600 space-y-4">
-                    <p>
-                        FORTRESS LENDERS LTD, hereafter referred to as "Fortress," is registered under the Company's Act in the Republic of Kenya, the year 2019 certificate no. PVT-KAUXJED. We are licensed and trade as a Credit only institution as stated in our company memorandum. The Head office is in Fortress Hse, Nakuru County- Barnabas Muguga Opp. Epic ridge Academy.
+            <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-12 items-start">
+                <!-- Narrative -->
+                <div class="lg:col-span-2 space-y-4 sm:space-y-5">
+                    <div>
+                        <p class="text-xs font-semibold tracking-[0.25em] text-teal-700 uppercase mb-2">Who We Are</p>
+                        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+                            Introduction
+                        </h2>
+                    </div>
+                    <p class="text-base sm:text-lg text-gray-700">
+                        FORTRESS LENDERS LTD, hereafter referred to as "Fortress," is registered under the Company's Act in the
+                        Republic of Kenya, the year 2019 certificate no. PVT-KAUXJED. We are licensed and trade as a Credit only
+                        institution as stated in our company memorandum. The Head office is in Fortress Hse, Nakuru County –
+                        Barnabas Muguga Opp. Epic ridge Academy.
                     </p>
-                    <p>
-                        At FORTRESS we exist to enable people to achieve their dreams. This we do through provision of customer centric financial and non-financial solutions. We provide Microfinance and Microcredit products and services in a unique and innovative way. The company was established to respond to the ever-growing need for small business loans.
+                    <p class="text-base sm:text-lg text-gray-700">
+                        At FORTRESS we exist to enable people to achieve their dreams. This we do through provision of customer
+                        centric financial and non-financial solutions. We provide Microfinance and Microcredit products and
+                        services in a unique and innovative way. The company was established to respond to the ever-growing need
+                        for small business loans.
                     </p>
-                    <p>
-                        Currently the client base is well over 3000 spread out within Nakuru, Gilgil, Olkalou, Nyahururu and Rumuruti. The company is cognizant of the fact that customers are interested in products that are affordable, diverse and with flexible terms of payment. Fortress therefore undertook to meet these customer requirements and over time, the organization has built a brand that is strong, trusted and appealing.
+                    <p class="text-base sm:text-lg text-gray-700">
+                        Currently the client base is well over 3000 spread out within Nakuru, Gilgil, Olkalou, Nyahururu and
+                        Rumuruti. The company is cognizant of the fact that customers are interested in products that are
+                        affordable, diverse and with flexible terms of payment. Fortress therefore undertook to meet these
+                        customer requirements and over time, the organization has built a brand that is strong, trusted and
+                        appealing.
                     </p>
-                    <p>
-                        Fortress is interested in seeing our clients start, grow and diversify resulting in increased family income, nutrition, employment and well-being. We achieve this through the provision of financial literacy and business management programs to our clients.
+                    <p class="text-base sm:text-lg text-gray-700">
+                        Fortress is interested in seeing our clients start, grow and diversify resulting in increased family
+                        income, nutrition, employment and well-being. We achieve this through the provision of financial literacy
+                        and business management programs to our clients.
                     </p>
+                </div>
+
+                <!-- Key Facts Card -->
+                <aside class="bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-700 text-white rounded-2xl shadow-xl px-6 py-6 sm:px-7 sm:py-7">
+                    <h3 class="text-lg font-semibold mb-3">Fortress at a Glance</h3>
+                    <p class="text-sm text-teal-100 mb-4">
+                        Snapshot of who we are and where we operate.
+                    </p>
+                    <dl class="space-y-3 text-sm">
+                        <div class="flex justify-between gap-4">
+                            <dt class="text-teal-100">Established</dt>
+                            <dd class="font-semibold text-white">2019</dd>
+                        </div>
+                        <div class="flex justify-between gap-4">
+                            <dt class="text-teal-100">Registration</dt>
+                            <dd class="font-semibold text-white text-right">PVT-KAUXJED</dd>
+                        </div>
+                        <div class="flex justify-between gap-4">
+                            <dt class="text-teal-100">Head Office</dt>
+                            <dd class="font-semibold text-white text-right">
+                                Fortress Hse, Barnabas Muguga,<br class="hidden sm:block" />
+                                Nakuru County
+                            </dd>
+                        </div>
+                        <div class="flex justify-between gap-4">
+                            <dt class="text-teal-100">Client Base</dt>
+                            <dd class="font-semibold text-white text-right">3000+ active clients</dd>
+                        </div>
+                        <div class="flex justify-between gap-4">
+                            <dt class="text-teal-100">Key Locations</dt>
+                            <dd class="font-semibold text-white text-right">
+                                Nakuru, Gilgil, Olkalou,<br class="hidden sm:block" />
+                                Nyahururu, Rumuruti
+                            </dd>
+                        </div>
+                    </dl>
+                </aside>
+            </div>
+
+            <!-- Downloadable Company Profile -->
+            <div class="max-w-4xl mx-auto mt-10">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 rounded-2xl border border-teal-100 bg-teal-50 px-6 py-5 shadow-sm">
+                    <div>
+                        <h3 class="text-lg font-semibold text-teal-900 mb-1">Download Our Detailed Company Profile</h3>
+                        <p class="text-sm text-teal-800">
+                            Get the full Fortress Lenders company profile in PDF format with detailed information on our history,
+                            governance, products, branch network, and impact.
+                        </p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="{{ route('company.profile') }}" target="_blank" rel="noopener"
+                           class="inline-flex items-center gap-2 rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-teal-800 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 4v12m0 0l-4-4m4 4l4-4" />
+                            </svg>
+                            <span>Download Company Profile (PDF)</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

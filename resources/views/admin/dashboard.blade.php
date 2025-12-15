@@ -14,140 +14,612 @@
 @endsection
 
 @section('content')
-    <div class="space-y-8">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p class="text-sm text-gray-500">Total Products</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">{{ $stats['products'] }}</p>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p class="text-sm text-gray-500">Active Products</p>
-                <p class="text-3xl font-bold text-teal-700 mt-2">{{ $stats['active_products'] }}</p>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p class="text-sm text-gray-500">Unread Messages</p>
-                <p class="text-3xl font-bold text-amber-600 mt-2">{{ $stats['unread_messages'] }}</p>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p class="text-sm text-gray-500">Total Messages</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">{{ $stats['total_messages'] }}</p>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p class="text-sm text-gray-500">Pending Loan Applications</p>
-                <p class="text-3xl font-bold text-amber-600 mt-2">{{ $stats['pending_applications'] }}</p>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p class="text-sm text-gray-500">Total Loan Applications</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">{{ $stats['total_applications'] }}</p>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p class="text-sm text-gray-500">Total Branches</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">{{ $stats['branches'] }}</p>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p class="text-sm text-gray-500">Active Branches</p>
-                <p class="text-3xl font-bold text-teal-700 mt-2">{{ $stats['active_branches'] }}</p>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-semibold text-gray-900">Recent Contact Messages</h2>
-                    <a href="{{ route('admin.contact-messages.index') }}" class="text-sm text-teal-700 font-medium">View all</a>
+    <div class="space-y-6">
+        <!-- Statistics Grid 1: Products & Messages -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <a href="{{ route('admin.products.index') }}" class="group relative block bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-slate-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-100/30 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Total Products</p>
+                    <p class="text-4xl font-bold text-slate-900">{{ $stats['products'] }}</p>
                 </div>
-                <div class="divide-y divide-gray-100">
-                    @forelse ($recentMessages as $message)
-                        <a href="{{ route('admin.contact-messages.show', $message) }}" class="py-4 block hover:bg-gray-50 rounded-lg px-2 -mx-2 transition">
-                            <p class="font-semibold text-gray-900">{{ $message->name }}</p>
-                            <p class="text-sm text-gray-500">{{ $message->subject ?? 'No subject' }}</p>
-                            <p class="text-xs text-gray-400 mt-1">{{ $message->created_at->format('M d, Y g:i A') }}</p>
+            </a>
+            <a href="{{ route('admin.products.index') }}" class="group relative block bg-gradient-to-br from-white to-emerald-50/30 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-emerald-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-100/40 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Active Products</p>
+                    <p class="text-4xl font-bold text-emerald-700">{{ $stats['active_products'] }}</p>
+                </div>
+            </a>
+            <a href="{{ route('admin.contact-messages.index') }}" class="group relative block bg-gradient-to-br from-white to-amber-50/30 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-amber-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-amber-100/40 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Unread Messages</p>
+                    <p class="text-4xl font-bold text-amber-600">{{ $stats['unread_messages'] }}</p>
+                </div>
+            </a>
+            <a href="{{ route('admin.contact-messages.index') }}" class="group relative block bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-slate-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-slate-100/30 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Total Messages</p>
+                    <p class="text-4xl font-bold text-slate-900">{{ $stats['total_messages'] }}</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Statistics Grid 2: Loan Applications -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <a href="{{ route('admin.loan-applications.index') }}" class="group relative block bg-gradient-to-br from-white to-amber-50/30 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-amber-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-amber-100/40 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Pending Loan Applications</p>
+                    <p class="text-4xl font-bold text-amber-600">{{ $stats['pending_loan_applications'] }}</p>
+                </div>
+            </a>
+            <a href="{{ route('admin.loan-applications.index') }}" class="group relative block bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-slate-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-slate-100/30 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Total Loan Applications</p>
+                    <p class="text-4xl font-bold text-slate-900">{{ $stats['total_loan_applications'] }}</p>
+                </div>
+            </a>
+            <a href="{{ route('admin.loan-applications.index') }}" class="group relative block bg-gradient-to-br from-white to-green-50/30 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-green-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-green-100/40 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Approved Loans</p>
+                    <p class="text-4xl font-bold text-green-600">{{ $stats['approved_loan_applications'] }}</p>
+                </div>
+            </a>
+            <div class="group relative bg-gradient-to-br from-white to-purple-50/30 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-purple-200/60 overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-purple-100/40 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Newsletter Subscribers</p>
+                    <p class="text-4xl font-bold text-purple-600">{{ $stats['newsletter_subscribers'] }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Grid 3: Job Applications & Posts -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <a href="{{ route('admin.job-applications.index') }}" class="group relative block bg-gradient-to-br from-white to-amber-50/30 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-amber-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-amber-100/40 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Pending Job Applications</p>
+                    <p class="text-4xl font-bold text-amber-600">{{ $stats['pending_job_applications'] }}</p>
+                </div>
+            </a>
+            <a href="{{ route('admin.job-applications.index') }}" class="group relative block bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-slate-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-slate-100/30 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Total Job Applications</p>
+                    <p class="text-4xl font-bold text-slate-900">{{ $stats['total_job_applications'] }}</p>
+                </div>
+            </a>
+            <a href="{{ route('admin.job-applications.index') }}" class="group relative block bg-gradient-to-br from-white to-blue-50/30 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-blue-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-100/40 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Shortlisted Candidates</p>
+                    <p class="text-4xl font-bold text-blue-600">{{ $stats['shortlisted_job_applications'] }}</p>
+                </div>
+            </a>
+            <a href="{{ route('admin.job-applications.index') }}" class="group relative block bg-gradient-to-br from-white to-green-50/30 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-green-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-green-100/40 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Hired Candidates</p>
+                    <p class="text-4xl font-bold text-green-600">{{ $stats['hired_job_applications'] }}</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Statistics Grid 4: Job Posts, Branches & Content -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <a href="{{ route('admin.jobs.index') }}" class="group relative block bg-gradient-to-br from-white to-emerald-50/30 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-emerald-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-100/40 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Active Job Posts</p>
+                    <p class="text-4xl font-bold text-emerald-700">{{ $stats['active_job_posts'] }}</p>
+                </div>
+            </a>
+            <a href="{{ route('admin.jobs.index') }}" class="group relative block bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-slate-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-slate-100/30 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Total Job Posts</p>
+                    <p class="text-4xl font-bold text-slate-900">{{ $stats['total_job_posts'] }}</p>
+                </div>
+            </a>
+            <a href="{{ route('admin.branches.index') }}" class="group relative block bg-gradient-to-br from-white to-emerald-50/30 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-emerald-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-100/40 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Active Branches</p>
+                    <p class="text-4xl font-bold text-emerald-700">{{ $stats['active_branches'] }}</p>
+                </div>
+            </a>
+            <a href="{{ route('admin.branches.index') }}" class="group relative block bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-slate-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-slate-100/30 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Total Branches</p>
+                    <p class="text-4xl font-bold text-slate-900">{{ $stats['branches'] }}</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Statistics Grid 5: Content & Users -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <a href="{{ route('admin.team-members.index') }}" class="group relative block bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-slate-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-slate-100/30 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Team Members</p>
+                    <p class="text-4xl font-bold text-slate-900">{{ $stats['team_members'] }}</p>
+                </div>
+            </a>
+            <div class="group relative bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-slate-200/60 overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-slate-100/30 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Blog Posts</p>
+                    <p class="text-4xl font-bold text-slate-900">{{ $stats['blog_posts'] }}</p>
+                </div>
+            </div>
+            <div class="group relative bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-slate-200/60 overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-slate-100/30 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">FAQs</p>
+                    <p class="text-4xl font-bold text-slate-900">{{ $stats['faqs'] }}</p>
+                </div>
+            </div>
+            <div class="group relative bg-gradient-to-br from-white to-indigo-50/30 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-indigo-200/60 overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-100/40 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 mb-1">Admin Users</p>
+                    <p class="text-4xl font-bold text-indigo-600">{{ $stats['admin_users'] }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lists Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Recent Contact Messages -->
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200/60 p-6 hover:shadow-lg transition-shadow duration-300">
+                <div class="flex items-center justify-between mb-5 pb-4 border-b border-slate-200">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-900">Recent Contact Messages</h2>
+                    </div>
+                    <a href="{{ route('admin.contact-messages.index') }}" class="text-sm text-blue-600 font-semibold hover:text-blue-700 transition-colors">View all →</a>
+                </div>
+                <div class="divide-y divide-slate-100" id="messages-list">
+                    @forelse ($recentMessages->take(5) as $message)
+                        <a href="{{ route('admin.contact-messages.show', $message) }}" class="py-4 block hover:bg-slate-50 rounded-lg px-3 -mx-3 transition-colors duration-200 group">
+                            <p class="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{{ $message->name }}</p>
+                            <p class="text-sm text-slate-600 mt-1">{{ $message->subject ?? 'No subject' }}</p>
+                            <p class="text-xs text-slate-400 mt-2">{{ $message->created_at->format('M d, Y g:i A') }}</p>
                         </a>
                     @empty
-                        <p class="text-sm text-gray-500 py-4">No messages yet.</p>
+                        <p class="text-sm text-slate-500 py-6 text-center">No messages yet.</p>
                     @endforelse
+                    @if($recentMessages->count() > 5)
+                        <div class="hidden" id="messages-more">
+                            @foreach($recentMessages->skip(5) as $message)
+                                <a href="{{ route('admin.contact-messages.show', $message) }}" class="py-4 block hover:bg-slate-50 rounded-lg px-3 -mx-3 transition-colors duration-200 group">
+                                    <p class="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{{ $message->name }}</p>
+                                    <p class="text-sm text-slate-600 mt-1">{{ $message->subject ?? 'No subject' }}</p>
+                                    <p class="text-xs text-slate-400 mt-2">{{ $message->created_at->format('M d, Y g:i A') }}</p>
+                                </a>
+                            @endforeach
+                        </div>
+                        <button onclick="toggleList('messages')" class="mt-4 text-sm text-blue-600 font-semibold hover:text-blue-700 transition-colors" id="messages-toggle">
+                            Show More ({{ $recentMessages->count() - 5 }}) →
+                        </button>
+                    @endif
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-semibold text-gray-900">Latest Products</h2>
-                    <a href="{{ route('admin.products.index') }}" class="text-sm text-teal-700 font-medium">Manage</a>
+            <!-- Latest Products -->
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200/60 p-6 hover:shadow-lg transition-shadow duration-300">
+                <div class="flex items-center justify-between mb-5 pb-4 border-b border-slate-200">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-900">Latest Products</h2>
+                    </div>
+                    <a href="{{ route('admin.products.index') }}" class="text-sm text-emerald-600 font-semibold hover:text-emerald-700 transition-colors">Manage →</a>
                 </div>
-                <div class="divide-y divide-gray-100">
-                    @forelse ($latestProducts as $product)
-                        <div class="py-4">
-                            <p class="font-semibold text-gray-900">{{ $product->title }}</p>
-                            <p class="text-sm text-gray-500">{{ $product->category ?? 'General' }}</p>
-                            <p class="text-xs text-gray-400 mt-1">Updated {{ $product->updated_at->diffForHumans() }}</p>
+                <div class="divide-y divide-slate-100" id="products-list">
+                    @forelse ($latestProducts->take(5) as $product)
+                        <div class="py-4 px-3 -mx-3 rounded-lg hover:bg-slate-50 transition-colors duration-200">
+                            <p class="font-semibold text-slate-900">{{ $product->title }}</p>
+                            <p class="text-sm text-slate-600 mt-1">{{ $product->category ?? 'General' }}</p>
+                            <p class="text-xs text-slate-400 mt-2">Updated {{ $product->updated_at->diffForHumans() }}</p>
                         </div>
                     @empty
-                        <p class="text-sm text-gray-500 py-4">No products yet.</p>
+                        <p class="text-sm text-slate-500 py-6 text-center">No products yet.</p>
                     @endforelse
+                    @if($latestProducts->count() > 5)
+                        <div class="hidden" id="products-more">
+                            @foreach($latestProducts->skip(5) as $product)
+                                <div class="py-4 px-3 -mx-3 rounded-lg hover:bg-slate-50 transition-colors duration-200">
+                                    <p class="font-semibold text-slate-900">{{ $product->title }}</p>
+                                    <p class="text-sm text-slate-600 mt-1">{{ $product->category ?? 'General' }}</p>
+                                    <p class="text-xs text-slate-400 mt-2">Updated {{ $product->updated_at->diffForHumans() }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                        <button onclick="toggleList('products')" class="mt-4 text-sm text-emerald-600 font-semibold hover:text-emerald-700 transition-colors" id="products-toggle">
+                            Show More ({{ $latestProducts->count() - 5 }}) →
+                        </button>
+                    @endif
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-semibold text-gray-900">Recent Loan Applications</h2>
-                    <a href="{{ route('admin.loan-applications.index') }}" class="text-sm text-teal-700 font-medium">View all</a>
+            <!-- Recent Loan Applications -->
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200/60 p-6 hover:shadow-lg transition-shadow duration-300">
+                <div class="flex items-center justify-between mb-5 pb-4 border-b border-slate-200">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-900">Recent Loan Applications</h2>
+                    </div>
+                    <a href="{{ route('admin.loan-applications.index') }}" class="text-sm text-green-600 font-semibold hover:text-green-700 transition-colors">View all →</a>
                 </div>
-                <div class="divide-y divide-gray-100">
-                    @forelse ($recentApplications as $application)
-                        <a href="{{ route('admin.loan-applications.show', $application) }}" class="py-4 block hover:bg-gray-50 rounded-lg px-2 -mx-2 transition">
-                            <p class="font-semibold text-gray-900">{{ $application->full_name }}</p>
-                            <p class="text-sm text-gray-500">
+                <div class="divide-y divide-slate-100" id="loan-applications-list">
+                    @forelse ($recentLoanApplications->take(5) as $application)
+                        <a href="{{ route('admin.loan-applications.show', $application) }}" class="py-4 block hover:bg-slate-50 rounded-lg px-3 -mx-3 transition-colors duration-200 group">
+                            <p class="font-semibold text-slate-900 group-hover:text-green-600 transition-colors">{{ $application->full_name }}</p>
+                            <p class="text-sm text-slate-600 mt-1">
                                 {{ $application->loan_type }} • KES {{ number_format($application->amount_requested, 0) }}
                             </p>
-                            <p class="text-xs text-gray-400 mt-1">{{ $application->created_at->format('M d, Y g:i A') }}</p>
+                            <p class="text-xs text-slate-400 mt-2">{{ $application->created_at->format('M d, Y g:i A') }}</p>
                         </a>
                     @empty
-                        <p class="text-sm text-gray-500 py-4">No loan applications yet.</p>
+                        <p class="text-sm text-slate-500 py-6 text-center">No loan applications yet.</p>
                     @endforelse
+                    @if($recentLoanApplications->count() > 5)
+                        <div class="hidden" id="loan-applications-more">
+                            @foreach($recentLoanApplications->skip(5) as $application)
+                                <a href="{{ route('admin.loan-applications.show', $application) }}" class="py-4 block hover:bg-slate-50 rounded-lg px-3 -mx-3 transition-colors duration-200 group">
+                                    <p class="font-semibold text-slate-900 group-hover:text-green-600 transition-colors">{{ $application->full_name }}</p>
+                                    <p class="text-sm text-slate-600 mt-1">
+                                        {{ $application->loan_type }} • KES {{ number_format($application->amount_requested, 0) }}
+                                    </p>
+                                    <p class="text-xs text-slate-400 mt-2">{{ $application->created_at->format('M d, Y g:i A') }}</p>
+                                </a>
+                            @endforeach
+                        </div>
+                        <button onclick="toggleList('loan-applications')" class="mt-4 text-sm text-green-600 font-semibold hover:text-green-700 transition-colors" id="loan-applications-toggle">
+                            Show More ({{ $recentLoanApplications->count() - 5 }}) →
+                        </button>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Recent Job Applications -->
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200/60 p-6 hover:shadow-lg transition-shadow duration-300">
+                <div class="flex items-center justify-between mb-5 pb-4 border-b border-slate-200">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-900">Recent Job Applications</h2>
+                    </div>
+                    <a href="{{ route('admin.job-applications.index') }}" class="text-sm text-blue-600 font-semibold hover:text-blue-700 transition-colors">View all →</a>
+                </div>
+                <div class="divide-y divide-slate-100" id="job-applications-list">
+                    @forelse ($recentJobApplications->take(5) as $application)
+                        <a href="{{ route('admin.job-applications.show', $application) }}" class="py-4 block hover:bg-slate-50 rounded-lg px-3 -mx-3 transition-colors duration-200 group">
+                            <p class="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{{ $application->name }}</p>
+                            <p class="text-sm text-slate-600 mt-1">
+                                {{ optional($application->jobPost)->title ?? 'Unknown Position' }}
+                            </p>
+                            <p class="text-xs text-slate-400 mt-2">{{ $application->created_at->format('M d, Y g:i A') }}</p>
+                        </a>
+                    @empty
+                        <p class="text-sm text-slate-500 py-6 text-center">No job applications yet.</p>
+                    @endforelse
+                    @if($recentJobApplications->count() > 5)
+                        <div class="hidden" id="job-applications-more">
+                            @foreach($recentJobApplications->skip(5) as $application)
+                                <a href="{{ route('admin.job-applications.show', $application) }}" class="py-4 block hover:bg-slate-50 rounded-lg px-3 -mx-3 transition-colors duration-200 group">
+                                    <p class="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{{ $application->name }}</p>
+                                    <p class="text-sm text-slate-600 mt-1">
+                                        {{ optional($application->jobPost)->title ?? 'Unknown Position' }}
+                                    </p>
+                                    <p class="text-xs text-slate-400 mt-2">{{ $application->created_at->format('M d, Y g:i A') }}</p>
+                                </a>
+                            @endforeach
+                        </div>
+                        <button onclick="toggleList('job-applications')" class="mt-4 text-sm text-blue-600 font-semibold hover:text-blue-700 transition-colors" id="job-applications-toggle">
+                            Show More ({{ $recentJobApplications->count() - 5 }}) →
+                        </button>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Latest Job Posts -->
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200/60 p-6 hover:shadow-lg transition-shadow duration-300">
+                <div class="flex items-center justify-between mb-5 pb-4 border-b border-slate-200">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-900">Latest Job Posts</h2>
+                    </div>
+                    <a href="{{ route('admin.jobs.index') }}" class="text-sm text-purple-600 font-semibold hover:text-purple-700 transition-colors">Manage →</a>
+                </div>
+                <div class="divide-y divide-slate-100" id="job-posts-list">
+                    @forelse ($latestJobPosts->take(5) as $jobPost)
+                        <div class="py-4 px-3 -mx-3 rounded-lg hover:bg-slate-50 transition-colors duration-200">
+                            <p class="font-semibold text-slate-900">{{ $jobPost->title }}</p>
+                            <p class="text-sm text-slate-600 mt-1">{{ $jobPost->department ?? 'General' }}</p>
+                            <p class="text-xs text-slate-400 mt-2">{{ $jobPost->created_at->format('M d, Y') }}</p>
+                        </div>
+                    @empty
+                        <p class="text-sm text-slate-500 py-6 text-center">No job posts yet.</p>
+                    @endforelse
+                    @if($latestJobPosts->count() > 5)
+                        <div class="hidden" id="job-posts-more">
+                            @foreach($latestJobPosts->skip(5) as $jobPost)
+                                <div class="py-4 px-3 -mx-3 rounded-lg hover:bg-slate-50 transition-colors duration-200">
+                                    <p class="font-semibold text-slate-900">{{ $jobPost->title }}</p>
+                                    <p class="text-sm text-slate-600 mt-1">{{ $jobPost->department ?? 'General' }}</p>
+                                    <p class="text-xs text-slate-400 mt-2">{{ $jobPost->created_at->format('M d, Y') }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                        <button onclick="toggleList('job-posts')" class="mt-4 text-sm text-purple-600 font-semibold hover:text-purple-700 transition-colors" id="job-posts-toggle">
+                            Show More ({{ $latestJobPosts->count() - 5 }}) →
+                        </button>
+                    @endif
                 </div>
             </div>
         </div>
 
         <!-- Recent Activity Logs -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-900">Recent Activity Logs</h2>
-                <a href="{{ route('admin.activity-logs.index') }}" class="text-sm text-teal-700 font-medium">View all</a>
+        <div class="bg-white rounded-2xl shadow-md border border-slate-200/60 p-6 hover:shadow-lg transition-shadow duration-300">
+            <div class="flex items-center justify-between mb-5 pb-4 border-b border-slate-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-lg font-bold text-slate-900">Recent Activity Logs</h2>
+                </div>
+                <a href="{{ route('admin.activity-logs.index') }}" class="text-sm text-slate-600 font-semibold hover:text-slate-700 transition-colors">View all →</a>
             </div>
-            <div class="divide-y divide-gray-100">
-                @forelse ($recentActivityLogs as $log)
-                    <a href="{{ route('admin.activity-logs.show', $log) }}" class="py-4 block hover:bg-gray-50 rounded-lg px-2 -mx-2 transition">
+            <div class="divide-y divide-slate-100" id="activity-logs-list">
+                @forelse ($recentActivityLogs->take(5) as $log)
+                    <a href="{{ route('admin.activity-logs.show', $log) }}" class="py-4 block hover:bg-slate-50 rounded-lg px-3 -mx-3 transition-colors duration-200 group">
                         <div class="flex items-start justify-between">
                             <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold
                                         @class([
-                                            'bg-green-100 text-green-800' => in_array($log->action, ['login', 'create']),
-                                            'bg-blue-100 text-blue-800' => in_array($log->action, ['update', 'view']),
-                                            'bg-red-100 text-red-800' => in_array($log->action, ['delete', 'logout', 'login_failed']),
-                                            'bg-amber-100 text-amber-800' => !in_array($log->action, ['login', 'create', 'update', 'view', 'delete', 'logout', 'login_failed']),
+                                            'bg-green-100 text-green-700 border border-green-200' => in_array($log->action, ['login', 'create']),
+                                            'bg-blue-100 text-blue-700 border border-blue-200' => in_array($log->action, ['update', 'view']),
+                                            'bg-red-100 text-red-700 border border-red-200' => in_array($log->action, ['delete', 'logout', 'login_failed']),
+                                            'bg-amber-100 text-amber-700 border border-amber-200' => !in_array($log->action, ['login', 'create', 'update', 'view', 'delete', 'logout', 'login_failed']),
                                         ])">
                                         {{ \Illuminate\Support\Str::headline($log->action) }}
                                     </span>
                                     @if($log->user)
-                                        <span class="text-sm font-semibold text-gray-900">{{ $log->user->name }}</span>
+                                        <span class="text-sm font-semibold text-slate-900">{{ $log->user->name }}</span>
                                     @else
-                                        <span class="text-sm text-gray-500 italic">System</span>
+                                        <span class="text-sm text-slate-500 italic">System</span>
                                     @endif
                                 </div>
-                                <p class="text-sm text-gray-700 line-clamp-1">{{ $log->description }}</p>
-                                <p class="text-xs text-gray-400 mt-1">{{ $log->created_at->format('M d, Y g:i A') }} • {{ $log->created_at->diffForHumans() }}</p>
+                                <p class="text-sm text-slate-700 line-clamp-1 group-hover:text-slate-900 transition-colors">{{ $log->description }}</p>
+                                <p class="text-xs text-slate-400 mt-2">{{ $log->created_at->format('M d, Y g:i A') }} • {{ $log->created_at->diffForHumans() }}</p>
                             </div>
                         </div>
                     </a>
                 @empty
-                    <p class="text-sm text-gray-500 py-4">No activity logs yet.</p>
+                    <p class="text-sm text-slate-500 py-6 text-center">No activity logs yet.</p>
                 @endforelse
+                @if($recentActivityLogs->count() > 5)
+                    <div class="hidden" id="activity-logs-more">
+                        @foreach($recentActivityLogs->skip(5) as $log)
+                            <a href="{{ route('admin.activity-logs.show', $log) }}" class="py-4 block hover:bg-slate-50 rounded-lg px-3 -mx-3 transition-colors duration-200 group">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold
+                                                @class([
+                                                    'bg-green-100 text-green-700 border border-green-200' => in_array($log->action, ['login', 'create']),
+                                                    'bg-blue-100 text-blue-700 border border-blue-200' => in_array($log->action, ['update', 'view']),
+                                                    'bg-red-100 text-red-700 border border-red-200' => in_array($log->action, ['delete', 'logout', 'login_failed']),
+                                                    'bg-amber-100 text-amber-700 border border-amber-200' => !in_array($log->action, ['login', 'create', 'update', 'view', 'delete', 'logout', 'login_failed']),
+                                                ])">
+                                                {{ \Illuminate\Support\Str::headline($log->action) }}
+                                            </span>
+                                            @if($log->user)
+                                                <span class="text-sm font-semibold text-slate-900">{{ $log->user->name }}</span>
+                                            @else
+                                                <span class="text-sm text-slate-500 italic">System</span>
+                                            @endif
+                                        </div>
+                                        <p class="text-sm text-slate-700 line-clamp-1 group-hover:text-slate-900 transition-colors">{{ $log->description }}</p>
+                                        <p class="text-xs text-slate-400 mt-2">{{ $log->created_at->format('M d, Y g:i A') }} • {{ $log->created_at->diffForHumans() }}</p>
+                                    </div>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                    <button onclick="toggleList('activity-logs')" class="mt-4 text-sm text-slate-600 font-semibold hover:text-slate-700 transition-colors" id="activity-logs-toggle">
+                        Show More ({{ $recentActivityLogs->count() - 5 }}) →
+                    </button>
+                @endif
             </div>
         </div>
     </div>
-@endsection
 
+    <script>
+        function toggleList(listName) {
+            const moreDiv = document.getElementById(listName + '-more');
+            const toggleBtn = document.getElementById(listName + '-toggle');
+            
+            if (moreDiv && toggleBtn) {
+                if (moreDiv.classList.contains('hidden')) {
+                    moreDiv.classList.remove('hidden');
+                    toggleBtn.textContent = 'Show Less';
+                } else {
+                    moreDiv.classList.add('hidden');
+                    const count = moreDiv.querySelectorAll('a, div').length;
+                    toggleBtn.textContent = 'Show More (' + count + ')';
+                }
+            }
+        }
+    </script>
+@endsection

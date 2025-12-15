@@ -104,9 +104,21 @@
                             <div>
                                 <dt class="text-slate-500">CV</dt>
                                 <dd class="text-slate-900">
-                                    <a href="{{ asset('storage/'.$application->cv_path) }}" target="_blank" class="text-teal-800 hover:text-teal-900 font-semibold">
-                                        Download CV
-                                    </a>
+                                    <div class="flex items-center gap-3">
+                                        <a href="{{ route('admin.job-applications.view-cv', $application) }}" target="_blank" class="inline-flex items-center gap-2 px-3 py-1.5 bg-teal-50 text-teal-800 rounded-lg hover:bg-teal-100 font-semibold text-sm transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            View CV
+                                        </a>
+                                        <a href="{{ route('admin.job-applications.download-cv', $application) }}" class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-800 rounded-lg hover:bg-blue-100 font-semibold text-sm transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                            </svg>
+                                            Download CV
+                                        </a>
+                                    </div>
                                 </dd>
                             </div>
                         @endif
@@ -324,6 +336,47 @@
 
                     <!-- History Tab -->
                     <div id="content-history" class="tab-content hidden">
+                        <!-- Status History -->
+                        @if($application->statusHistories && $application->statusHistories->count() > 0)
+                            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
+                                <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Status History</h2>
+                                <div class="space-y-3">
+                                    @foreach($application->statusHistories->sortByDesc('created_at') as $history)
+                                        <div class="flex items-start justify-between gap-4">
+                                            <div>
+                                                <p class="text-sm font-semibold text-slate-900">
+                                                    {{ Str::headline(str_replace('_', ' ', $history->new_status)) }}
+                                                </p>
+                                                @if($history->previous_status)
+                                                    <p class="text-xs text-slate-500">
+                                                        From {{ Str::headline(str_replace('_', ' ', $history->previous_status)) }}
+                                                    </p>
+                                                @endif
+                                                @if($history->notes)
+                                                    <p class="text-xs text-slate-600 mt-1">
+                                                        {{ $history->notes }}
+                                                    </p>
+                                                @endif
+                                            </div>
+                                            <div class="text-right text-xs text-slate-500">
+                                                @if($history->user)
+                                                    <p>{{ $history->user->name }}</p>
+                                                @endif
+                                                @if($history->created_at)
+                                                    <p>{{ $history->created_at->format('M d, Y H:i') }}</p>
+                                                @endif
+                                                @if($history->source)
+                                                    <p class="mt-1 italic text-slate-400">
+                                                        via {{ Str::headline(str_replace('_', ' ', $history->source)) }}
+                                                    </p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
                         <!-- Reviews -->
                         @if($application->reviews->count() > 0)
                             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
@@ -352,13 +405,28 @@
                                 <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Interviews</h2>
                                 <div class="space-y-4">
                                     @foreach($application->interviews as $interview)
+                                        @php
+                                            // Derive effective result so history stays in sync with application status
+                                            $effectiveResult = $interview->result;
+
+                                            if (! $effectiveResult || $effectiveResult === 'pending') {
+                                                $status = $application->status;
+                                                if (in_array($status, ['interview_passed', 'hired'])) {
+                                                    $effectiveResult = 'pass';
+                                                } elseif (in_array($status, ['interview_failed', 'rejected'])) {
+                                                    $effectiveResult = 'fail';
+                                                } else {
+                                                    $effectiveResult = 'pending';
+                                                }
+                                            }
+                                        @endphp
                                         <div class="bg-slate-50 rounded-xl p-3">
                                             <div class="flex justify-between items-start mb-2">
                                                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
                                                     {{ Str::headline(str_replace('_', ' ', $interview->interview_type)) }}
                                                 </span>
-                                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $interview->result === 'pass' ? 'bg-green-100 text-green-800' : ($interview->result === 'fail' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800') }}">
-                                                    {{ Str::headline($interview->result) }}
+                                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $effectiveResult === 'pass' ? 'bg-green-100 text-green-800' : ($effectiveResult === 'fail' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800') }}">
+                                                    {{ Str::headline($effectiveResult) }}
                                                 </span>
                                             </div>
                                             @if($interview->scheduled_at !== null)
