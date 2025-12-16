@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'is_admin',
+        'role',
     ];
 
     /**
@@ -47,6 +48,68 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_admin' => 'boolean',
         ];
+    }
+
+    /**
+     * Check if user has a specific role.
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
+
+    /**
+     * Check if user is admin (either via role or is_admin flag for backward compatibility).
+     */
+    public function isAdmin(): bool
+    {
+        return $this->is_admin || $this->role === 'admin';
+    }
+
+    /**
+     * Get available roles.
+     */
+    public static function getRoles(): array
+    {
+        return [
+            'user' => 'User',
+            'admin' => 'Administrator',
+            'hr_manager' => 'HR Manager',
+            'loan_manager' => 'Loan Manager',
+            'editor' => 'Editor',
+        ];
+    }
+
+    /**
+     * Check if user is HR Manager or has HR-related access.
+     */
+    public function isHrManager(): bool
+    {
+        return $this->role === 'hr_manager' || $this->isAdmin();
+    }
+
+    /**
+     * Check if user is Loan Manager or has loan-related access.
+     */
+    public function isLoanManager(): bool
+    {
+        return $this->role === 'loan_manager' || $this->isAdmin();
+    }
+
+    /**
+     * Check if user can access careers section.
+     */
+    public function canAccessCareers(): bool
+    {
+        return $this->isHrManager() || $this->isAdmin();
+    }
+
+    /**
+     * Check if user can access loan applications section.
+     */
+    public function canAccessLoans(): bool
+    {
+        return $this->isLoanManager() || $this->isAdmin();
     }
 
     /**

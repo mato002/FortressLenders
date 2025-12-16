@@ -73,6 +73,6 @@ class AuthenticatedSessionController extends Controller
             $this->activityLogService->logLogout($user);
         }
 
-        return redirect('/');
+        return redirect()->route('login');
     }
 }

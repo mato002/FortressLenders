@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
             TeamMemberSeeder::class,
             BranchSeeder::class,
             JobPostSeeder::class,
+            FaqSeeder::class,
+            PostSeeder::class,
         ]);
     }
 
@@ -38,6 +40,7 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make($adminPassword),
                 'email_verified_at' => now(),
                 'is_admin' => true,
+                'role' => 'admin',
             ]
         );
     }

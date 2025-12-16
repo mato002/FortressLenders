@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('blocked_ips')) {
+            return;
+        }
+        
         Schema::create('blocked_ips', function (Blueprint $table) {
             $table->id();
             $table->string('ip_address', 45)->unique();

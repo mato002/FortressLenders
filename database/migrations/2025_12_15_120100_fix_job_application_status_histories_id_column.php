@@ -12,11 +12,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Ensure the `id` column is an auto-incrementing primary key.
-        // This is mainly to fix environments where the table was created
-        // without AUTO_INCREMENT, which causes "Field 'id' doesn't have a default value".
+        // Ensure the `id` column is AUTO_INCREMENT on environments
+        // where it was created without it. The primary key is already
+        // defined by the original create-table migration, so we avoid
+        // redefining it here to prevent "Multiple primary key defined".
         if (Schema::hasTable('job_application_status_histories')) {
-            DB::statement('ALTER TABLE job_application_status_histories MODIFY id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY');
+            DB::statement('ALTER TABLE job_application_status_histories MODIFY id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT');
         }
     }
 

@@ -10,8 +10,12 @@ class EnsureUserIsAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->user()?->is_admin) {
-            abort(403);
+        $user = $request->user();
+        
+        // Allow all authenticated users to access admin panel
+        // Role-based permissions are enforced at the route level
+        if (! $user) {
+            abort(403, 'You must be authenticated to access this area.');
         }
 
         return $next($request);
