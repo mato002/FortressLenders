@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'is_admin',
+        'is_banned',
         'role',
     ];
 
@@ -47,6 +48,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'is_banned' => 'boolean',
         ];
     }
 
@@ -64,6 +66,14 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->is_admin || $this->role === 'admin';
+    }
+
+    /**
+     * Check if user is banned.
+     */
+    public function isBanned(): bool
+    {
+        return $this->is_banned ?? false;
     }
 
     /**

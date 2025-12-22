@@ -34,6 +34,7 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\CookieConsentController;
 use App\Http\Controllers\NewsletterController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 
 // Public Website Routes
 Route::get('/', HomeController::class)->name('home');
@@ -55,6 +56,9 @@ Route::get('/faq', [FaqController::class, 'index'])->name('faq');
 Route::get('/news', [PostController::class, 'index'])->name('posts.index');
 Route::get('/news/{post:slug}', [PostController::class, 'show'])->name('posts.show');
 Route::get('/ceo-message', [CeoMessageController::class, 'index'])->name('ceo-message');
+
+// Legal / Terms
+Route::view('/terms', 'terms')->name('terms');
 
 // Company Profile (PDF)
 Route::get('/company-profile', function () {
@@ -212,6 +216,20 @@ Route::middleware(['auth', 'verified', 'admin'])
                 Route::post('{image}/primary', [AdminProductImageController::class, 'makePrimary'])->name('primary');
                 Route::delete('{image}', [AdminProductImageController::class, 'destroy'])->name('destroy');
             });
+
+        // Temporary maintenance route to clear caches from browser (admin only).
+        // Visit /admin/maintenance/clear-caches once in production, then remove this route.
+        Route::get('/maintenance/clear-caches', function () {
+            Artisan::call('view:clear');
+            Artisan::call('cache:clear');
+            Artisan::call('config:clear');
+            Artisan::call('route:clear');
+
+            return response()->json([
+                'status' => 'ok',
+                'message' => 'Application caches cleared successfully.',
+            ]);
+        })->middleware('role:admin')->name('maintenance.clear-caches');
     });
 
 require __DIR__.'/auth.php';

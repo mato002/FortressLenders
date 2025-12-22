@@ -272,7 +272,13 @@
                         @endif
                         @if($generalSettings->terms_of_service_url)
                             <a href="{{ $generalSettings->terms_of_service_url }}" class="hover:text-white transition-colors">Terms of Service</a>
+                        @else
+                            <a href="{{ route('terms') }}" class="hover:text-white transition-colors">Terms &amp; Conditions</a>
                         @endif
+                    </div>
+                @else
+                    <div class="mt-2 space-x-4">
+                        <a href="{{ route('terms') }}" class="hover:text-white transition-colors">Terms &amp; Conditions</a>
                     </div>
                 @endif
             </div>
@@ -592,92 +598,98 @@
         }
 
         // Cookie Consent functionality
-        const cookieConsentBanner = document.getElementById('cookie-consent-banner');
-        const cookieConsentAccept = document.getElementById('cookie-consent-accept');
-        const cookieConsentReject = document.getElementById('cookie-consent-reject');
-        const cookieConsentClose = document.getElementById('cookie-consent-close');
+        document.addEventListener('DOMContentLoaded', function () {
+            const cookieConsentBanner = document.getElementById('cookie-consent-banner');
+            const cookieConsentAccept = document.getElementById('cookie-consent-accept');
+            const cookieConsentReject = document.getElementById('cookie-consent-reject');
+            const cookieConsentClose = document.getElementById('cookie-consent-close');
 
-        // Check if user has already given consent
-        function checkCookieConsent() {
-            const consent = getCookie('cookie_consent');
-            if (consent) {
-                cookieConsentBanner.classList.add('hidden');
-            } else {
-                cookieConsentBanner.classList.remove('hidden');
+            // If banner markup is not present, do nothing
+            if (!cookieConsentBanner) {
+                return;
             }
-        }
 
-        // Get cookie value
-        function getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
-            return null;
-        }
+            // Check if user has already given consent
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+                return null;
+            }
 
-        // Accept cookies
-        if (cookieConsentAccept) {
-            cookieConsentAccept.addEventListener('click', function() {
-                fetch('{{ route("cookie.consent.accept") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        cookieConsentBanner.classList.add('hidden');
+            function checkCookieConsent() {
+                const consent = getCookie('cookie_consent');
+                if (consent) {
+                    cookieConsentBanner.classList.add('hidden');
+                } else {
+                    cookieConsentBanner.classList.remove('hidden');
+                }
+            }
+
+            // Accept cookies
+            if (cookieConsentAccept) {
+                cookieConsentAccept.addEventListener('click', function() {
+                    fetch('{{ route("cookie.consent.accept") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            cookieConsentBanner.classList.add('hidden');
+                            // Set cookie manually as fallback
+                            document.cookie = 'cookie_consent=accepted; max-age=31536000; path=/; SameSite=Lax';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error accepting cookies:', error);
                         // Set cookie manually as fallback
                         document.cookie = 'cookie_consent=accepted; max-age=31536000; path=/; SameSite=Lax';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error accepting cookies:', error);
-                    // Set cookie manually as fallback
-                    document.cookie = 'cookie_consent=accepted; max-age=31536000; path=/; SameSite=Lax';
-                    cookieConsentBanner.classList.add('hidden');
-                });
-            });
-        }
-
-        // Reject cookies
-        if (cookieConsentReject) {
-            cookieConsentReject.addEventListener('click', function() {
-                fetch('{{ route("cookie.consent.reject") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
                         cookieConsentBanner.classList.add('hidden');
+                    });
+                });
+            }
+
+            // Reject cookies
+            if (cookieConsentReject) {
+                cookieConsentReject.addEventListener('click', function() {
+                    fetch('{{ route("cookie.consent.reject") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            cookieConsentBanner.classList.add('hidden');
+                            // Set cookie manually as fallback
+                            document.cookie = 'cookie_consent=rejected; max-age=31536000; path=/; SameSite=Lax';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error rejecting cookies:', error);
                         // Set cookie manually as fallback
                         document.cookie = 'cookie_consent=rejected; max-age=31536000; path=/; SameSite=Lax';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error rejecting cookies:', error);
-                    // Set cookie manually as fallback
-                    document.cookie = 'cookie_consent=rejected; max-age=31536000; path=/; SameSite=Lax';
+                        cookieConsentBanner.classList.add('hidden');
+                    });
+                });
+            }
+
+            // Close banner (temporary, will show again on next visit)
+            if (cookieConsentClose) {
+                cookieConsentClose.addEventListener('click', function() {
                     cookieConsentBanner.classList.add('hidden');
                 });
-            });
-        }
+            }
 
-        // Close banner (temporary, will show again on next visit)
-        if (cookieConsentClose) {
-            cookieConsentClose.addEventListener('click', function() {
-                cookieConsentBanner.classList.add('hidden');
-            });
-        }
-
-        // Check consent on page load
-        checkCookieConsent();
+            // Check consent on page load
+            checkCookieConsent();
+        });
     </script>
 
     <!-- Cookie Consent Banner -->
@@ -696,7 +708,7 @@
                             <p class="text-sm text-gray-600">
                                 We use cookies to enhance your browsing experience, analyze site traffic, and personalize content. 
                                 By clicking "Accept All", you consent to our use of cookies. 
-                                <a href="{{ route('contact') }}" class="text-teal-700 hover:text-teal-800 underline">Learn more</a>
+                                <a href="{{ route('terms') }}" class="text-teal-700 hover:text-teal-800 underline">Learn more</a>
                             </p>
                         </div>
                     </div>

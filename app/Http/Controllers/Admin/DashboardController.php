@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Models\ActivityLog;
 use App\Models\Branch;
 use App\Models\ContactMessage;
@@ -18,8 +19,19 @@ use App\Models\User;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $user = $request->user();
+
+        // Date range for analytics (in days)
+        $range = (int) $request->input('range', 30);
+        if (! in_array($range, [7, 30, 90], true)) {
+            $range = 30;
+        }
+
+        $startDate = now()->subDays($range - 1)->startOfDay();
+        $endDate = now()->endOfDay();
+
         $stats = [
             // Products
             'products' => Product::count(),
@@ -61,6 +73,25 @@ class DashboardController extends Controller
             'admin_users' => User::where('is_admin', true)->count(),
         ];
 
+        // Time-series analytics
+        $loanApplicationsTrend = LoanApplication::selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        $jobApplicationsTrend = JobApplication::selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        $contactMessagesTrend = ContactMessage::selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
         $recentMessages = ContactMessage::latest()->limit(10)->get();
         $recentLoanApplications = LoanApplication::latest()->limit(10)->get();
         $recentJobApplications = JobApplication::with('jobPost')->latest()->limit(10)->get();
@@ -69,7 +100,12 @@ class DashboardController extends Controller
         $latestJobPosts = JobPost::latest()->limit(10)->get();
 
         return view('admin.dashboard', compact(
+            'user',
             'stats',
+            'range',
+            'loanApplicationsTrend',
+            'jobApplicationsTrend',
+            'contactMessagesTrend',
             'recentMessages',
             'recentLoanApplications',
             'recentJobApplications',

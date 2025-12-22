@@ -14,7 +14,7 @@
 @endsection
 
 @section('content')
-    <div class="max-w-5xl mx-auto space-y-6 px-4 sm:px-6">
+    <div class="space-y-6">
         <!-- Account Information Card (Read-only) -->
         <div class="bg-white rounded-2xl shadow-sm border border-indigo-100 overflow-hidden">
             <div class="bg-gradient-to-r from-indigo-50 to-purple-50 px-4 sm:px-6 py-4 border-b border-indigo-100">

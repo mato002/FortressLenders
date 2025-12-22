@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('permission_key')->unique(); // e.g., 'dashboard', 'loan_applications'
             $table->string('permission_name'); // e.g., 'Dashboard', 'Loan Applications'
             $table->string('permission_group')->nullable(); // e.g., 'general', 'management'
-            $table->json('roles')->default('[]'); // Array of roles that have access: ['admin', 'loan_manager']
+            $table->json('roles'); // Array of roles that have access: ['admin', 'loan_manager'] - No default for JSON in MySQL
             $table->integer('display_order')->default(0);
             $table->timestamps();
         });
@@ -43,6 +43,10 @@ return new class extends Migration
         ];
 
         foreach ($defaultPermissions as $permission) {
+            // Ensure roles is properly formatted as JSON string
+            if (is_array($permission['roles'])) {
+                $permission['roles'] = json_encode($permission['roles']);
+            }
             DB::table('role_permissions')->insert(array_merge($permission, [
                 'created_at' => now(),
                 'updated_at' => now(),

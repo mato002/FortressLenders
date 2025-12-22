@@ -4,6 +4,44 @@
 @section('header-description', "Welcome back! Here's a quick overview of the platform.")
 
 @section('header-actions')
+    @php
+        // Ensure we always have a $user variable available, even if controller didn't pass it
+        if (! isset($user)) {
+            $user = auth()->user();
+        }
+
+        // Determine range from request to avoid relying on a controller variable
+        $requestedRange = (int) request('range', 30);
+        $allowedRanges = [7, 30, 90];
+        $currentRange = in_array($requestedRange, $allowedRanges, true) ? $requestedRange : 30;
+
+        // Safe defaults for analytics collections if controller doesn't provide them
+        if (! isset($loanApplicationsTrend)) {
+            $loanApplicationsTrend = collect();
+        }
+        if (! isset($jobApplicationsTrend)) {
+            $jobApplicationsTrend = collect();
+        }
+        if (! isset($contactMessagesTrend)) {
+            $contactMessagesTrend = collect();
+        }
+    @endphp
+    <form method="GET" action="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 mr-3">
+        <span class="text-xs font-medium text-slate-500">Range:</span>
+        @foreach ([7 => '7d', 30 => '30d', 90 => '90d'] as $value => $label)
+            <button
+                type="submit"
+                name="range"
+                value="{{ $value }}"
+                class="px-3 py-1 rounded-full text-xs font-semibold border
+                    {{ $currentRange === $value
+                        ? 'bg-slate-900 text-white border-slate-900'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' }}"
+            >
+                {{ $label }}
+            </button>
+        @endforeach
+    </form>
     <button class="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50" onclick="window.location.reload()">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.5 12h15m-7.5 7.5v-15"/></svg>
         Refresh
@@ -15,6 +53,17 @@
 
 @section('content')
     <div class="space-y-6">
+        <!-- Analytics Overview -->
+        <div class="bg-white rounded-2xl shadow-md border border-slate-200/60 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-slate-900">Activity (last {{ $currentRange }} days)</h2>
+                <p class="text-xs text-slate-500">Loan applications, job applications & contact messages over time</p>
+            </div>
+            <div class="h-72">
+                <canvas id="activityChart" class="w-full h-full"></canvas>
+            </div>
+        </div>
+
         <!-- Statistics Grid 1: Products & Messages -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             <a href="{{ route('admin.products.index') }}" class="group relative block bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-slate-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -76,6 +125,7 @@
         </div>
 
         <!-- Statistics Grid 2: Loan Applications -->
+        @if($user && $user->canAccessLoans())
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             <a href="{{ route('admin.loan-applications.index') }}" class="group relative block bg-gradient-to-br from-white to-amber-50/30 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-amber-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-amber-100/40 rounded-full -mr-16 -mt-16 blur-2xl"></div>
@@ -134,8 +184,10 @@
                 </div>
             </div>
         </div>
+        @endif
 
         <!-- Statistics Grid 3: Job Applications & Posts -->
+        @if($user && $user->canAccessCareers())
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             <a href="{{ route('admin.job-applications.index') }}" class="group relative block bg-gradient-to-br from-white to-amber-50/30 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-amber-200/60 overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-amber-100/40 rounded-full -mr-16 -mt-16 blur-2xl"></div>
@@ -194,6 +246,7 @@
                 </div>
             </a>
         </div>
+        @endif
 
         <!-- Statistics Grid 4: Job Posts, Branches & Content -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -299,20 +352,22 @@
                     <p class="text-4xl font-bold text-slate-900">{{ $stats['faqs'] }}</p>
                 </div>
             </div>
-            <div class="group relative bg-gradient-to-br from-white to-indigo-50/30 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-indigo-200/60 overflow-hidden">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-100/40 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-                <div class="relative">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                            </svg>
+            @if($user && $user->isAdmin())
+                <div class="group relative bg-gradient-to-br from-white to-indigo-50/30 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-indigo-200/60 overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-100/40 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                    <div class="relative">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                </svg>
+                            </div>
                         </div>
+                        <p class="text-sm font-medium text-slate-600 mb-1">Admin Users</p>
+                        <p class="text-4xl font-bold text-indigo-600">{{ $stats['admin_users'] }}</p>
                     </div>
-                    <p class="text-sm font-medium text-slate-600 mb-1">Admin Users</p>
-                    <p class="text-4xl font-bold text-indigo-600">{{ $stats['admin_users'] }}</p>
                 </div>
-            </div>
+            @endif
         </div>
 
         <!-- Lists Section -->
@@ -605,7 +660,94 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        const activityCtx = document.getElementById('activityChart').getContext('2d');
+
+        const dates = {!! json_encode(
+            collect($loanApplicationsTrend)
+                ->merge($jobApplicationsTrend)
+                ->merge($contactMessagesTrend)
+                ->pluck('date')
+                ->unique()
+                ->sort()
+                ->values()
+        ) !!};
+
+        const loanData = dates.map(date => {
+            const item = {!! $loanApplicationsTrend->keyBy('date')->toJson() !!}[date];
+            return item ? item.count : 0;
+        });
+
+        const jobData = dates.map(date => {
+            const item = {!! $jobApplicationsTrend->keyBy('date')->toJson() !!}[date];
+            return item ? item.count : 0;
+        });
+
+        const messageData = dates.map(date => {
+            const item = {!! $contactMessagesTrend->keyBy('date')->toJson() !!}[date];
+            return item ? item.count : 0;
+        });
+
+        new Chart(activityCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [
+                    {
+                        label: 'Loan Applications',
+                        data: loanData,
+                        borderColor: '#16a34a',
+                        backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                    },
+                    {
+                        label: 'Job Applications',
+                        data: jobData,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                    },
+                    {
+                        label: 'Contact Messages',
+                        data: messageData,
+                        borderColor: '#f97316',
+                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        ticks: {
+                            maxTicksLimit: 10,
+                        },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                        },
+                    },
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                },
+            },
+        });
+
         function toggleList(listName) {
             const moreDiv = document.getElementById(listName + '-more');
             const toggleBtn = document.getElementById(listName + '-toggle');
