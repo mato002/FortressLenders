@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
             'role' => EnsureUserHasRole::class,
+            'not.candidate' => \App\Http\Middleware\EnsureNotCandidate::class,
         ]);
         
         // Track user sessions for authenticated users, check blocked IPs, and check banned users

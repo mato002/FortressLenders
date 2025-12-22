@@ -83,6 +83,7 @@ class User extends Authenticatable
     {
         return [
             'user' => 'User',
+            'candidate' => 'Candidate',
             'admin' => 'Administrator',
             'hr_manager' => 'HR Manager',
             'loan_manager' => 'Loan Manager',
@@ -144,5 +145,31 @@ class User extends Authenticatable
     public function activeSessions()
     {
         return $this->sessions()->active()->orderBy('last_activity', 'desc');
+    }
+
+    /**
+     * Get job applications for the user (candidate).
+     */
+    public function jobApplications(): HasMany
+    {
+        return $this->hasMany(JobApplication::class);
+    }
+
+    /**
+     * Check if user is a candidate.
+     * NOTE: Candidates should eventually be moved to a separate candidates table.
+     * This method is kept for backward compatibility during migration.
+     */
+    public function isCandidate(): bool
+    {
+        return $this->role === 'candidate' || ($this->role === 'user' && !$this->is_admin);
+    }
+    
+    /**
+     * Check if user is an employee (not a candidate).
+     */
+    public function isEmployee(): bool
+    {
+        return !$this->isCandidate() && ($this->is_admin || in_array($this->role, ['admin', 'hr_manager', 'loan_manager', 'editor']));
     }
 }

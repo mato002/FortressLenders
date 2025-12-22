@@ -19,10 +19,18 @@ class JobApplicationConfirmation extends Mailable
     {
         $this->application->loadMissing('jobPost');
         
+        // Generate secure token for status page access
+        $token = md5($this->application->email . $this->application->id . config('app.key'));
+        $statusUrl = route('application.status', [
+            'application' => $this->application->id,
+            'token' => $token
+        ]);
+        
         return $this
             ->subject('Thank You for Applying to Fortress Lenders Limited - Application Received')
             ->view('emails.job.application-confirmation', [
                 'application' => $this->application,
+                'statusUrl' => $statusUrl,
             ]);
     }
 }

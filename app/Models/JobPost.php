@@ -46,6 +46,11 @@ class JobPost extends Model
         return $this->hasMany(JobApplication::class);
     }
 
+    public function sievingCriteria()
+    {
+        return $this->hasOne(JobSievingCriteria::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

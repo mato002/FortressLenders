@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Candidate;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,10 +37,31 @@ class NewPasswordController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // Here we will attempt to reset the user's password. If it is successful we
-        // will update the password on an actual user model and persist it to the
-        // database. Otherwise we will parse the error and return the response.
-        $status = Password::reset(
+        $email = $request->string('email');
+        
+        // Try candidate password reset first
+        $candidate = Candidate::where('email', $email)->first();
+        if ($candidate) {
+            $status = Password::broker('candidates')->reset(
+                $request->only('email', 'password', 'password_confirmation', 'token'),
+                function (Candidate $candidate) use ($request) {
+                    $candidate->forceFill([
+                        'password' => Hash::make($request->password),
+                        'remember_token' => Str::random(60),
+                    ])->save();
+
+                    event(new PasswordReset($candidate));
+                }
+            );
+            
+            return $status == Password::PASSWORD_RESET
+                        ? redirect()->route('login')->with('status', __($status))
+                        : back()->withInput($request->only('email'))
+                            ->withErrors(['email' => __($status)]);
+        }
+        
+        // Otherwise try employee password reset
+        $status = Password::broker('users')->reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function (User $user) use ($request) {
                 $user->forceFill([

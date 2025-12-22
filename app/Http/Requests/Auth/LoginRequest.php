@@ -41,8 +41,28 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        // Check if user exists and is banned before attempting authentication
-        $user = \App\Models\User::where('email', $this->string('email'))->first();
+        $email = $this->string('email');
+        $password = $this->string('password');
+        $remember = $this->boolean('remember');
+
+        // First, try to authenticate as a candidate
+        $candidate = \App\Models\Candidate::where('email', $email)->first();
+        if ($candidate && \Illuminate\Support\Facades\Hash::check($password, $candidate->password)) {
+            Auth::guard('candidate')->login($candidate, $remember);
+            RateLimiter::clear($this->throttleKey());
+            return;
+        }
+
+        // If not a candidate, try to authenticate as an employee (User)
+        $user = \App\Models\User::where('email', $email)->first();
+        
+        // Block candidates trying to login as users
+        if ($user && ($user->role === 'candidate' || ($user->role === 'user' && !$user->is_admin))) {
+            RateLimiter::hit($this->throttleKey());
+            throw ValidationException::withMessages([
+                'email' => 'Candidates should use the candidate login. Please contact support if you need access.',
+            ]);
+        }
         
         if ($user && ($user->is_banned ?? false)) {
             RateLimiter::hit($this->throttleKey());
@@ -52,7 +72,7 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        if (! Auth::guard('web')->attempt($this->only('email', 'password'), $remember)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -61,8 +81,8 @@ class LoginRequest extends FormRequest
         }
 
         // Double-check after authentication (in case user was banned during session)
-        if (Auth::user() && (Auth::user()->is_banned ?? false)) {
-            Auth::logout();
+        if (Auth::guard('web')->user() && (Auth::guard('web')->user()->is_banned ?? false)) {
+            Auth::guard('web')->logout();
             $this->session()->invalidate();
             $this->session()->regenerateToken();
             

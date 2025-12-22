@@ -82,7 +82,14 @@ class UserController extends Controller
             $data['is_admin'] = $data['role'] === 'admin';
         }
 
-        User::create($data);
+        $user = User::create($data);
+
+        // If creating a candidate user, link any existing job applications by email
+        if (($user->role === 'candidate' || $user->role === 'user') && !empty($user->email)) {
+            \App\Models\JobApplication::where('email', $user->email)
+                ->whereNull('user_id')
+                ->update(['user_id' => $user->id]);
+        }
 
         return redirect()->route('admin.users.index')->with('status', 'User created successfully.');
     }
@@ -96,6 +103,7 @@ class UserController extends Controller
 
     public function update(Request $request, User $user): RedirectResponse
     {
+        $oldEmail = $user->email;
         $data = $this->validatedData($request, $user);
 
         // Hash password if provided
@@ -116,6 +124,17 @@ class UserController extends Controller
         }
 
         $user->update($data);
+
+        // If user is a candidate and email changed or role changed to candidate, link applications
+        if (($user->role === 'candidate' || $user->role === 'user') && !empty($user->email)) {
+            // Link applications with new email
+            \App\Models\JobApplication::where('email', $user->email)
+                ->whereNull('user_id')
+                ->update(['user_id' => $user->id]);
+            
+            // If email changed, unlink old applications (optional - you might want to keep them linked)
+            // Or you could link both old and new email applications
+        }
 
         return redirect()->route('admin.users.index')->with('status', 'User updated successfully.');
     }

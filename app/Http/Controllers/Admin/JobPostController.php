@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\JobPost;
+use App\Models\JobSievingCriteria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -128,6 +129,43 @@ class JobPostController extends Controller
         
         return redirect()->route('admin.jobs.index')
             ->with('success', "Job post {$status} successfully!");
+    }
+
+    public function configureSieving(JobPost $job)
+    {
+        $criteria = $job->sievingCriteria ?? new JobSievingCriteria([
+            'job_post_id' => $job->id,
+            'criteria_json' => JobSievingCriteria::getDefaultCriteria(),
+            'auto_pass_threshold' => 75,
+            'auto_reject_threshold' => 35,
+            'auto_pass_confidence' => 0.85,
+            'auto_reject_confidence' => 0.90,
+        ]);
+
+        return view('admin.jobs.configure-sieving', compact('job', 'criteria'));
+    }
+
+    public function storeSieving(Request $request, JobPost $job)
+    {
+        $validated = $request->validate([
+            'auto_pass_threshold' => 'required|integer|min:0|max:100',
+            'auto_reject_threshold' => 'required|integer|min:0|max:100',
+            'auto_pass_confidence' => 'required|numeric|min:0|max:1',
+            'auto_reject_confidence' => 'required|numeric|min:0|max:1',
+            'criteria_json' => 'required|json',
+        ]);
+
+        $validated['criteria_json'] = json_decode($validated['criteria_json'], true);
+        $validated['job_post_id'] = $job->id;
+        $validated['created_by'] = auth()->id();
+
+        JobSievingCriteria::updateOrCreate(
+            ['job_post_id' => $job->id],
+            $validated
+        );
+
+        return redirect()->route('admin.jobs.show', $job)
+            ->with('success', 'AI Sieving criteria configured successfully!');
     }
 }
 

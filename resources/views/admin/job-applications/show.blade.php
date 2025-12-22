@@ -13,6 +13,12 @@
             $routeParam = request()->route('application') ?? request()->route('job_application');
             $applicationId = is_object($routeParam) ? ($routeParam->id ?? $routeParam->getKey()) : $routeParam;
         }
+
+        // Helper flags/URLs for aptitude + public views
+        $canTakeAptitudeTest = in_array($application->status, ['sieving_passed', 'pending_manual_review']);
+        $publicStatusToken = $application->email
+            ? md5($application->email . $applicationId . config('app.key'))
+            : null;
     @endphp
     <div class="space-y-6">
         <div class="flex items-center justify-between gap-4">
@@ -22,7 +28,22 @@
                     Applied for {{ optional($application->jobPost)->title ?? 'Unknown Position' }}@if($application->created_at) on {{ $application->created_at->format('M d, Y H:i') }}@endif
                 </p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2 justify-end">
+                {{-- Public candidate views --}}
+                @if($publicStatusToken)
+                    <a href="{{ route('application.status', ['application' => $applicationId, 'token' => $publicStatusToken]) }}"
+                       target="_blank"
+                       class="px-3 py-2 text-xs sm:text-sm rounded-xl border border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100">
+                        View as Candidate
+                    </a>
+                @endif
+                @if($canTakeAptitudeTest)
+                    <a href="{{ route('aptitude-test.show', $applicationId) }}"
+                       target="_blank"
+                       class="px-3 py-2 text-xs sm:text-sm rounded-xl border border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100">
+                        Open Aptitude Test
+                    </a>
+                @endif
                 <a href="{{ route('admin.job-applications.index') }}" class="px-3 py-2 text-sm rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50">
                     Back to list
                 </a>
@@ -39,6 +60,32 @@
         @if (session('success'))
             <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
                 {{ session('success') }}
+                @if (session('candidate_password'))
+                    <div class="mt-3 p-3 bg-white rounded-lg border border-emerald-300">
+                        <p class="font-semibold text-emerald-900 mb-2">Candidate Login Credentials:</p>
+                        <div class="space-y-1 text-sm">
+                            <p><strong>Email:</strong> <code class="bg-gray-100 px-2 py-1 rounded">{{ session('candidate_email') }}</code></p>
+                            <p><strong>Password:</strong> <code class="bg-gray-100 px-2 py-1 rounded font-mono">{{ session('candidate_password') }}</code></p>
+                        </div>
+                        <p class="text-xs text-emerald-700 mt-2">⚠️ Save these credentials now - they won't be shown again for security reasons.</p>
+                    </div>
+                @endif
+            </div>
+        @endif
+
+        @if (session('warning'))
+            <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                {{ session('warning') }}
+                @if (session('candidate_password'))
+                    <div class="mt-3 p-3 bg-white rounded-lg border border-amber-300">
+                        <p class="font-semibold text-amber-900 mb-2">Candidate Login Credentials:</p>
+                        <div class="space-y-1 text-sm">
+                            <p><strong>Email:</strong> <code class="bg-gray-100 px-2 py-1 rounded">{{ session('candidate_email') }}</code></p>
+                            <p><strong>Password:</strong> <code class="bg-gray-100 px-2 py-1 rounded font-mono">{{ session('candidate_password') }}</code></p>
+                        </div>
+                        <p class="text-xs text-amber-700 mt-2">⚠️ Save these credentials now - they won't be shown again for security reasons.</p>
+                    </div>
+                @endif
             </div>
         @endif
 
@@ -446,12 +493,218 @@
 
             <!-- Sidebar -->
             <div class="space-y-6">
+                <!-- Aptitude Test Results -->
+                @if($application->aptitudeTestSession || $application->aptitude_test_completed_at)
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
+                        <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Aptitude Test Results</h2>
+                        <div class="space-y-4">
+                            @if($application->aptitude_test_completed_at)
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <span class="text-sm text-slate-500">Status:</span>
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ml-2 {{ $application->aptitude_test_passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                            {{ $application->aptitude_test_passed ? 'Passed' : 'Failed' }}
+                                        </span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-sm text-slate-500">Score:</span>
+                                        <span class="text-lg font-semibold text-slate-900 ml-2">{{ $application->aptitude_test_score ?? 'N/A' }}%</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="text-sm text-slate-500">Completed:</span>
+                                    <span class="text-sm font-medium text-slate-900 ml-2">{{ $application->aptitude_test_completed_at->format('M d, Y g:i A') }}</span>
+                                </div>
+                                @if($application->aptitudeTestSession)
+                                    @php
+                                        $session = $application->aptitudeTestSession;
+                                    @endphp
+                                    @if($session->total_possible_score)
+                                        <div>
+                                            <span class="text-sm text-slate-500">Raw Score:</span>
+                                            <span class="text-sm font-medium text-slate-900 ml-2">{{ $session->total_score ?? 0 }}/{{ $session->total_possible_score }}</span>
+                                        </div>
+                                    @endif
+                                    @if($session->time_taken_seconds)
+                                        <div>
+                                            <span class="text-sm text-slate-500">Time Taken:</span>
+                                            <span class="text-sm font-medium text-slate-900 ml-2">{{ gmdate('H:i:s', $session->time_taken_seconds) }}</span>
+                                        </div>
+                                    @endif
+                                    @if($session->started_at)
+                                        <div>
+                                            <span class="text-sm text-slate-500">Started:</span>
+                                            <span class="text-sm font-medium text-slate-900 ml-2">{{ $session->started_at->format('M d, Y g:i A') }}</span>
+                                        </div>
+                                    @endif
+                                @endif
+                                <div class="pt-3 border-t border-slate-200">
+                                    <a href="{{ route('aptitude-test.results', $application) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-semibold">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                        View Detailed Results
+                                    </a>
+                                </div>
+                            @else
+                                <div class="text-sm text-slate-600">
+                                    <p>Aptitude test has not been completed yet.</p>
+                                    @if($canTakeAptitudeTest)
+                                        <p class="text-xs text-slate-500 mt-1">Candidate is eligible to take the test.</p>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
+                <!-- AI Sieving Decision -->
+                @if($application->aiSievingDecision)
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
+                        <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">AI Sieving Decision</h2>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="text-sm text-slate-500">Decision:</span>
+                                    @php
+                                        $decisionClasses = match($application->aiSievingDecision->ai_decision) {
+                                            'pass' => 'bg-green-100 text-green-800',
+                                            'reject' => 'bg-red-100 text-red-800',
+                                            'manual_review' => 'bg-yellow-100 text-yellow-800',
+                                            default => 'bg-gray-100 text-gray-800',
+                                        };
+                                    @endphp
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ $decisionClasses }} ml-2">
+                                        {{ Str::headline(str_replace('_', ' ', $application->aiSievingDecision->ai_decision)) }}
+                                    </span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-sm text-slate-500">Score:</span>
+                                    <span class="text-lg font-semibold text-slate-900 ml-2">{{ $application->aiSievingDecision->ai_score }}/100</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="text-sm text-slate-500">Confidence:</span>
+                                <span class="text-sm font-medium text-slate-900 ml-2">{{ number_format($application->aiSievingDecision->ai_confidence * 100, 1) }}%</span>
+                            </div>
+                            @if($application->aiSievingDecision->ai_reasoning)
+                                <div>
+                                    <span class="text-sm font-medium text-slate-700 block mb-2">Reasoning:</span>
+                                    <div class="text-sm text-slate-600 whitespace-pre-line bg-slate-50 rounded-lg p-3">
+                                        {{ $application->aiSievingDecision->ai_reasoning }}
+                                    </div>
+                                </div>
+                            @endif
+                            @if($application->aiSievingDecision->ai_strengths && count($application->aiSievingDecision->ai_strengths) > 0)
+                                <div>
+                                    <span class="text-sm font-medium text-green-700 block mb-2">Strengths:</span>
+                                    <ul class="text-sm text-slate-600 space-y-1">
+                                        @foreach($application->aiSievingDecision->ai_strengths as $strength)
+                                            <li class="flex items-start">
+                                                <svg class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                </svg>
+                                                {{ $strength }}
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                            @if($application->aiSievingDecision->ai_weaknesses && count($application->aiSievingDecision->ai_weaknesses) > 0)
+                                <div>
+                                    <span class="text-sm font-medium text-red-700 block mb-2">Weaknesses:</span>
+                                    <ul class="text-sm text-slate-600 space-y-1">
+                                        @foreach($application->aiSievingDecision->ai_weaknesses as $weakness)
+                                            <li class="flex items-start">
+                                                <svg class="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                                </svg>
+                                                {{ $weakness }}
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Candidate Account Status -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
+                    <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Candidate Account</h2>
+                    @php
+                        $candidate = $application->candidate ?? null;
+                        $hasAccount = $candidate !== null;
+                    @endphp
+                    <div class="space-y-4">
+                        @if($hasAccount)
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="text-sm text-slate-500">Account Status:</span>
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2">
+                                        ✓ Account Created
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="text-sm text-slate-500">Email:</span>
+                                <span class="text-sm font-medium text-slate-900 ml-2">{{ $candidate->email }}</span>
+                            </div>
+                            <div>
+                                <span class="text-sm text-slate-500">Created:</span>
+                                <span class="text-sm font-medium text-slate-900 ml-2">{{ $candidate->created_at->format('M d, Y') }}</span>
+                            </div>
+                            @php
+                                // Check if password is stored in session (recently created/reset)
+                                $storedPassword = session('candidate_password_' . $candidate->id);
+                                $passwordTime = session('candidate_password_time_' . $candidate->id);
+                                $passwordAvailable = $storedPassword && $passwordTime && now()->lt($passwordTime);
+                            @endphp
+                            @if($passwordAvailable)
+                                <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
+                                    <p class="text-xs font-semibold text-amber-900 mb-2">🔑 Temporary Password (Available for 5 minutes):</p>
+                                    <code class="block bg-white px-3 py-2 rounded border border-amber-300 font-mono text-sm text-amber-900">{{ $storedPassword }}</code>
+                                    <p class="text-xs text-amber-700 mt-2">This password was recently generated. Use it to test login.</p>
+                                </div>
+                            @endif
+                            <div class="pt-3 border-t border-slate-200 space-y-2">
+                                <form method="POST" action="{{ route('admin.job-applications.resend-candidate-credentials', $application) }}" class="inline">
+                                    @csrf
+                                    <button type="submit" class="w-full px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-semibold">
+                                        Resend Login Credentials
+                                    </button>
+                                </form>
+                                <a href="{{ route('admin.job-applications.view-candidate-dashboard', $application) }}" target="_blank" class="block w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-semibold text-center">
+                                    View Candidate Dashboard
+                                </a>
+                            </div>
+                        @else
+                            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                <p class="text-sm text-amber-800 mb-3">
+                                    <strong>No candidate account found.</strong> Create an account to allow the candidate to access their dashboard.
+                                </p>
+                                <form method="POST" action="{{ route('admin.job-applications.create-candidate-account', $application) }}" class="inline">
+                                    @csrf
+                                    <button type="submit" class="w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-semibold">
+                                        Create Account & Send Credentials
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
                 <!-- Status -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
                     <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Status</h2>
                     @php
                         $statusClasses = match($application->status) {
                             'pending' => 'bg-amber-100 text-amber-800',
+                            'sieving_passed' => 'bg-green-100 text-green-800',
+                            'sieving_rejected' => 'bg-red-100 text-red-800',
+                            'pending_manual_review' => 'bg-yellow-100 text-yellow-800',
+                            'stage_2_passed' => 'bg-emerald-100 text-emerald-800',
                             'reviewed' => 'bg-blue-100 text-blue-800',
                             'shortlisted' => 'bg-green-100 text-green-800',
                             'rejected' => 'bg-red-100 text-red-800',
@@ -475,6 +728,10 @@
                             <select id="status" name="status"
                                     class="w-full text-sm border-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-600 focus:border-transparent">
                                 <option value="pending" @selected($application->status === 'pending')>Pending</option>
+                                <option value="sieving_passed" @selected($application->status === 'sieving_passed')>Sieving Passed</option>
+                                <option value="sieving_rejected" @selected($application->status === 'sieving_rejected')>Sieving Rejected</option>
+                                <option value="pending_manual_review" @selected($application->status === 'pending_manual_review')>Pending Manual Review</option>
+                                <option value="stage_2_passed" @selected($application->status === 'stage_2_passed')>Stage 2 Passed</option>
                                 <option value="reviewed" @selected($application->status === 'reviewed')>Reviewed</option>
                                 <option value="shortlisted" @selected($application->status === 'shortlisted')>Shortlisted</option>
                                 <option value="rejected" @selected($application->status === 'rejected')>Rejected</option>

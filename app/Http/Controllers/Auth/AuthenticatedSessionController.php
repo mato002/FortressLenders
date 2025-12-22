@@ -36,9 +36,19 @@ class AuthenticatedSessionController extends Controller
 
             $request->session()->regenerate();
 
-            $user = Auth::user();
-            
-            // Track session
+            // Check if candidate is logged in
+            $candidate = Auth::guard('candidate')->user();
+            if ($candidate) {
+                // Link existing job applications by email for candidates
+                \App\Models\JobApplication::where('email', $candidate->email)
+                    ->whereNull('candidate_id')
+                    ->update(['candidate_id' => $candidate->id]);
+                
+                return redirect()->intended(route('candidate.dashboard', absolute: false));
+            }
+
+            // Check if employee is logged in
+            $user = Auth::guard('web')->user();
             if ($user) {
                 $this->sessionManagementService->trackSession($user, $request);
                 $this->activityLogService->logLogin($user, true);
@@ -58,16 +68,19 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        $user = Auth::user();
+        $candidate = Auth::guard('candidate')->user();
+        $user = Auth::guard('web')->user();
         $sessionId = $request->session()->getId();
 
+        // Logout from both guards
+        Auth::guard('candidate')->logout();
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
 
         $request->session()->regenerateToken();
 
-        // Remove session from tracking
+        // Remove session from tracking (only for employees)
         if ($user && $sessionId) {
             $this->sessionManagementService->revokeSession($sessionId);
             $this->activityLogService->logLogout($user);

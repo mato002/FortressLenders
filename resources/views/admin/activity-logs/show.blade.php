@@ -42,7 +42,7 @@
             <div class="flex flex-wrap gap-3">
                 @if($activityLog->ip_address)
                     @if($isIpBlocked)
-                        <form action="{{ route('admin.blocked-ips.unblock') }}" method="POST" onsubmit="return confirm('Are you sure you want to unblock IP address {{ $activityLog->ip_address }}?');">
+                        <form action="{{ route('admin.blocked-ips.unblock') }}" method="POST" class="inline activity-log-unblock-ip-form" data-ip="{{ $activityLog->ip_address }}">
                             @csrf
                             <input type="hidden" name="ip_address" value="{{ $activityLog->ip_address }}">
                             <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-sm">
@@ -58,20 +58,20 @@
 
                 @if($activityLog->user_id)
                     @if($isUserBanned)
-                        <form action="{{ route('admin.users.unban', $activityLog->user) }}" method="POST" onsubmit="return confirm('Are you sure you want to unban user {{ $activityLog->user->email }}?');">
+                        <form action="{{ route('admin.users.unban', $activityLog->user) }}" method="POST" class="inline activity-log-unban-user-form" data-email="{{ $activityLog->user->email }}">
                             @csrf
                             <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-sm">
                                 Unban User: {{ $activityLog->user->email }}
                             </button>
                         </form>
                     @else
-                        <form action="{{ route('admin.activity-logs.ban-user', $activityLog) }}" method="POST" onsubmit="return confirm('Are you sure you want to ban user {{ $activityLog->user->email }}? This will revoke all their sessions.');">
+                        <form action="{{ route('admin.activity-logs.ban-user', $activityLog) }}" method="POST" class="inline activity-log-ban-user-form" data-email="{{ $activityLog->user->email }}">
                             @csrf
                             <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold text-sm">
                                 Ban User: {{ $activityLog->user->email }}
                             </button>
                         </form>
-                        <form action="{{ route('admin.activity-logs.revoke-sessions', $activityLog) }}" method="POST" onsubmit="return confirm('Are you sure you want to revoke all sessions for {{ $activityLog->user->email }}?');">
+                        <form action="{{ route('admin.activity-logs.revoke-sessions', $activityLog) }}" method="POST" class="inline activity-log-revoke-sessions-form" data-email="{{ $activityLog->user->email }}">
                             @csrf
                             <button type="submit" class="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-semibold text-sm">
                                 Revoke All Sessions
@@ -208,6 +208,153 @@
 
 @push('scripts')
 <script>
+    // SweetAlert confirmation handlers for activity log actions
+    document.addEventListener('DOMContentLoaded', function () {
+        // Unblock IP
+        document.querySelectorAll('.activity-log-unblock-ip-form').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const ip = this.getAttribute('data-ip') || 'this IP address';
+
+                Swal.fire({
+                    title: 'Unblock IP address?',
+                    text: `You are about to unblock IP ${ip}.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#16a34a',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, unblock',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Unblocking IP...',
+                            text: 'Please wait.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+        // Unban user
+        document.querySelectorAll('.activity-log-unban-user-form').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const email = this.getAttribute('data-email') || 'this user';
+
+                Swal.fire({
+                    title: 'Unban this user?',
+                    text: `You are about to unban ${email}.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#16a34a',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, unban',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Unbanning user...',
+                            text: 'Please wait.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+        // Ban user
+        document.querySelectorAll('.activity-log-ban-user-form').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const email = this.getAttribute('data-email') || 'this user';
+
+                Swal.fire({
+                    title: 'Ban this user?',
+                    text: `You are about to ban ${email}. All of their active sessions will be revoked.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, ban user',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Banning user...',
+                            text: 'Please wait while we revoke all sessions.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+        // Revoke sessions
+        document.querySelectorAll('.activity-log-revoke-sessions-form').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const email = this.getAttribute('data-email') || 'this user';
+
+                Swal.fire({
+                    title: 'Revoke all sessions?',
+                    text: `You are about to revoke all active sessions for ${email}.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d97706',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, revoke sessions',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Revoking sessions...',
+                            text: 'Please wait.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+
     function showBlockIpModal() {
         document.getElementById('blockIpModal').classList.remove('hidden');
     }

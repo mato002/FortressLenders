@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Requests\CandidateProfileUpdateRequest;
 use App\Services\SessionManagementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\Candidate;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
@@ -20,8 +23,19 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        // Check if candidate is logged in
+        $candidate = Auth::guard('candidate')->user();
+        if ($candidate) {
+            return view('candidate.profile', [
+                'candidate' => $candidate,
+                'user' => $candidate, // For backward compatibility in views
+            ]);
+        }
+        
+        // Otherwise, it's an employee
+        $user = $request->user();
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $user,
         ]);
     }
 
@@ -44,18 +58,34 @@ class ProfileController extends Controller
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(ProfileUpdateRequest|CandidateProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        // Handle candidate profile update
+        $candidate = Auth::guard('candidate')->user();
+        if ($candidate) {
+            $candidate->fill($request->validated());
+            
+            if ($candidate->isDirty('email')) {
+                $candidate->email_verified_at = null;
+            }
+            
+            $candidate->save();
+            
+            return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        }
+        
+        // Handle employee profile update
+        $user = $request->user();
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
-
-        // Redirect to admin profile if accessed from admin panel, otherwise to regular profile
-        if ($request->user()->is_admin) {
+        $user->save();
+        
+        // Redirect to admin profile if accessed from admin panel
+        if ($user->is_admin) {
             return Redirect::route('admin.profile')->with('status', 'profile-updated');
         }
 

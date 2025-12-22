@@ -21,8 +21,10 @@ class TrackUserSession
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check()) {
-            $user = Auth::user();
+        // Only track sessions for employees (web guard), not candidates
+        // Candidates use a separate authentication system and don't need session tracking
+        if (Auth::guard('web')->check()) {
+            $user = Auth::guard('web')->user();
             $sessionId = $request->session()->getId();
             
             // Update session activity

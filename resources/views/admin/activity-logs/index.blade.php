@@ -132,7 +132,7 @@
                                 <a href="{{ route('admin.activity-logs.show', $log) }}" 
                                    class="text-teal-700 font-semibold hover:text-teal-800 text-xs sm:text-sm">View</a>
                                 @if($log->ip_address && !in_array($log->ip_address, $blockedIps))
-                                    <form action="{{ route('admin.activity-logs.block-ip', $log) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to block IP address {{ $log->ip_address }}?');">
+                                    <form action="{{ route('admin.activity-logs.block-ip', $log) }}" method="POST" class="inline activity-log-block-ip-form" data-ip="{{ $log->ip_address }}">
                                         @csrf
                                         <button type="submit" class="text-red-600 font-semibold hover:text-red-700 text-xs sm:text-sm" title="Block IP Address">
                                             Block IP
@@ -142,7 +142,7 @@
                                     <span class="text-xs text-gray-400">IP Blocked</span>
                                 @endif
                                 @if($log->user_id && !($log->user->is_banned ?? false))
-                                    <form action="{{ route('admin.activity-logs.ban-user', $log) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to ban user {{ $log->user->email }}? This will revoke all their sessions.');">
+                                    <form action="{{ route('admin.activity-logs.ban-user', $log) }}" method="POST" class="inline activity-log-ban-user-form" data-email="{{ $log->user->email }}">
                                         @csrf
                                         <button type="submit" class="text-red-600 font-semibold hover:text-red-700 text-xs sm:text-sm" title="Ban User">
                                             Ban User
@@ -173,4 +173,81 @@
     </div>
 @endsection
 
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // SweetAlert confirmation for blocking IPs from index table
+        document.querySelectorAll('.activity-log-block-ip-form').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const ip = this.getAttribute('data-ip') || 'this IP address';
+
+                Swal.fire({
+                    title: 'Block IP address?',
+                    text: `You are about to block IP ${ip}. This may prevent this user from accessing the admin area.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, block IP',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Blocking IP...',
+                            text: 'Please wait while we apply this restriction.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+        // SweetAlert confirmation for banning users from index table
+        document.querySelectorAll('.activity-log-ban-user-form').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const email = this.getAttribute('data-email') || 'this user';
+
+                Swal.fire({
+                    title: 'Ban this user?',
+                    text: `You are about to ban ${email}. All of their active sessions will be revoked.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, ban user',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Banning user...',
+                            text: 'Please wait while we revoke all sessions.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
+@endpush
 

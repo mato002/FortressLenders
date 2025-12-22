@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\AptitudeTestInvitation;
 use App\Mail\JobApplicationConfirmation;
+use App\Mail\CandidateAccountCreated;
 use App\Models\JobApplication;
+use App\Models\Candidate;
 use App\Models\JobApplicationMessage;
 use App\Models\JobApplicationReview;
 use App\Models\JobApplicationStatusHistory;
@@ -33,7 +36,7 @@ class JobApplicationController extends Controller
     }
     public function index(Request $request)
     {
-        $query = JobApplication::with(['jobPost']);
+        $query = JobApplication::with(['jobPost', 'candidate']);
 
         // Filter by status
         if ($request->filled('status')) {
@@ -66,17 +69,29 @@ class JobApplicationController extends Controller
         $totalApplications = JobApplication::count();
         $filteredCount = $applications->total();
 
-        // Get status counts for filters
-        $statusCounts = [
-            'pending' => JobApplication::where('status', 'pending')->count(),
-            'reviewed' => JobApplication::where('status', 'reviewed')->count(),
-            'shortlisted' => JobApplication::where('status', 'shortlisted')->count(),
-            'rejected' => JobApplication::where('status', 'rejected')->count(),
-            'interview_scheduled' => JobApplication::where('status', 'interview_scheduled')->count(),
-            'interview_passed' => JobApplication::where('status', 'interview_passed')->count(),
-            'interview_failed' => JobApplication::where('status', 'interview_failed')->count(),
-            'hired' => JobApplication::where('status', 'hired')->count(),
+        // Get status counts for filters - include all possible statuses
+        $allStatuses = [
+            'pending',
+            'sieving_passed',
+            'sieving_rejected',
+            'pending_manual_review',
+            'stage_2_passed',
+            'reviewed',
+            'shortlisted',
+            'rejected',
+            'interview_scheduled',
+            'interview_passed',
+            'interview_failed',
+            'second_interview',
+            'written_test',
+            'case_study',
+            'hired',
         ];
+        
+        $statusCounts = [];
+        foreach ($allStatuses as $status) {
+            $statusCounts[$status] = JobApplication::where('status', $status)->count();
+        }
 
         // Get job posts for filter dropdown
         $jobPosts = \App\Models\JobPost::select('id', 'title')
@@ -104,7 +119,7 @@ class JobApplicationController extends Controller
         $application->makeVisible($application->getFillable());
         
         // Load relationships
-        $application->load(['jobPost', 'reviews.reviewer', 'interviews.conductedBy', 'messages.sender']);
+        $application->load(['jobPost', 'candidate', 'reviews.reviewer', 'interviews.conductedBy', 'messages.sender', 'aiSievingDecision', 'aptitudeTestSession', 'statusHistories.user']);
         
         // Ensure jobPost relationship is available even if null
         if (!$application->jobPost && $application->job_post_id) {
@@ -113,6 +128,42 @@ class JobApplicationController extends Controller
         }
         
         return view('admin.job-applications.show', compact('application'));
+    }
+
+    /**
+     * View candidate dashboard as admin (for testing/preview)
+     */
+    public function viewCandidateDashboard(JobApplication $application)
+    {
+        $candidate = $application->candidate;
+        
+        if (!$candidate) {
+            return back()->withErrors(['error' => 'No candidate account found for this application.']);
+        }
+        
+        // Link any existing applications by email if not already linked
+        JobApplication::where('email', $candidate->email)
+            ->whereNull('candidate_id')
+            ->update(['candidate_id' => $candidate->id]);
+        
+        // Get all applications for this candidate
+        $applications = JobApplication::where('candidate_id', $candidate->id)
+            ->with(['jobPost', 'aiSievingDecision', 'aptitudeTestSession'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        
+        // Statistics
+        $stats = [
+            'total' => JobApplication::where('candidate_id', $candidate->id)->count(),
+            'pending' => JobApplication::where('candidate_id', $candidate->id)->where('status', 'pending')->count(),
+            'sieving_passed' => JobApplication::where('candidate_id', $candidate->id)->where('status', 'sieving_passed')->count(),
+            'sieving_rejected' => JobApplication::where('candidate_id', $candidate->id)->where('status', 'sieving_rejected')->count(),
+            'stage_2_passed' => JobApplication::where('candidate_id', $candidate->id)->where('status', 'stage_2_passed')->count(),
+            'hired' => JobApplication::where('candidate_id', $candidate->id)->where('status', 'hired')->count(),
+        ];
+        
+        // Pass admin flag to view
+        return view('candidate.dashboard', compact('applications', 'stats', 'candidate'))->with('isAdminView', true);
     }
 
     public function sendMessage(Request $request, JobApplication $application): RedirectResponse
@@ -251,14 +302,27 @@ class JobApplicationController extends Controller
     public function updateStatus(Request $request, JobApplication $application)
     {
         $validated = $request->validate([
-            'status' => 'required|in:pending,reviewed,shortlisted,rejected,interview_scheduled,interview_passed,interview_failed,second_interview,written_test,case_study,hired',
+            'status' => 'required|in:pending,sieving_passed,sieving_rejected,pending_manual_review,stage_2_passed,reviewed,shortlisted,rejected,interview_scheduled,interview_passed,interview_failed,second_interview,written_test,case_study,hired',
         ]);
 
         $newStatus = $validated['status'];
+        $previousStatus = $application->status;
 
         $this->recordStatusChange($application, $newStatus, 'manual_update');
 
         $application->update(['status' => $newStatus]);
+
+        // Send email notification if status changed to sieving_passed
+        if ($newStatus === 'sieving_passed' && $previousStatus !== 'sieving_passed') {
+            try {
+                Mail::to($application->email)->send(new AptitudeTestInvitation($application));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send aptitude test invitation email', [
+                    'application_id' => $application->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
 
         return redirect()->route('admin.job-applications.show', $application)
             ->with('success', 'Application status updated successfully!');
@@ -278,6 +342,242 @@ class JobApplicationController extends Controller
 
         return redirect()->route('admin.job-applications.index')
             ->with('success', 'Job application deleted successfully!');
+    }
+
+    /**
+     * Create candidate account for existing application
+     */
+    public function createCandidateAccount(JobApplication $application): RedirectResponse
+    {
+        // Check if candidate already exists
+        $candidate = Candidate::where('email', $application->email)->first();
+        
+        if ($candidate) {
+            // Link application to existing candidate
+            $application->update(['candidate_id' => $candidate->id]);
+            return back()->with('success', 'Application linked to existing candidate account.');
+        }
+        
+        // Create new candidate account
+        $temporaryPassword = \Illuminate\Support\Str::random(12);
+        
+        try {
+            $candidate = Candidate::create([
+                'name' => $application->name,
+                'email' => $application->email,
+                'password' => \Illuminate\Support\Facades\Hash::make($temporaryPassword),
+                'email_verified_at' => now(),
+            ]);
+            
+            // Link application
+            $application->update(['candidate_id' => $candidate->id]);
+            
+            // Send account creation email
+            try {
+                Mail::to($candidate->email)->send(new CandidateAccountCreated($candidate, $temporaryPassword));
+                \Log::info('Candidate account created and credentials sent', [
+                    'candidate_id' => $candidate->id,
+                    'application_id' => $application->id,
+                    'email' => $candidate->email,
+                ]);
+                
+                // Store password in session temporarily for admin viewing (expires after 5 minutes)
+                session([
+                    'candidate_password_' . $candidate->id => $temporaryPassword,
+                    'candidate_password_time_' . $candidate->id => now()->addMinutes(5)
+                ]);
+                
+                return back()->with('success', 'Candidate account created and login credentials sent via email.')
+                    ->with('candidate_password', $temporaryPassword)
+                    ->with('candidate_email', $candidate->email);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send candidate account creation email', [
+                    'candidate_id' => $candidate->id,
+                    'application_id' => $application->id,
+                    'error' => $e->getMessage(),
+                ]);
+                
+                // Store password in session even if email fails
+                session([
+                    'candidate_password_' . $candidate->id => $temporaryPassword,
+                    'candidate_password_time_' . $candidate->id => now()->addMinutes(5)
+                ]);
+                
+                return back()->with('warning', 'Candidate account created, but failed to send email. Password: ' . $temporaryPassword . ' (Please send manually)')
+                    ->with('candidate_password', $temporaryPassword)
+                    ->with('candidate_email', $candidate->email);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to create candidate account', [
+                'application_id' => $application->id,
+                'email' => $application->email,
+                'error' => $e->getMessage(),
+            ]);
+            
+            return back()->withErrors(['error' => 'Failed to create candidate account: ' . $e->getMessage()]);
+        }
+    }
+    
+    /**
+     * Resend candidate account credentials
+     */
+    public function resendCandidateCredentials(JobApplication $application): RedirectResponse
+    {
+        if (!$application->candidate_id) {
+            return back()->withErrors(['error' => 'No candidate account linked to this application. Create account first.']);
+        }
+        
+        $candidate = Candidate::find($application->candidate_id);
+        if (!$candidate) {
+            return back()->withErrors(['error' => 'Candidate account not found.']);
+        }
+        
+        // Generate new temporary password
+        $temporaryPassword = \Illuminate\Support\Str::random(12);
+        $candidate->update([
+            'password' => \Illuminate\Support\Facades\Hash::make($temporaryPassword),
+        ]);
+        
+        try {
+            Mail::to($candidate->email)->send(new CandidateAccountCreated($candidate, $temporaryPassword));
+            \Log::info('Candidate credentials resent', [
+                'candidate_id' => $candidate->id,
+                'application_id' => $application->id,
+                'email' => $candidate->email,
+            ]);
+            
+            // Store password in session temporarily for admin viewing
+            session([
+                'candidate_password_' . $candidate->id => $temporaryPassword,
+                'candidate_password_time_' . $candidate->id => now()->addMinutes(5)
+            ]);
+            
+            return back()->with('success', 'Login credentials resent successfully via email.')
+                ->with('candidate_password', $temporaryPassword)
+                ->with('candidate_email', $candidate->email);
+        } catch (\Exception $e) {
+            \Log::error('Failed to resend candidate credentials', [
+                'candidate_id' => $candidate->id,
+                'application_id' => $application->id,
+                'error' => $e->getMessage(),
+            ]);
+            
+            // Store password in session even if email fails
+            session([
+                'candidate_password_' . $candidate->id => $temporaryPassword,
+                'candidate_password_time_' . $candidate->id => now()->addMinutes(5)
+            ]);
+            
+            return back()->with('warning', 'Failed to send email. New password: ' . $temporaryPassword . ' (Please send manually)')
+                ->with('candidate_password', $temporaryPassword)
+                ->with('candidate_email', $candidate->email);
+        }
+    }
+    
+    /**
+     * Bulk create candidate accounts for applications without accounts
+     */
+    public function bulkCreateCandidateAccounts(Request $request): RedirectResponse
+    {
+        $selectedIdsInput = $request->input('selected_applications', []);
+        
+        // Handle JSON string input from form
+        if (is_string($selectedIdsInput)) {
+            $selectedIds = json_decode($selectedIdsInput, true) ?? [];
+        } else {
+            $selectedIds = is_array($selectedIdsInput) ? $selectedIdsInput : [];
+        }
+        
+        if (empty($selectedIds)) {
+            return back()->withErrors(['error' => 'No applications selected.']);
+        }
+        
+        $applications = JobApplication::whereIn('id', $selectedIds)
+            ->whereNull('candidate_id')
+            ->get();
+        
+        $created = 0;
+        $linked = 0;
+        $failed = 0;
+        $emailsSent = 0;
+        $emailsFailed = 0;
+        $credentials = []; // Store credentials for display
+        
+        foreach ($applications as $application) {
+            try {
+                // Check if candidate already exists
+                $candidate = Candidate::where('email', $application->email)->first();
+                
+                if ($candidate) {
+                    // Link to existing candidate
+                    $application->update(['candidate_id' => $candidate->id]);
+                    $linked++;
+                    continue;
+                }
+                
+                // Create new candidate
+                $temporaryPassword = \Illuminate\Support\Str::random(12);
+                $candidate = Candidate::create([
+                    'name' => $application->name,
+                    'email' => $application->email,
+                    'password' => \Illuminate\Support\Facades\Hash::make($temporaryPassword),
+                    'email_verified_at' => now(),
+                ]);
+                
+                $application->update(['candidate_id' => $candidate->id]);
+                $created++;
+                
+                // Store credentials for admin viewing
+                $credentials[] = [
+                    'email' => $candidate->email,
+                    'password' => $temporaryPassword,
+                    'name' => $candidate->name,
+                ];
+                
+                // Store in session for individual viewing
+                session([
+                    'candidate_password_' . $candidate->id => $temporaryPassword,
+                    'candidate_password_time_' . $candidate->id => now()->addMinutes(5)
+                ]);
+                
+                // Send email
+                try {
+                    Mail::to($candidate->email)->send(new CandidateAccountCreated($candidate, $temporaryPassword));
+                    $emailsSent++;
+                    \Log::info('Bulk: Candidate account created and credentials sent', [
+                        'candidate_id' => $candidate->id,
+                        'application_id' => $application->id,
+                    ]);
+                } catch (\Exception $e) {
+                    $emailsFailed++;
+                    \Log::error('Bulk: Failed to send credentials email', [
+                        'candidate_id' => $candidate->id,
+                        'application_id' => $application->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            } catch (\Exception $e) {
+                $failed++;
+                \Log::error('Bulk: Failed to create candidate account', [
+                    'application_id' => $application->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+        
+        $message = "Processed {$applications->count()} applications: ";
+        $message .= "{$created} accounts created, {$linked} linked to existing accounts";
+        if ($emailsFailed > 0) {
+            $message .= ", {$emailsFailed} emails failed to send";
+        }
+        
+        // Store credentials in session for display
+        if (!empty($credentials)) {
+            session(['bulk_credentials' => $credentials]);
+        }
+        
+        return back()->with('success', $message)
+            ->with('show_bulk_credentials', !empty($credentials));
     }
 
     public function sendConfirmationEmail(JobApplication $application): RedirectResponse
@@ -427,7 +727,7 @@ class JobApplicationController extends Controller
         $validated = $request->validate([
             'application_ids' => 'required|array',
             'application_ids.*' => 'exists:job_applications,id',
-            'status' => 'required|in:pending,reviewed,shortlisted,rejected,interview_scheduled,interview_passed,interview_failed,second_interview,written_test,case_study,hired',
+            'status' => 'required|in:pending,sieving_passed,sieving_rejected,pending_manual_review,stage_2_passed,reviewed,shortlisted,rejected,interview_scheduled,interview_passed,interview_failed,second_interview,written_test,case_study,hired',
         ]);
 
         $count = JobApplication::whereIn('id', $validated['application_ids'])

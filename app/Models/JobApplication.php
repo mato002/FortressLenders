@@ -12,6 +12,7 @@ class JobApplication extends Model
     use HasFactory;
 
     protected $fillable = [
+        'candidate_id',
         'job_post_id',
         'name',
         'phone',
@@ -52,6 +53,9 @@ class JobApplication extends Model
         'cv_path',
         'application_message',
         'status',
+        'aptitude_test_score',
+        'aptitude_test_passed',
+        'aptitude_test_completed_at',
     ];
 
     protected $casts = [
@@ -59,7 +63,14 @@ class JobApplication extends Model
         'referrers' => 'array',
         'currently_working' => 'boolean',
         'agreement_accepted' => 'boolean',
+        'aptitude_test_passed' => 'boolean',
+        'aptitude_test_completed_at' => 'datetime',
     ];
+
+    public function candidate(): BelongsTo
+    {
+        return $this->belongsTo(Candidate::class);
+    }
 
     public function jobPost(): BelongsTo
     {
@@ -84,6 +95,16 @@ class JobApplication extends Model
     public function statusHistories(): HasMany
     {
         return $this->hasMany(JobApplicationStatusHistory::class);
+    }
+
+    public function aiSievingDecision()
+    {
+        return $this->hasOne(AISievingDecision::class);
+    }
+
+    public function aptitudeTestSession()
+    {
+        return $this->hasOne(AptitudeTestSession::class);
     }
 
     public function scopePending($query)

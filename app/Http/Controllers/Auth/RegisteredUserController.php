@@ -39,7 +39,13 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => 'candidate', // Default role for new registrations
         ]);
+
+        // Link any existing job applications with this email to this user
+        \App\Models\JobApplication::where('email', $request->email)
+            ->whereNull('user_id')
+            ->update(['user_id' => $user->id]);
 
         event(new Registered($user));
 

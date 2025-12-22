@@ -95,28 +95,56 @@ Route::post('/careers/{jobPost:slug}/apply', [JobApplicationController::class, '
     ->middleware('throttle:5,1')
     ->name('careers.apply.store');
 
+// Application Status Routes (Public)
+Route::get('/application/status/lookup', function() {
+    return view('careers.application-status-lookup');
+})->name('application.status.lookup');
+Route::post('/application/lookup', [JobApplicationController::class, 'lookup'])->name('application.lookup');
+Route::get('/application/{application}/status', [JobApplicationController::class, 'status'])->name('application.status');
+
+// Aptitude Test Routes (Public and Candidate)
+Route::get('/aptitude-test/{application}', [\App\Http\Controllers\AptitudeTestController::class, 'show'])->name('aptitude-test.show');
+Route::post('/aptitude-test/{application}/submit', [\App\Http\Controllers\AptitudeTestController::class, 'submit'])->name('aptitude-test.submit');
+Route::get('/aptitude-test/{application}/results', [\App\Http\Controllers\AptitudeTestController::class, 'results'])->name('aptitude-test.results');
+Route::get('/aptitude-test/{application}/verify', [\App\Http\Controllers\AptitudeTestController::class, 'verify'])->name('aptitude-test.verify');
+
 // Dashboard Routes (Protected)
 Route::get('/dashboard', function () {
+    // Check if candidate is logged in
+    $candidate = auth()->guard('candidate')->user();
+    if ($candidate) {
+        return redirect()->route('candidate.dashboard');
+    }
+    
+    // Check if employee/user is logged in
     $user = auth()->user();
-
-    // All authenticated users with roles can access admin dashboard
-    // Role-based permissions are enforced at the route level
     if ($user && in_array($user->role, ['admin', 'hr_manager', 'loan_manager', 'editor'])) {
         return redirect()->route('admin.dashboard');
     }
 
     return redirect()->route('profile.edit');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth:web,candidate', 'verified'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+// Candidate Routes (separate guard)
+Route::middleware(['auth:candidate'])->prefix('candidate')->name('candidate.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\CandidateDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/application/{application}', [\App\Http\Controllers\CandidateDashboardController::class, 'show'])->name('application.show');
+});
+
+// Profile routes (accessible by both candidates and employees)
+Route::middleware(['auth:web,candidate'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+// Employee-only routes (web guard only)
+Route::middleware(['auth:web'])->group(function () {
     Route::post('/profile/sessions/{sessionId}/revoke', [ProfileController::class, 'revokeSession'])->name('profile.sessions.revoke');
     Route::post('/profile/sessions/revoke-others', [ProfileController::class, 'revokeOtherSessions'])->name('profile.sessions.revoke-others');
 });
 
-Route::middleware(['auth', 'verified', 'admin'])
+Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
@@ -189,6 +217,12 @@ Route::middleware(['auth', 'verified', 'admin'])
         Route::middleware('role:admin,hr_manager')->group(function () {
             Route::resource('jobs', JobPostController::class)->except(['destroy']);
             Route::post('jobs/{job}/toggle-status', [JobPostController::class, 'toggleStatus'])->name('jobs.toggle-status');
+            Route::get('jobs/{job}/configure-sieving', [JobPostController::class, 'configureSieving'])->name('jobs.configure-sieving');
+            Route::post('jobs/{job}/configure-sieving', [JobPostController::class, 'storeSieving'])->name('jobs.store-sieving');
+            
+            // Aptitude Test Management
+            Route::resource('aptitude-test', \App\Http\Controllers\Admin\AptitudeTestController::class)->except(['show']);
+            Route::post('aptitude-test/{question}/toggle-status', [\App\Http\Controllers\Admin\AptitudeTestController::class, 'toggleStatus'])->name('aptitude-test.toggle-status');
             
             // Job Applications Routes
             Route::prefix('job-applications')->name('job-applications.')->group(function () {
@@ -207,6 +241,10 @@ Route::middleware(['auth', 'verified', 'admin'])
             Route::post('job-applications/{application}/update-status', [AdminJobApplicationController::class, 'updateStatus'])->name('job-applications.update-status');
             Route::post('job-applications/{application}/send-message', [AdminJobApplicationController::class, 'sendMessage'])->name('job-applications.send-message');
             Route::post('job-applications/{application}/send-confirmation', [AdminJobApplicationController::class, 'sendConfirmationEmail'])->name('job-applications.send-confirmation');
+            Route::post('job-applications/{application}/create-candidate-account', [AdminJobApplicationController::class, 'createCandidateAccount'])->name('job-applications.create-candidate-account');
+            Route::post('job-applications/{application}/resend-candidate-credentials', [AdminJobApplicationController::class, 'resendCandidateCredentials'])->name('job-applications.resend-candidate-credentials');
+            Route::get('job-applications/{application}/view-candidate-dashboard', [AdminJobApplicationController::class, 'viewCandidateDashboard'])->name('job-applications.view-candidate-dashboard');
+            Route::post('job-applications/bulk-create-candidate-accounts', [AdminJobApplicationController::class, 'bulkCreateCandidateAccounts'])->name('job-applications.bulk-create-candidate-accounts');
             Route::post('interviews/{interview}/update-result', [AdminJobApplicationController::class, 'updateInterviewResult'])->name('interviews.update-result');
         });
         Route::prefix('products/{product}/images')

@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
             TeamMemberSeeder::class,
             BranchSeeder::class,
             JobPostSeeder::class,
+            AptitudeTestQuestionSeeder::class,
+            JobApplicationSeeder::class,
             FaqSeeder::class,
             PostSeeder::class,
         ]);
