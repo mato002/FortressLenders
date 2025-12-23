@@ -142,6 +142,12 @@
                             <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                             <span class="sidebar-text">Aptitude Test Questions</span>
                         </a>
+                        <a href="{{ route('admin.self-interview.index') }}" class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition {{ request()->routeIs('admin.self-interview.*') ? 'bg-amber-400/20 text-white' : 'text-white/75 hover:bg-white/10' }}" title="Self Interview Questions">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 12h8m-8 4h6M4 5a2 2 0 012-2h12a2 2 0 012 2v14l-4-3-4 3-4-3-4 3V5z"/>
+                            </svg>
+                            <span class="sidebar-text">Self Interview Questions</span>
+                        </a>
                     </div>
                 </div>
                 @endif

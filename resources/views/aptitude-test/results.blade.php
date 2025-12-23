@@ -173,13 +173,29 @@
                 <!-- Next Steps -->
                 <div class="{{ $isCandidate ? 'bg-gray-50' : 'bg-slate-50' }} rounded-xl p-6 border {{ $isCandidate ? 'border-gray-200' : 'border-slate-200' }}">
                     <h3 class="text-lg font-semibold {{ $isCandidate ? 'text-gray-800' : 'text-slate-800' }} mb-3">Next Steps</h3>
-                    @if(($session->is_passed ?? $application->aptitude_test_passed))
-                        <p class="{{ $isCandidate ? 'text-gray-700' : 'text-slate-700' }} mb-2">
-                            ✅ Congratulations! You have passed the aptitude test. 
-                        </p>
-                        <p class="{{ $isCandidate ? 'text-gray-600' : 'text-slate-600' }} text-sm">
-                            Our team will review your application and contact you for the next stage of the interview process.
-                        </p>
+                    @php
+                        $hasPassed = ($session->is_passed ?? $application->aptitude_test_passed);
+                    @endphp
+                    @if($hasPassed)
+                        @if($isCandidate && ! $application->self_interview_completed_at)
+                            <p class="text-gray-700 mb-2">
+                                ✅ Great work! You have passed the aptitude test.
+                            </p>
+                            <p class="text-gray-600 text-sm mb-3">
+                                Next, please complete your <strong>Self Interview</strong>. This helps us understand your experience and motivation in more depth.
+                            </p>
+                            <a href="{{ route('self-interview.show', $application) }}"
+                               class="inline-flex items-center px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl transition">
+                                Start Self Interview
+                            </a>
+                        @else
+                            <p class="{{ $isCandidate ? 'text-gray-700' : 'text-slate-700' }} mb-2">
+                                ✅ Congratulations! You have passed the aptitude test. 
+                            </p>
+                            <p class="{{ $isCandidate ? 'text-gray-600' : 'text-slate-600' }} text-sm">
+                                Our team will review your application and contact you for the next stage of the interview process.
+                            </p>
+                        @endif
                     @else
                         <p class="{{ $isCandidate ? 'text-gray-700' : 'text-slate-700' }} mb-2">
                             Unfortunately, you did not meet the minimum score requirement for this position.

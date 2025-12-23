@@ -135,6 +135,16 @@ class JobApplicationController extends Controller
             
             $application = JobApplication::create($validated);
             
+            // Record initial status in history
+            \App\Models\JobApplicationStatusHistory::create([
+                'job_application_id' => $application->id,
+                'previous_status' => null,
+                'new_status' => 'pending',
+                'changed_by' => null, // System/Application creation
+                'source' => 'application_submission',
+                'notes' => 'Application submitted',
+            ]);
+            
             // Auto-create candidate account if not exists and not already authenticated
             if (!$candidate) {
                 $candidate = $this->createOrLinkCandidateAccount($application);

@@ -80,7 +80,7 @@
                     <a href="{{ route('careers.show', $job->slug) }}" target="_blank" class="block w-full px-4 py-2 bg-teal-50 text-teal-800 rounded-lg hover:bg-teal-100 text-center font-semibold">
                         View on Site
                     </a>
-                    <a href="{{ route('admin.job-applications.index', ['job' => $job->id]) }}" class="block w-full px-4 py-2 bg-blue-50 text-blue-800 rounded-lg hover:bg-blue-100 text-center font-semibold">
+                    <a href="{{ route('admin.job-applications.index', ['job_post_id' => $job->id]) }}" class="block w-full px-4 py-2 bg-blue-50 text-blue-800 rounded-lg hover:bg-blue-100 text-center font-semibold">
                         View Applications
                     </a>
                     <form action="{{ route('admin.jobs.toggle-status', $job) }}" method="POST">

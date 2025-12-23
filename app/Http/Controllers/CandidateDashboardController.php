@@ -25,7 +25,15 @@ class CandidateDashboardController extends Controller
         
         // Get all applications for this candidate
         $applications = JobApplication::where('candidate_id', $candidate->id)
-            ->with(['jobPost', 'aiSievingDecision', 'aptitudeTestSession'])
+            ->with([
+                'jobPost',
+                'aiSievingDecision',
+                'aptitudeTestSession',
+                'interviews' => function($query) {
+                    $query->orderBy('scheduled_at', 'desc');
+                },
+                'messages.sender',
+            ])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
         

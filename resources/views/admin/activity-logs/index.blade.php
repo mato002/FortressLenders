@@ -15,67 +15,247 @@
 @endsection
 
 @section('content')
-    <!-- Filters -->
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-4 sm:mb-6">
-        <form method="GET" action="{{ route('admin.activity-logs.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <!-- Search -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search description or action..." 
-                       class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+    @php
+        $hasActiveFilters = request()->hasAny(['search', 'action', 'user_id', 'date_from', 'date_to']);
+        $activeFilterCount = 0;
+        if (request('search')) $activeFilterCount++;
+        if (request('action')) $activeFilterCount++;
+        if (request('user_id')) $activeFilterCount++;
+        if (request('date_from')) $activeFilterCount++;
+        if (request('date_to')) $activeFilterCount++;
+    @endphp
+
+    <!-- Filters Section -->
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 mb-4 sm:mb-6 overflow-hidden">
+        <!-- Filter Header -->
+        <div class="px-4 sm:px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <h3 class="text-lg font-semibold text-gray-900">Filters</h3>
+                    @if($hasActiveFilters)
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-100 text-teal-800">
+                            {{ $activeFilterCount }} Active
+                        </span>
+                    @endif
+                </div>
+                @if($hasActiveFilters)
+                    <a href="{{ route('admin.activity-logs.index') }}" 
+                       class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Reset All Filters
+                    </a>
+                @endif
+            </div>
+        </div>
+
+        <!-- Filter Form -->
+        <form method="GET" action="{{ route('admin.activity-logs.index') }}" class="p-4 sm:p-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <!-- Search -->
+                <div class="sm:col-span-2 lg:col-span-1">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Search
+                        @if(request('search'))
+                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-800">
+                                Active
+                            </span>
+                        @endif
+                    </label>
+                    <input type="text" 
+                           name="search" 
+                           value="{{ request('search') }}" 
+                           placeholder="Search description or action..." 
+                           class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm transition-all">
+                </div>
+
+                <!-- Action Filter -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Action
+                        @if(request('action'))
+                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-800">
+                                Active
+                            </span>
+                        @endif
+                    </label>
+                    <select name="action" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm transition-all">
+                        <option value="">All Actions</option>
+                        @foreach($actions as $action)
+                            <option value="{{ $action }}" {{ request('action') === $action ? 'selected' : '' }}>
+                                {{ Str::headline($action) }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- User Filter -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        User
+                        @if(request('user_id'))
+                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-800">
+                                Active
+                            </span>
+                        @endif
+                    </label>
+                    <select name="user_id" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm transition-all">
+                        <option value="">All Users</option>
+                        @foreach($users as $user)
+                            <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
+                                {{ $user->name }} ({{ $user->email }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Date From -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Date From
+                        @if(request('date_from'))
+                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-800">
+                                Active
+                            </span>
+                        @endif
+                    </label>
+                    <input type="date" 
+                           name="date_from" 
+                           value="{{ request('date_from') }}" 
+                           class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm transition-all">
+                </div>
+
+                <!-- Date To -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Date To
+                        @if(request('date_to'))
+                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-800">
+                                Active
+                            </span>
+                        @endif
+                    </label>
+                    <input type="date" 
+                           name="date_to" 
+                           value="{{ request('date_to') }}" 
+                           class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm transition-all">
+                </div>
             </div>
 
-            <!-- Action Filter -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Action</label>
-                <select name="action" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent">
-                    <option value="">All Actions</option>
-                    @foreach($actions as $action)
-                        <option value="{{ $action }}" {{ request('action') === $action ? 'selected' : '' }}>
-                            {{ Str::headline($action) }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- User Filter -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">User</label>
-                <select name="user_id" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent">
-                    <option value="">All Users</option>
-                    @foreach($users as $user)
-                        <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
-                            {{ $user->name }} ({{ $user->email }})
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Date From -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Date From</label>
-                <input type="date" name="date_from" value="{{ request('date_from') }}" 
-                       class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent">
-            </div>
-
-            <!-- Date To -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Date To</label>
-                <input type="date" name="date_to" value="{{ request('date_to') }}" 
-                       class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent">
-            </div>
-
-            <!-- Filter Buttons -->
-            <div class="flex items-end gap-2">
-                <button type="submit" class="px-6 py-2 bg-teal-700 text-white rounded-xl font-semibold hover:bg-teal-800 transition">
-                    Filter
+            <!-- Filter Action Buttons -->
+            <div class="flex items-center gap-3 mt-6 pt-4 border-t border-gray-100">
+                <button type="submit" 
+                        class="inline-flex items-center gap-2 px-6 py-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-colors font-semibold text-sm shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                    Apply Filters
                 </button>
-                <a href="{{ route('admin.activity-logs.index') }}" class="px-6 py-2 border border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition">
-                    Clear
-                </a>
+                @if($hasActiveFilters)
+                    <a href="{{ route('admin.activity-logs.index') }}" 
+                       class="inline-flex items-center gap-2 px-6 py-2.5 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Clear All
+                    </a>
+                @endif
             </div>
         </form>
     </div>
+
+    <!-- Results Count Banner -->
+    @if($hasActiveFilters)
+    <div class="mb-4 sm:mb-6 bg-gradient-to-r from-teal-600 to-teal-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div>
+                <h2 class="text-xl sm:text-2xl font-bold mb-1">
+                    {{ $logs->total() }} Log{{ $logs->total() !== 1 ? 's' : '' }} Found
+                </h2>
+                <p class="text-teal-100 text-sm">Matching your filter criteria</p>
+            </div>
+            <a href="{{ route('admin.activity-logs.index') }}" 
+               class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-semibold transition whitespace-nowrap">
+                View All Logs
+            </a>
+        </div>
+    </div>
+    @endif
+
+    <!-- Active Filters Display -->
+    @if($hasActiveFilters)
+    <div class="bg-teal-50 border border-teal-200 rounded-xl sm:rounded-2xl p-4 mb-4 sm:mb-6">
+        <div class="flex items-center flex-wrap gap-2">
+            <span class="text-sm font-semibold text-teal-900">Active Filters:</span>
+            @if(request('search'))
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-sm text-teal-800">
+                    <span class="font-medium">Search:</span>
+                    <span class="font-semibold">"{{ request('search') }}"</span>
+                    <a href="{{ route('admin.activity-logs.index', array_merge(request()->except('search'), ['page' => 1])) }}" 
+                       class="ml-1 text-teal-600 hover:text-red-600 transition-colors" title="Remove this filter">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </a>
+                </span>
+            @endif
+            @if(request('action'))
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-sm text-teal-800">
+                    <span class="font-medium">Action:</span>
+                    <span class="font-semibold">{{ Str::headline(request('action')) }}</span>
+                    <a href="{{ route('admin.activity-logs.index', array_merge(request()->except('action'), ['page' => 1])) }}" 
+                       class="ml-1 text-teal-600 hover:text-red-600 transition-colors" title="Remove this filter">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </a>
+                </span>
+            @endif
+            @if(request('user_id'))
+                @php
+                    $selectedUser = $users->firstWhere('id', request('user_id'));
+                @endphp
+                @if($selectedUser)
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-sm text-teal-800">
+                        <span class="font-medium">User:</span>
+                        <span class="font-semibold">{{ $selectedUser->name }}</span>
+                        <a href="{{ route('admin.activity-logs.index', array_merge(request()->except('user_id'), ['page' => 1])) }}" 
+                           class="ml-1 text-teal-600 hover:text-red-600 transition-colors" title="Remove this filter">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </a>
+                    </span>
+                @endif
+            @endif
+            @if(request('date_from'))
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-sm text-teal-800">
+                    <span class="font-medium">From:</span>
+                    <span class="font-semibold">{{ date('M d, Y', strtotime(request('date_from'))) }}</span>
+                    <a href="{{ route('admin.activity-logs.index', array_merge(request()->except('date_from'), ['page' => 1])) }}" 
+                       class="ml-1 text-teal-600 hover:text-red-600 transition-colors" title="Remove this filter">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </a>
+                </span>
+            @endif
+            @if(request('date_to'))
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-sm text-teal-800">
+                    <span class="font-medium">To:</span>
+                    <span class="font-semibold">{{ date('M d, Y', strtotime(request('date_to'))) }}</span>
+                    <a href="{{ route('admin.activity-logs.index', array_merge(request()->except('date_to'), ['page' => 1])) }}" 
+                       class="ml-1 text-teal-600 hover:text-red-600 transition-colors" title="Remove this filter">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </a>
+                </span>
+            @endif
+        </div>
+    </div>
+    @endif
 
     <!-- Activity Logs Table -->
     <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

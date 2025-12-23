@@ -14,14 +14,22 @@ class AptitudeTestController extends Controller
      */
     public function index(Request $request)
     {
-        $query = AptitudeTestQuestion::with('jobPost');
+        $query = AptitudeTestQuestion::query()->with('jobPost');
 
-        // Filter by job post
-        if ($request->filled('job_post_id')) {
-            if ($request->string('job_post_id') === 'global') {
+        // Filter by job post - must work independently
+        $jobPostId = $request->input('job_post_id');
+        
+        if ($jobPostId !== null && $jobPostId !== '') {
+            if ($jobPostId === 'global') {
                 $query->whereNull('job_post_id');
             } else {
-                $query->where('job_post_id', $request->integer('job_post_id'));
+                // Convert to integer - this should work for foreignId columns
+                $jobPostIdInt = (int) $jobPostId;
+                
+                if ($jobPostIdInt > 0) {
+                    // Use standard where clause - Laravel handles type conversion
+                    $query->where('job_post_id', $jobPostIdInt);
+                }
             }
         }
 
@@ -30,23 +38,68 @@ class AptitudeTestController extends Controller
             $query->where('section', $request->string('section'));
         }
 
-        // Filter by active status
-        if ($request->filled('is_active') && $request->string('is_active') !== 'all') {
-            $query->where('is_active', $request->boolean('is_active'));
+        // Filter by active status - only apply if explicitly set and not "all"
+        $isActiveFilter = $request->input('is_active');
+        if ($isActiveFilter !== null && $isActiveFilter !== '' && $isActiveFilter !== 'all') {
+            // Convert "1" or "0" string to boolean
+            $isActive = ($isActiveFilter === '1' || $isActiveFilter === 1 || $isActiveFilter === true);
+            $query->where('is_active', $isActive);
         }
 
-        $questions = $query->orderBy('job_post_id')
+        // Build section counts query with same filters
+        $sectionCountsQuery = AptitudeTestQuestion::query();
+        
+        // Apply same job post filter to section counts
+        $jobPostId = $request->input('job_post_id');
+        if ($jobPostId !== null && $jobPostId !== '') {
+            if ($jobPostId === 'global') {
+                $sectionCountsQuery->whereNull('job_post_id');
+            } else {
+                $jobPostIdInt = (int) $jobPostId;
+                if ($jobPostIdInt > 0) {
+                    $sectionCountsQuery->where('job_post_id', $jobPostIdInt);
+                }
+            }
+        }
+        
+        // Apply same section filter to section counts
+        if ($request->filled('section')) {
+            $sectionCountsQuery->where('section', $request->string('section'));
+        }
+        
+        // Apply same active status filter to section counts
+        $isActiveFilter = $request->input('is_active');
+        if ($isActiveFilter !== null && $isActiveFilter !== '' && $isActiveFilter !== 'all') {
+            // Convert "1" or "0" string to boolean
+            $isActive = ($isActiveFilter === '1' || $isActiveFilter === 1 || $isActiveFilter === true);
+            $sectionCountsQuery->where('is_active', $isActive);
+        }
+
+        $sectionCounts = [
+            'numerical' => (clone $sectionCountsQuery)->where('section', 'numerical')->count(),
+            'logical' => (clone $sectionCountsQuery)->where('section', 'logical')->count(),
+            'verbal' => (clone $sectionCountsQuery)->where('section', 'verbal')->count(),
+            'scenario' => (clone $sectionCountsQuery)->where('section', 'scenario')->count(),
+        ];
+
+        // Debug: Check query before pagination
+        if ($request->filled('job_post_id') && $request->job_post_id !== 'global' && $request->job_post_id !== '') {
+            $testCount = (clone $query)->count();
+            \Log::info('Job Post Filter Debug', [
+                'job_post_id' => $request->job_post_id,
+                'job_post_id_type' => gettype($request->job_post_id),
+                'query_count' => $testCount,
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings(),
+            ]);
+        }
+
+        $questions = $query->orderByRaw('job_post_id IS NULL ASC')
+            ->orderBy('job_post_id')
             ->orderBy('section')
             ->orderBy('display_order')
             ->paginate(20)
             ->withQueryString();
-
-        $sectionCounts = [
-            'numerical' => AptitudeTestQuestion::where('section', 'numerical')->count(),
-            'logical' => AptitudeTestQuestion::where('section', 'logical')->count(),
-            'verbal' => AptitudeTestQuestion::where('section', 'verbal')->count(),
-            'scenario' => AptitudeTestQuestion::where('section', 'scenario')->count(),
-        ];
 
         // Get job posts for filter
         $jobPosts = \App\Models\JobPost::select('id', 'title')
@@ -189,6 +242,69 @@ class AptitudeTestController extends Controller
 
         return redirect()->route('admin.aptitude-test.index')
             ->with('success', "Question {$status} successfully!");
+    }
+
+    /**
+     * Bulk activate questions
+     */
+    public function bulkActivate(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'question_ids' => 'required|string',
+        ]);
+
+        $questionIds = json_decode($request->string('question_ids'), true);
+        
+        if (!is_array($questionIds) || empty($questionIds)) {
+            return back()->withErrors(['error' => 'Invalid question IDs provided.']);
+        }
+
+        $count = AptitudeTestQuestion::whereIn('id', $questionIds)->update(['is_active' => true]);
+
+        return redirect()->route('admin.aptitude-test.index')
+            ->with('success', "Activated {$count} question(s) successfully!");
+    }
+
+    /**
+     * Bulk deactivate questions
+     */
+    public function bulkDeactivate(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'question_ids' => 'required|string',
+        ]);
+
+        $questionIds = json_decode($request->string('question_ids'), true);
+        
+        if (!is_array($questionIds) || empty($questionIds)) {
+            return back()->withErrors(['error' => 'Invalid question IDs provided.']);
+        }
+
+        $count = AptitudeTestQuestion::whereIn('id', $questionIds)->update(['is_active' => false]);
+
+        return redirect()->route('admin.aptitude-test.index')
+            ->with('success', "Deactivated {$count} question(s) successfully!");
+    }
+
+    /**
+     * Bulk delete questions
+     */
+    public function bulkDelete(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'question_ids' => 'required|string',
+        ]);
+
+        $questionIds = json_decode($request->string('question_ids'), true);
+        
+        if (!is_array($questionIds) || empty($questionIds)) {
+            return back()->withErrors(['error' => 'Invalid question IDs provided.']);
+        }
+
+        $count = AptitudeTestQuestion::whereIn('id', $questionIds)->delete();
+
+        return redirect()->route('admin.aptitude-test.index')
+            ->with('success', "Deleted {$count} question(s) successfully!");
     }
 }
 

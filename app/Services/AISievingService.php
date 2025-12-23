@@ -375,14 +375,35 @@ class AISievingService
     private function autoUpdateStatus(JobApplication $application, AISievingDecision $aiDecision, JobSievingCriteria $criteria): void
     {
         $previousStatus = $application->status;
+        $newStatus = $previousStatus;
         
         // Only auto-update if high confidence
         if ($aiDecision->ai_decision === 'pass' && 
             $aiDecision->ai_confidence >= $criteria->auto_pass_confidence) {
-            $application->update(['status' => 'sieving_passed']);
+            $newStatus = 'sieving_passed';
+        } elseif ($aiDecision->ai_decision === 'reject' && 
+                  $aiDecision->ai_confidence >= $criteria->auto_reject_confidence) {
+            $newStatus = 'sieving_rejected';
+        } elseif ($aiDecision->ai_decision === 'manual_review') {
+            $newStatus = 'pending_manual_review';
+        }
+        
+        // Update status if it changed
+        if ($newStatus !== $previousStatus) {
+            $application->update(['status' => $newStatus]);
+            
+            // Record status change in history
+            \App\Models\JobApplicationStatusHistory::create([
+                'job_application_id' => $application->id,
+                'previous_status' => $previousStatus,
+                'new_status' => $newStatus,
+                'changed_by' => null, // System/AI change
+                'source' => 'ai_sieving',
+                'notes' => "AI sieving decision: {$aiDecision->ai_decision} (Score: {$aiDecision->ai_score}/100, Confidence: " . number_format($aiDecision->ai_confidence * 100, 1) . "%)",
+            ]);
             
             // Send email notification if status changed to sieving_passed
-            if ($previousStatus !== 'sieving_passed') {
+            if ($newStatus === 'sieving_passed') {
                 try {
                     Mail::to($application->email)->send(new AptitudeTestInvitation($application));
                 } catch (\Exception $e) {
@@ -392,11 +413,6 @@ class AISievingService
                     ]);
                 }
             }
-        } elseif ($aiDecision->ai_decision === 'reject' && 
-                  $aiDecision->ai_confidence >= $criteria->auto_reject_confidence) {
-            $application->update(['status' => 'sieving_rejected']);
-        } elseif ($aiDecision->ai_decision === 'manual_review') {
-            $application->update(['status' => 'pending_manual_review']);
         }
     }
 

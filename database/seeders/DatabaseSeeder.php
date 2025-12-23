@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             BranchSeeder::class,
             JobPostSeeder::class,
             AptitudeTestQuestionSeeder::class,
+            SelfInterviewQuestionSeeder::class,
             JobApplicationSeeder::class,
             FaqSeeder::class,
             PostSeeder::class,

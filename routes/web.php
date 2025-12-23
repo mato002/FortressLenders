@@ -108,6 +108,11 @@ Route::post('/aptitude-test/{application}/submit', [\App\Http\Controllers\Aptitu
 Route::get('/aptitude-test/{application}/results', [\App\Http\Controllers\AptitudeTestController::class, 'results'])->name('aptitude-test.results');
 Route::get('/aptitude-test/{application}/verify', [\App\Http\Controllers\AptitudeTestController::class, 'verify'])->name('aptitude-test.verify');
 
+// Self Interview Routes (Public and Candidate)
+Route::get('/self-interview/{application}', [\App\Http\Controllers\SelfInterviewController::class, 'show'])->name('self-interview.show');
+Route::post('/self-interview/{application}/submit', [\App\Http\Controllers\SelfInterviewController::class, 'submit'])->name('self-interview.submit');
+Route::get('/self-interview/{application}/results', [\App\Http\Controllers\SelfInterviewController::class, 'results'])->name('self-interview.results');
+
 // Dashboard Routes (Protected)
 Route::get('/dashboard', function () {
     // Check if candidate is logged in
@@ -223,6 +228,13 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             // Aptitude Test Management
             Route::resource('aptitude-test', \App\Http\Controllers\Admin\AptitudeTestController::class)->except(['show']);
             Route::post('aptitude-test/{question}/toggle-status', [\App\Http\Controllers\Admin\AptitudeTestController::class, 'toggleStatus'])->name('aptitude-test.toggle-status');
+            Route::post('aptitude-test/bulk-activate', [\App\Http\Controllers\Admin\AptitudeTestController::class, 'bulkActivate'])->name('aptitude-test.bulk-activate');
+            Route::post('aptitude-test/bulk-deactivate', [\App\Http\Controllers\Admin\AptitudeTestController::class, 'bulkDeactivate'])->name('aptitude-test.bulk-deactivate');
+            Route::delete('aptitude-test/bulk-delete', [\App\Http\Controllers\Admin\AptitudeTestController::class, 'bulkDelete'])->name('aptitude-test.bulk-delete');
+
+            // Self Interview Question Management
+            Route::resource('self-interview', \App\Http\Controllers\Admin\SelfInterviewQuestionController::class)->except(['show']);
+            Route::post('self-interview/{selfInterview}/toggle-status', [\App\Http\Controllers\Admin\SelfInterviewQuestionController::class, 'toggleStatus'])->name('self-interview.toggle-status');
             
             // Job Applications Routes
             Route::prefix('job-applications')->name('job-applications.')->group(function () {
@@ -244,6 +256,8 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             Route::post('job-applications/{application}/create-candidate-account', [AdminJobApplicationController::class, 'createCandidateAccount'])->name('job-applications.create-candidate-account');
             Route::post('job-applications/{application}/resend-candidate-credentials', [AdminJobApplicationController::class, 'resendCandidateCredentials'])->name('job-applications.resend-candidate-credentials');
             Route::get('job-applications/{application}/view-candidate-dashboard', [AdminJobApplicationController::class, 'viewCandidateDashboard'])->name('job-applications.view-candidate-dashboard');
+            Route::get('job-applications/{application}/preview-aptitude-test', [AdminJobApplicationController::class, 'previewAptitudeTest'])->name('job-applications.preview-aptitude-test');
+            Route::get('job-applications/{application}/preview-candidate-status', [AdminJobApplicationController::class, 'previewCandidateStatus'])->name('job-applications.preview-candidate-status');
             Route::post('job-applications/bulk-create-candidate-accounts', [AdminJobApplicationController::class, 'bulkCreateCandidateAccounts'])->name('job-applications.bulk-create-candidate-accounts');
             Route::post('interviews/{interview}/update-result', [AdminJobApplicationController::class, 'updateInterviewResult'])->name('interviews.update-result');
         });

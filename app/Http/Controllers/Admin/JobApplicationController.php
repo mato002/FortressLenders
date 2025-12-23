@@ -25,14 +25,20 @@ class JobApplicationController extends Controller
      */
     protected function recordStatusChange(JobApplication $application, string $newStatus, ?string $source = null, ?string $notes = null): void
     {
-        JobApplicationStatusHistory::create([
-            'job_application_id' => $application->id,
-            'previous_status' => $application->getOriginal('status'),
-            'new_status' => $newStatus,
-            'changed_by' => auth()->id(),
-            'source' => $source,
-            'notes' => $notes,
-        ]);
+        // Get the current status before update
+        $previousStatus = $application->getOriginal('status') ?? $application->status;
+        
+        // Only record if status actually changed
+        if ($previousStatus !== $newStatus) {
+            JobApplicationStatusHistory::create([
+                'job_application_id' => $application->id,
+                'previous_status' => $previousStatus,
+                'new_status' => $newStatus,
+                'changed_by' => auth()->id(),
+                'source' => $source,
+                'notes' => $notes,
+            ]);
+        }
     }
     public function index(Request $request)
     {
@@ -121,13 +127,111 @@ class JobApplicationController extends Controller
         // Load relationships
         $application->load(['jobPost', 'candidate', 'reviews.reviewer', 'interviews.conductedBy', 'messages.sender', 'aiSievingDecision', 'aptitudeTestSession', 'statusHistories.user']);
         
+        // Load aptitude test questions if session exists and is completed
+        $questions = collect();
+        if ($application->aptitudeTestSession && $application->aptitudeTestSession->completed_at) {
+            $session = $application->aptitudeTestSession;
+            $questionIds = array_keys($session->questions_answered ?? []);
+            if (!empty($questionIds)) {
+                $questions = \App\Models\AptitudeTestQuestion::whereIn('id', $questionIds)->get()->keyBy('id');
+            }
+        }
+        
         // Ensure jobPost relationship is available even if null
         if (!$application->jobPost && $application->job_post_id) {
             // Job post might have been deleted, set to null
             $application->job_post_id = null;
         }
         
-        return view('admin.job-applications.show', compact('application'));
+        return view('admin.job-applications.show', compact('application', 'questions'));
+    }
+
+    /**
+     * Get aptitude test content for admin preview (no layout)
+     */
+    public function previewAptitudeTest(JobApplication $application)
+    {
+        // Verify the application has passed sieving
+        if (!in_array($application->status, ['sieving_passed', 'pending_manual_review'])) {
+            return response()->json(['error' => 'Application is not eligible for aptitude test.'], 403);
+        }
+
+        // Check if test already completed
+        if ($application->aptitude_test_completed_at) {
+            $session = $application->aptitudeTestSession;
+            if ($session && $session->completed_at) {
+                $questionIds = array_keys($session->questions_answered ?? []);
+                $questions = \App\Models\AptitudeTestQuestion::whereIn('id', $questionIds)->get()->keyBy('id');
+                return view('admin.job-applications.partials.aptitude-test-results', compact('application', 'session', 'questions'));
+            }
+            return view('admin.job-applications.partials.aptitude-test-results', compact('application'));
+        }
+
+        // Check if test session exists
+        $session = $application->aptitudeTestSession;
+
+        if (!$session) {
+            // Create new test session - use job-specific questions
+            $jobPostId = $application->job_post_id;
+            $questions = \App\Models\AptitudeTestQuestion::getTestQuestions($jobPostId);
+            $allQuestions = collect($questions['numerical'])
+                ->merge($questions['logical'])
+                ->merge($questions['verbal'])
+                ->merge($questions['scenario'])
+                ->shuffle();
+
+            $session = \App\Models\AptitudeTestSession::create([
+                'job_application_id' => $application->id,
+                'questions_answered' => [],
+                'pass_threshold' => 70,
+                'started_at' => now(),
+            ]);
+
+            // Store question IDs for this session
+            $questionIds = $allQuestions->pluck('id')->toArray();
+            session(['test_questions_' . $session->id => $questionIds]);
+        } else {
+            // Get question IDs from session
+            $questionIds = session('test_questions_' . $session->id, []);
+            
+            // If session data expired or is empty, regenerate questions
+            if (empty($questionIds)) {
+                $jobPostId = $application->job_post_id;
+                $questions = \App\Models\AptitudeTestQuestion::getTestQuestions($jobPostId);
+                $allQuestions = collect($questions['numerical'])
+                    ->merge($questions['logical'])
+                    ->merge($questions['verbal'])
+                    ->merge($questions['scenario'])
+                    ->shuffle();
+                
+                $questionIds = $allQuestions->pluck('id')->toArray();
+                session(['test_questions_' . $session->id => $questionIds]);
+            }
+        }
+
+        // Ensure we have question IDs before querying
+        if (empty($questionIds)) {
+            return response()->json(['error' => 'Unable to load test questions.'], 500);
+        }
+
+        $questions = \App\Models\AptitudeTestQuestion::whereIn('id', $questionIds)
+            ->orderByRaw('FIELD(id, ' . implode(',', $questionIds) . ')')
+            ->get();
+
+        return view('admin.job-applications.partials.aptitude-test-content', compact('application', 'session', 'questions'));
+    }
+
+    /**
+     * Get candidate application status view for admin preview (no layout)
+     */
+    public function previewCandidateStatus(JobApplication $application)
+    {
+        $application->load(['jobPost', 'aiSievingDecision', 'aptitudeTestSession']);
+        
+        // Generate token for the view
+        $token = md5($application->email . $application->id . config('app.key'));
+        
+        return view('admin.job-applications.partials.candidate-status', compact('application', 'token'));
     }
 
     /**
@@ -264,9 +368,38 @@ class JobApplicationController extends Controller
         $application->update([
             'status' => $newStatus,
         ]);
+        
+        // Notify candidate immediately (email) if we have their contact
+        if ($application->email) {
+            try {
+                $jobMessage = JobApplicationMessage::create([
+                    'job_application_id' => $application->id,
+                    'sent_by' => auth()->id(),
+                    'channel' => 'email',
+                    'message' => sprintf(
+                        "Dear %s,\n\nYour interview for the position \"%s\" has been scheduled on %s at %s.\nLocation: %s\n\nIf you have any questions, please contact us.\n\nFortress Lenders HR Team",
+                        $application->name ?: 'Candidate',
+                        optional($application->jobPost)->title ?? 'your application',
+                        \Carbon\Carbon::parse($validated['scheduled_at'])->format('l, F d, Y'),
+                        \Carbon\Carbon::parse($validated['scheduled_at'])->format('g:i A'),
+                        $validated['location'] ?? 'To be communicated'
+                    ),
+                    'recipient' => $application->email,
+                    'status' => 'pending',
+                ]);
+
+                $messagingService = new MessagingService();
+                $messagingService->send($jobMessage);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send interview scheduled notification', [
+                    'application_id' => $application->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         return redirect()->route('admin.job-applications.show', $application)
-            ->with('success', 'Interview scheduled successfully!');
+            ->with('success', 'Interview scheduled successfully and candidate notified (email).');
     }
 
     public function updateInterviewResult(Request $request, Interview $interview)
@@ -730,8 +863,30 @@ class JobApplicationController extends Controller
             'status' => 'required|in:pending,sieving_passed,sieving_rejected,pending_manual_review,stage_2_passed,reviewed,shortlisted,rejected,interview_scheduled,interview_passed,interview_failed,second_interview,written_test,case_study,hired',
         ]);
 
-        $count = JobApplication::whereIn('id', $validated['application_ids'])
-            ->update(['status' => $validated['status']]);
+        $applications = JobApplication::whereIn('id', $validated['application_ids'])->get();
+        $newStatus = $validated['status'];
+        $count = 0;
+
+        foreach ($applications as $application) {
+            $previousStatus = $application->status;
+            
+            // Only update if status is different
+            if ($previousStatus !== $newStatus) {
+                $application->update(['status' => $newStatus]);
+                
+                // Record status change in history
+                JobApplicationStatusHistory::create([
+                    'job_application_id' => $application->id,
+                    'previous_status' => $previousStatus,
+                    'new_status' => $newStatus,
+                    'changed_by' => auth()->id(),
+                    'source' => 'bulk_update',
+                    'notes' => 'Bulk status update',
+                ]);
+                
+                $count++;
+            }
+        }
 
         return back()->with('success', "Status updated for {$count} application(s).");
     }

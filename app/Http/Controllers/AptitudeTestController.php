@@ -149,8 +149,18 @@ class AptitudeTestController extends Controller
         // Calculate score
         $session->calculateScore();
 
+        // Refresh application to get updated aptitude_test_passed field
+        $application->refresh();
+
         // Redirect based on authentication
         if ($isCandidateView) {
+            // If candidate passed aptitude, move them straight to self interview
+            if ($application->aptitude_test_passed) {
+                return redirect()->route('self-interview.show', $application)
+                    ->with('success', 'Aptitude test submitted successfully. Next, complete your self interview.');
+            }
+
+            // Otherwise show aptitude results
             return redirect()->route('aptitude-test.results', $application)
                 ->with('success', 'Test submitted successfully!');
         }

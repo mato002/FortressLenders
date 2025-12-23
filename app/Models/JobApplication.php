@@ -56,6 +56,9 @@ class JobApplication extends Model
         'aptitude_test_score',
         'aptitude_test_passed',
         'aptitude_test_completed_at',
+        'self_interview_score',
+        'self_interview_passed',
+        'self_interview_completed_at',
     ];
 
     protected $casts = [
@@ -65,6 +68,8 @@ class JobApplication extends Model
         'agreement_accepted' => 'boolean',
         'aptitude_test_passed' => 'boolean',
         'aptitude_test_completed_at' => 'datetime',
+        'self_interview_passed' => 'boolean',
+        'self_interview_completed_at' => 'datetime',
     ];
 
     public function candidate(): BelongsTo
@@ -105,6 +110,11 @@ class JobApplication extends Model
     public function aptitudeTestSession()
     {
         return $this->hasOne(AptitudeTestSession::class);
+    }
+
+    public function selfInterviewSession()
+    {
+        return $this->hasOne(SelfInterviewSession::class);
     }
 
     public function scopePending($query)

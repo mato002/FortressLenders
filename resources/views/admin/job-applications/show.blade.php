@@ -31,18 +31,14 @@
             <div class="flex flex-wrap items-center gap-2 justify-end">
                 {{-- Public candidate views --}}
                 @if($publicStatusToken)
-                    <a href="{{ route('application.status', ['application' => $applicationId, 'token' => $publicStatusToken]) }}"
-                       target="_blank"
-                       class="px-3 py-2 text-xs sm:text-sm rounded-xl border border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100">
+                    <button type="button" onclick="openCandidateViewModal()" class="px-3 py-2 text-xs sm:text-sm rounded-xl border border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100">
                         View as Candidate
-                    </a>
+                    </button>
                 @endif
                 @if($canTakeAptitudeTest)
-                    <a href="{{ route('aptitude-test.show', $applicationId) }}"
-                       target="_blank"
-                       class="px-3 py-2 text-xs sm:text-sm rounded-xl border border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100">
+                    <button type="button" onclick="openAptitudeTestModal()" class="px-3 py-2 text-xs sm:text-sm rounded-xl border border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100">
                         Open Aptitude Test
-                    </a>
+                    </button>
                 @endif
                 <a href="{{ route('admin.job-applications.index') }}" class="px-3 py-2 text-sm rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50">
                     Back to list
@@ -493,70 +489,524 @@
 
             <!-- Sidebar -->
             <div class="space-y-6">
-                <!-- Aptitude Test Results -->
-                @if($application->aptitudeTestSession || $application->aptitude_test_completed_at)
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
-                        <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Aptitude Test Results</h2>
-                        <div class="space-y-4">
-                            @if($application->aptitude_test_completed_at)
-                                <div class="flex items-center justify-between">
+                @php
+                    $aptitudeCompletedAt = $application->aptitude_test_completed_at;
+                    $selfInterviewCompletedAt = $application->self_interview_completed_at;
+
+                    $showAptitude = $application->aptitudeTestSession || $aptitudeCompletedAt;
+                    $showSelfInterview = $selfInterviewCompletedAt || $application->selfInterviewSession;
+
+                    // Decide which result card should appear first based on when they were completed
+                    $aptitudeFirst = null;
+                    if ($aptitudeCompletedAt && $selfInterviewCompletedAt) {
+                        $aptitudeFirst = $aptitudeCompletedAt->lte($selfInterviewCompletedAt);
+                    }
+                @endphp
+
+                @if($aptitudeFirst === true)
+                    {{-- Aptitude first, then Self Interview --}}
+                    @if($showAptitude)
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
+                            <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Aptitude Test Results</h2>
+                            <div class="space-y-4">
+                                @if($application->aptitude_test_completed_at)
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm text-slate-500">Status:</span>
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ml-2 {{ $application->aptitude_test_passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                                {{ $application->aptitude_test_passed ? 'Passed' : 'Failed' }}
+                                            </span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-sm text-slate-500">Score:</span>
+                                            <span class="text-lg font-semibold text-slate-900 ml-2">{{ $application->aptitude_test_score ?? 'N/A' }}%</span>
+                                        </div>
+                                    </div>
                                     <div>
-                                        <span class="text-sm text-slate-500">Status:</span>
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ml-2 {{ $application->aptitude_test_passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                            {{ $application->aptitude_test_passed ? 'Passed' : 'Failed' }}
+                                        <span class="text-sm text-slate-500">Completed:</span>
+                                        <span class="text-sm font-medium text-slate-900 ml-2">{{ $application->aptitude_test_completed_at->format('M d, Y g:i A') }}</span>
+                                    </div>
+                                    @if($application->aptitudeTestSession)
+                                        @php
+                                            $session = $application->aptitudeTestSession;
+                                        @endphp
+                                        @if($session->total_possible_score)
+                                            <div>
+                                                <span class="text-sm text-slate-500">Raw Score:</span>
+                                                <span class="text-sm font-medium text-slate-900 ml-2">{{ $session->total_score ?? 0 }}/{{ $session->total_possible_score }}</span>
+                                            </div>
+                                        @endif
+                                        @if($session->time_taken_seconds)
+                                            <div>
+                                                <span class="text-sm text-slate-500">Time Taken:</span>
+                                                <span class="text-sm font-medium text-slate-900 ml-2">{{ gmdate('H:i:s', $session->time_taken_seconds) }}</span>
+                                            </div>
+                                        @endif
+                                        @if($session->started_at)
+                                            <div>
+                                                <span class="text-sm text-slate-500">Started:</span>
+                                                <span class="text-sm font-medium text-slate-900 ml-2">{{ $session->started_at->format('M d, Y g:i A') }}</span>
+                                            </div>
+                                        @endif
+                                    @endif
+
+                                    @php
+                                        // Determine if any online interview exists for this application
+                                        $hasOnlineInterview = $application->interviews
+                                            ? $application->interviews->where('interview_type', 'online_interview')->isNotEmpty()
+                                            : false;
+                                    @endphp
+
+                                    @if($application->aptitude_test_passed && $application->self_interview_passed && !$hasOnlineInterview)
+                                        <div class="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                            <p class="text-sm font-semibold text-amber-900 mb-1">
+                                                Next Step: Schedule Interview
+                                            </p>
+                                            <p class="text-xs text-amber-800">
+                                                This candidate has passed both the aptitude test and the self interview. Proceed to the
+                                                <strong>Schedule Interview</strong> section on this page to book their first interview
+                                                (online or physical).
+                                            </p>
+                                        </div>
+                                    @endif
+
+                                    <div class="pt-3 border-t border-slate-200">
+                                        <button type="button" onclick="openAptitudeResultsModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-semibold">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            View Detailed Results
+                                        </button>
+                                    </div>
+                                @else
+                                    <div class="text-sm text-slate-600">
+                                        <p>Aptitude test has not been completed yet.</p>
+                                        @if($canTakeAptitudeTest)
+                                            <p class="text-xs text-slate-500 mt-1">Candidate is eligible to take the test.</p>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($showSelfInterview)
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
+                            <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Self Interview Results</h2>
+                            <div class="space-y-4">
+                                @php
+                                    $selfSession = $application->selfInterviewSession;
+                                    $selfStatusPassed = $application->self_interview_passed === true;
+                                    $selfStatusKnown = !is_null($application->self_interview_passed);
+                                @endphp
+
+                                @if($application->self_interview_completed_at)
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm text-slate-500">Status:</span>
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ml-2
+                                                @if($selfStatusKnown && $selfStatusPassed) bg-green-100 text-green-800
+                                                @elseif($selfStatusKnown && ! $selfStatusPassed) bg-red-100 text-red-800
+                                                @else bg-amber-100 text-amber-800
+                                                @endif">
+                                                @if($selfStatusKnown)
+                                                    {{ $selfStatusPassed ? 'Passed' : 'Failed' }}
+                                                @else
+                                                    Completed
+                                                @endif
+                                            </span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-sm text-slate-500">Score:</span>
+                                            <span class="text-lg font-semibold text-slate-900 ml-2">
+                                                {{ $application->self_interview_score !== null ? $application->self_interview_score . '%' : 'N/A' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm text-slate-500">Completed:</span>
+                                        <span class="text-sm font-medium text-slate-900 ml-2">
+                                            {{ $application->self_interview_completed_at->format('M d, Y g:i A') }}
                                         </span>
                                     </div>
-                                    <div class="text-right">
-                                        <span class="text-sm text-slate-500">Score:</span>
-                                        <span class="text-lg font-semibold text-slate-900 ml-2">{{ $application->aptitude_test_score ?? 'N/A' }}%</span>
+                                @else
+                                    <div class="text-sm text-slate-600">
+                                        <p>Self interview has not been completed yet.</p>
                                     </div>
-                                </div>
-                                <div>
-                                    <span class="text-sm text-slate-500">Completed:</span>
-                                    <span class="text-sm font-medium text-slate-900 ml-2">{{ $application->aptitude_test_completed_at->format('M d, Y g:i A') }}</span>
-                                </div>
-                                @if($application->aptitudeTestSession)
-                                    @php
-                                        $session = $application->aptitudeTestSession;
-                                    @endphp
-                                    @if($session->total_possible_score)
-                                        <div>
-                                            <span class="text-sm text-slate-500">Raw Score:</span>
-                                            <span class="text-sm font-medium text-slate-900 ml-2">{{ $session->total_score ?? 0 }}/{{ $session->total_possible_score }}</span>
-                                        </div>
-                                    @endif
-                                    @if($session->time_taken_seconds)
-                                        <div>
-                                            <span class="text-sm text-slate-500">Time Taken:</span>
-                                            <span class="text-sm font-medium text-slate-900 ml-2">{{ gmdate('H:i:s', $session->time_taken_seconds) }}</span>
-                                        </div>
-                                    @endif
-                                    @if($session->started_at)
-                                        <div>
-                                            <span class="text-sm text-slate-500">Started:</span>
-                                            <span class="text-sm font-medium text-slate-900 ml-2">{{ $session->started_at->format('M d, Y g:i A') }}</span>
-                                        </div>
-                                    @endif
                                 @endif
-                                <div class="pt-3 border-t border-slate-200">
-                                    <a href="{{ route('aptitude-test.results', $application) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-semibold">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                        </svg>
-                                        View Detailed Results
-                                    </a>
-                                </div>
-                            @else
-                                <div class="text-sm text-slate-600">
-                                    <p>Aptitude test has not been completed yet.</p>
-                                    @if($canTakeAptitudeTest)
-                                        <p class="text-xs text-slate-500 mt-1">Candidate is eligible to take the test.</p>
-                                    @endif
-                                </div>
-                            @endif
+
+                                @if($selfSession)
+                                    <div class="pt-3 border-t border-slate-200 text-sm text-slate-600">
+                                        <p>
+                                            <span class="text-slate-500">Raw Score:</span>
+                                            <span class="font-medium text-slate-900 ml-1">
+                                                {{ $selfSession->total_score ?? 0 }}/{{ $selfSession->total_possible_score ?? 0 }}
+                                            </span>
+                                        </p>
+                                        @if($selfSession->time_taken_seconds)
+                                            <p class="mt-1">
+                                                <span class="text-slate-500">Time Taken:</span>
+                                                <span class="font-medium text-slate-900 ml-1">
+                                                    {{ gmdate('H:i:s', $selfSession->time_taken_seconds) }}
+                                                </span>
+                                            </p>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                @if($application->self_interview_completed_at)
+                                    <div class="pt-3 border-t border-slate-200">
+                                        <button type="button"
+                                                onclick="openSelfInterviewResultsModal()"
+                                                class="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-semibold">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            View Detailed Self Interview
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
-                    </div>
+                    @endif
+                @elseif($aptitudeFirst === false)
+                    {{-- Self Interview first, then Aptitude --}}
+                    @if($showSelfInterview)
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
+                            <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Self Interview Results</h2>
+                            <div class="space-y-4">
+                                @php
+                                    $selfSession = $application->selfInterviewSession;
+                                    $selfStatusPassed = $application->self_interview_passed === true;
+                                    $selfStatusKnown = !is_null($application->self_interview_passed);
+                                @endphp
+
+                                @if($application->self_interview_completed_at)
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm text-slate-500">Status:</span>
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ml-2
+                                                @if($selfStatusKnown && $selfStatusPassed) bg-green-100 text-green-800
+                                                @elseif($selfStatusKnown && ! $selfStatusPassed) bg-red-100 text-red-800
+                                                @else bg-amber-100 text-amber-800
+                                                @endif">
+                                                @if($selfStatusKnown)
+                                                    {{ $selfStatusPassed ? 'Passed' : 'Failed' }}
+                                                @else
+                                                    Completed
+                                                @endif
+                                            </span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-sm text-slate-500">Score:</span>
+                                            <span class="text-lg font-semibold text-slate-900 ml-2">
+                                                {{ $application->self_interview_score !== null ? $application->self_interview_score . '%' : 'N/A' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm text-slate-500">Completed:</span>
+                                        <span class="text-sm font-medium text-slate-900 ml-2">
+                                            {{ $application->self_interview_completed_at->format('M d, Y g:i A') }}
+                                        </span>
+                                    </div>
+                                @else
+                                    <div class="text-sm text-slate-600">
+                                        <p>Self interview has not been completed yet.</p>
+                                    </div>
+                                @endif
+
+                                @if($selfSession)
+                                    <div class="pt-3 border-t border-slate-200 text-sm text-slate-600">
+                                        <p>
+                                            <span class="text-slate-500">Raw Score:</span>
+                                            <span class="font-medium text-slate-900 ml-1">
+                                                {{ $selfSession->total_score ?? 0 }}/{{ $selfSession->total_possible_score ?? 0 }}
+                                            </span>
+                                        </p>
+                                        @if($selfSession->time_taken_seconds)
+                                            <p class="mt-1">
+                                                <span class="text-slate-500">Time Taken:</span>
+                                                <span class="font-medium text-slate-900 ml-1">
+                                                    {{ gmdate('H:i:s', $selfSession->time_taken_seconds) }}
+                                                </span>
+                                            </p>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                @if($application->self_interview_completed_at)
+                                    <div class="pt-3 border-t border-slate-200">
+                                        <button type="button"
+                                                onclick="openSelfInterviewResultsModal()"
+                                                class="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-semibold">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            View Detailed Self Interview
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($showAptitude)
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
+                            <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Aptitude Test Results</h2>
+                            <div class="space-y-4">
+                                @if($application->aptitude_test_completed_at)
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm text-slate-500">Status:</span>
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ml-2 {{ $application->aptitude_test_passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                                {{ $application->aptitude_test_passed ? 'Passed' : 'Failed' }}
+                                            </span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-sm text-slate-500">Score:</span>
+                                            <span class="text-lg font-semibold text-slate-900 ml-2">{{ $application->aptitude_test_score ?? 'N/A' }}%</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm text-slate-500">Completed:</span>
+                                        <span class="text-sm font-medium text-slate-900 ml-2">{{ $application->aptitude_test_completed_at->format('M d, Y g:i A') }}</span>
+                                    </div>
+                                    @if($application->aptitudeTestSession)
+                                        @php
+                                            $session = $application->aptitudeTestSession;
+                                        @endphp
+                                        @if($session->total_possible_score)
+                                            <div>
+                                                <span class="text-sm text-slate-500">Raw Score:</span>
+                                                <span class="text-sm font-medium text-slate-900 ml-2">{{ $session->total_score ?? 0 }}/{{ $session->total_possible_score }}</span>
+                                            </div>
+                                        @endif
+                                        @if($session->time_taken_seconds)
+                                            <div>
+                                                <span class="text-sm text-slate-500">Time Taken:</span>
+                                                <span class="text-sm font-medium text-slate-900 ml-2">{{ gmdate('H:i:s', $session->time_taken_seconds) }}</span>
+                                            </div>
+                                        @endif
+                                        @if($session->started_at)
+                                            <div>
+                                                <span class="text-sm text-slate-500">Started:</span>
+                                                <span class="text-sm font-medium text-slate-900 ml-2">{{ $session->started_at->format('M d, Y g:i A') }}</span>
+                                            </div>
+                                        @endif
+                                    @endif
+
+                                    @php
+                                        // Determine if any online interview exists for this application
+                                        $hasOnlineInterview = $application->interviews
+                                            ? $application->interviews->where('interview_type', 'online_interview')->isNotEmpty()
+                                            : false;
+                                    @endphp
+
+                                    @if($application->aptitude_test_passed && $application->self_interview_passed && !$hasOnlineInterview)
+                                        <div class="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                            <p class="text-sm font-semibold text-amber-900 mb-1">
+                                                Next Step: Schedule Interview
+                                            </p>
+                                            <p class="text-xs text-amber-800">
+                                                This candidate has passed both the aptitude test and the self interview. Proceed to the
+                                                <strong>Schedule Interview</strong> section on this page to book their first interview
+                                                (online or physical).
+                                            </p>
+                                        </div>
+                                    @endif
+
+                                    <div class="pt-3 border-t border-slate-200">
+                                        <button type="button" onclick="openAptitudeResultsModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-semibold">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            View Detailed Results
+                                        </button>
+                                    </div>
+                                @else
+                                    <div class="text-sm text-slate-600">
+                                        <p>Aptitude test has not been completed yet.</p>
+                                        @if($canTakeAptitudeTest)
+                                            <p class="text-xs text-slate-500 mt-1">Candidate is eligible to take the test.</p>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+                @else
+                    {{-- Fallback to original static order when we don't have both completion times --}}
+                    @if($showAptitude)
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
+                            <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Aptitude Test Results</h2>
+                            <div class="space-y-4">
+                                @if($application->aptitude_test_completed_at)
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm text-slate-500">Status:</span>
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ml-2 {{ $application->aptitude_test_passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                                {{ $application->aptitude_test_passed ? 'Passed' : 'Failed' }}
+                                            </span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-sm text-slate-500">Score:</span>
+                                            <span class="text-lg font-semibold text-slate-900 ml-2">{{ $application->aptitude_test_score ?? 'N/A' }}%</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm text-slate-500">Completed:</span>
+                                        <span class="text-sm font-medium text-slate-900 ml-2">{{ $application->aptitude_test_completed_at->format('M d, Y g:i A') }}</span>
+                                    </div>
+                                    @if($application->aptitudeTestSession)
+                                        @php
+                                            $session = $application->aptitudeTestSession;
+                                        @endphp
+                                        @if($session->total_possible_score)
+                                            <div>
+                                                <span class="text-sm text-slate-500">Raw Score:</span>
+                                                <span class="text-sm font-medium text-slate-900 ml-2">{{ $session->total_score ?? 0 }}/{{ $session->total_possible_score }}</span>
+                                            </div>
+                                        @endif
+                                        @if($session->time_taken_seconds)
+                                            <div>
+                                                <span class="text-sm text-slate-500">Time Taken:</span>
+                                                <span class="text-sm font-medium text-slate-900 ml-2">{{ gmdate('H:i:s', $session->time_taken_seconds) }}</span>
+                                            </div>
+                                        @endif
+                                        @if($session->started_at)
+                                            <div>
+                                                <span class="text-sm text-slate-500">Started:</span>
+                                                <span class="text-sm font-medium text-slate-900 ml-2">{{ $session->started_at->format('M d, Y g:i A') }}</span>
+                                            </div>
+                                        @endif
+                                    @endif
+
+                                    @php
+                                        // Determine if any online interview exists for this application
+                                        $hasOnlineInterview = $application->interviews
+                                            ? $application->interviews->where('interview_type', 'online_interview')->isNotEmpty()
+                                            : false;
+                                    @endphp
+
+                                    @if($application->aptitude_test_passed && $application->self_interview_passed && !$hasOnlineInterview)
+                                        <div class="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                            <p class="text-sm font-semibold text-amber-900 mb-1">
+                                                Next Step: Schedule Interview
+                                            </p>
+                                            <p class="text-xs text-amber-800">
+                                                This candidate has passed both the aptitude test and the self interview. Proceed to the
+                                                <strong>Schedule Interview</strong> section on this page to book their first interview
+                                                (online or physical).
+                                            </p>
+                                        </div>
+                                    @endif
+
+                                    <div class="pt-3 border-t border-slate-200">
+                                        <button type="button" onclick="openAptitudeResultsModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-semibold">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            View Detailed Results
+                                        </button>
+                                    </div>
+                                @else
+                                    <div class="text-sm text-slate-600">
+                                        <p>Aptitude test has not been completed yet.</p>
+                                        @if($canTakeAptitudeTest)
+                                            <p class="text-xs text-slate-500 mt-1">Candidate is eligible to take the test.</p>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($showSelfInterview)
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
+                            <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Self Interview Results</h2>
+                            <div class="space-y-4">
+                                @php
+                                    $selfSession = $application->selfInterviewSession;
+                                    $selfStatusPassed = $application->self_interview_passed === true;
+                                    $selfStatusKnown = !is_null($application->self_interview_passed);
+                                @endphp
+
+                                @if($application->self_interview_completed_at)
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm text-slate-500">Status:</span>
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ml-2
+                                                @if($selfStatusKnown && $selfStatusPassed) bg-green-100 text-green-800
+                                                @elseif($selfStatusKnown && ! $selfStatusPassed) bg-red-100 text-red-800
+                                                @else bg-amber-100 text-amber-800
+                                                @endif">
+                                                @if($selfStatusKnown)
+                                                    {{ $selfStatusPassed ? 'Passed' : 'Failed' }}
+                                                @else
+                                                    Completed
+                                                @endif
+                                            </span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-sm text-slate-500">Score:</span>
+                                            <span class="text-lg font-semibold text-slate-900 ml-2">
+                                                {{ $application->self_interview_score !== null ? $application->self_interview_score . '%' : 'N/A' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm text-slate-500">Completed:</span>
+                                        <span class="text-sm font-medium text-slate-900 ml-2">
+                                            {{ $application->self_interview_completed_at->format('M d, Y g:i A') }}
+                                        </span>
+                                    </div>
+                                @else
+                                    <div class="text-sm text-slate-600">
+                                        <p>Self interview has not been completed yet.</p>
+                                    </div>
+                                @endif
+
+                                @if($selfSession)
+                                    <div class="pt-3 border-t border-slate-200 text-sm text-slate-600">
+                                        <p>
+                                            <span class="text-slate-500">Raw Score:</span>
+                                            <span class="font-medium text-slate-900 ml-1">
+                                                {{ $selfSession->total_score ?? 0 }}/{{ $selfSession->total_possible_score ?? 0 }}
+                                            </span>
+                                        </p>
+                                        @if($selfSession->time_taken_seconds)
+                                            <p class="mt-1">
+                                                <span class="text-slate-500">Time Taken:</span>
+                                                <span class="font-medium text-slate-900 ml-1">
+                                                    {{ gmdate('H:i:s', $selfSession->time_taken_seconds) }}
+                                                </span>
+                                            </p>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                @if($application->self_interview_completed_at)
+                                    <div class="pt-3 border-t border-slate-200">
+                                        <button type="button"
+                                                onclick="openSelfInterviewResultsModal()"
+                                                class="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-semibold">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            View Detailed Self Interview
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                 @endif
 
                 <!-- AI Sieving Decision -->
@@ -675,9 +1125,9 @@
                                         Resend Login Credentials
                                     </button>
                                 </form>
-                                <a href="{{ route('admin.job-applications.view-candidate-dashboard', $application) }}" target="_blank" class="block w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-semibold text-center">
+                                <button type="button" onclick="openCandidateDashboardModal()" class="block w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-semibold text-center">
                                     View Candidate Dashboard
-                                </a>
+                                </button>
                             </div>
                         @else
                             <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
@@ -932,8 +1382,13 @@
                 @endif
 
                 <!-- Schedule Interview -->
-                @if(in_array($application->status, ['shortlisted', 'reviewed', 'interview_scheduled', 'interview_passed', 'interview_failed', 'second_interview', 'written_test', 'case_study']))
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
+                @if(
+                    // Stage ready after tests: aptitude + self interview passed
+                    ($application->aptitude_test_passed && $application->self_interview_passed)
+                    // Or any of the existing later‑stage statuses
+                    || in_array($application->status, ['shortlisted', 'reviewed', 'interview_scheduled', 'interview_passed', 'interview_failed', 'second_interview', 'written_test', 'case_study'])
+                )
+                    <div id="schedule-interview-card" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
                         <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Schedule Interview</h2>
                         <form method="POST" action="/admin/job-applications/{{ $applicationId }}/schedule-interview" class="space-y-4">
                         @csrf
@@ -1197,6 +1652,554 @@
                         }
                     });
                 });
+            }
+        });
+    </script>
+
+    <!-- Aptitude Test Results Modal -->
+    @if($application->aptitudeTestSession && $application->aptitudeTestSession->completed_at && $questions->count() > 0)
+        <div id="aptitudeResultsModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Background overlay -->
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeAptitudeResultsModal()"></div>
+
+                <!-- Modal panel -->
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <!-- Header -->
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-900" id="modal-title">Aptitude Test Detailed Results</h3>
+                                <p class="text-sm text-gray-600 mt-1">Position: {{ $application->jobPost->title ?? 'N/A' }}</p>
+                            </div>
+                            <button type="button" onclick="closeAptitudeResultsModal()" class="text-gray-400 hover:text-gray-500">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Score Summary -->
+                        @php
+                            $session = $application->aptitudeTestSession;
+                        @endphp
+                        <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-6 border border-teal-200">
+                                <p class="text-sm font-medium text-teal-700 mb-2">Your Score</p>
+                                <p class="text-4xl font-bold text-teal-900">{{ $session->total_score ?? 0 }}</p>
+                                <p class="text-sm text-teal-600 mt-1">out of {{ $session->total_possible_score ?? 0 }}</p>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                                <p class="text-sm font-medium text-blue-700 mb-2">Pass Threshold</p>
+                                <p class="text-4xl font-bold text-blue-900">{{ $session->pass_threshold ?? 70 }}</p>
+                                <p class="text-sm text-blue-600 mt-1">points required</p>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br {{ ($session->is_passed ?? $application->aptitude_test_passed) ? 'from-green-50 to-green-100 border-green-200' : 'from-red-50 to-red-100 border-red-200' }} rounded-xl p-6 border">
+                                <p class="text-sm font-medium {{ ($session->is_passed ?? $application->aptitude_test_passed) ? 'text-green-700' : 'text-red-700' }} mb-2">Result</p>
+                                <p class="text-4xl font-bold {{ ($session->is_passed ?? $application->aptitude_test_passed) ? 'text-green-900' : 'text-red-900' }}">
+                                    {{ ($session->is_passed ?? $application->aptitude_test_passed) ? 'PASSED' : 'FAILED' }}
+                                </p>
+                                @if(isset($session->time_taken_seconds) && $session->time_taken_seconds)
+                                    <p class="text-sm {{ ($session->is_passed ?? $application->aptitude_test_passed) ? 'text-green-600' : 'text-red-600' }} mt-1">
+                                        Time: {{ gmdate('i:s', $session->time_taken_seconds) }}
+                                    </p>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Question Review -->
+                        <div class="max-h-[60vh] overflow-y-auto">
+                            <h4 class="text-xl font-semibold text-gray-800 mb-4">Question Review</h4>
+                            
+                            @php
+                                $sectionOrder = ['numerical', 'logical', 'verbal', 'scenario'];
+                                $currentSection = null;
+                            @endphp
+
+                            @foreach($questions as $question)
+                                @if($currentSection !== $question->section)
+                                    @if($currentSection !== null)
+                                        </div>
+                                    @endif
+                                    @php
+                                        $currentSection = $question->section;
+                                        $sectionTitles = [
+                                            'numerical' => 'Section A: Numerical & Analytical',
+                                            'logical' => 'Section B: Logical Reasoning',
+                                            'verbal' => 'Section C: Verbal & Comprehension',
+                                            'scenario' => 'Section D: Job-Fit Scenarios'
+                                        ];
+                                    @endphp
+                                    <div class="mb-6">
+                                        <h5 class="text-lg font-semibold text-gray-700 mb-3">
+                                            {{ $sectionTitles[$question->section] ?? ucfirst($question->section) }}
+                                        </h5>
+                                @endif
+
+                                @php
+                                    $userAnswer = $session->questions_answered[$question->id] ?? null;
+                                    $isCorrect = strtolower(trim($userAnswer ?? '')) === strtolower(trim($question->correct_answer));
+                                @endphp
+
+                                <div class="mb-6 p-5 rounded-xl border-2 {{ $isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50' }}">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div class="flex items-center gap-2">
+                                            @if($isCorrect)
+                                                <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                </svg>
+                                                <span class="text-sm font-medium text-green-700">Correct (+{{ $question->points }} points)</span>
+                                            @else
+                                                <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                                </svg>
+                                                <span class="text-sm font-medium text-red-700">Incorrect (0 points)</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="text-gray-900 font-medium mb-3">{{ $question->question }}</p>
+                                    
+                                    <div class="space-y-2">
+                                        @foreach($question->options as $key => $option)
+                                            @php
+                                                $isUserAnswer = strtolower($key) === strtolower(trim($userAnswer ?? ''));
+                                                $isCorrectAnswer = strtolower($key) === strtolower(trim($question->correct_answer));
+                                            @endphp
+                                            <div class="p-3 rounded-lg border-2 {{ $isCorrectAnswer ? 'border-green-400 bg-green-100' : ($isUserAnswer ? 'border-red-400 bg-red-100' : 'border-gray-200') }}">
+                                                <span class="font-semibold mr-2">{{ strtoupper($key) }}.</span>
+                                                {{ $option }}
+                                                @if($isCorrectAnswer)
+                                                    <span class="ml-2 text-green-700 font-medium">✓ Correct Answer</span>
+                                                @endif
+                                                @if($isUserAnswer && !$isCorrectAnswer)
+                                                    <span class="ml-2 text-red-700 font-medium">✗ Your Answer</span>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    
+                                    @if($question->explanation && !$isCorrect)
+                                        <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                            <p class="text-sm text-blue-900">
+                                                <span class="font-semibold">Explanation:</span> {{ $question->explanation }}
+                                            </p>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="button" onclick="closeAptitudeResultsModal()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openAptitudeResultsModal() {
+                const modal = document.getElementById('aptitudeResultsModal');
+                if (!modal) return;
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeAptitudeResultsModal() {
+                const modal = document.getElementById('aptitudeResultsModal');
+                if (!modal) return;
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+        </script>
+    @endif
+
+    <!-- Self Interview Results Modal -->
+    @if($application->selfInterviewSession && $application->selfInterviewSession->completed_at)
+        @php
+            $selfSession = $application->selfInterviewSession;
+            $selfQuestions = \App\Models\SelfInterviewQuestion::whereIn(
+                'id',
+                array_keys($selfSession->answers ?? [])
+            )->get()->keyBy('id');
+        @endphp
+        <div id="selfInterviewResultsModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="self-modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Background overlay -->
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeSelfInterviewResultsModal()"></div>
+
+                <!-- Modal panel -->
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <!-- Header -->
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-900" id="self-modal-title">Self Interview Detailed Results</h3>
+                                <p class="text-sm text-gray-600 mt-1">Position: {{ $application->jobPost->title ?? 'N/A' }}</p>
+                            </div>
+                            <button type="button" onclick="closeSelfInterviewResultsModal()" class="text-gray-400 hover:text-gray-500">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Score Summary -->
+                        <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-6 border border-teal-200">
+                                <p class="text-sm font-medium text-teal-700 mb-2">Rule-Based Score</p>
+                                <p class="text-4xl font-bold text-teal-900">{{ $selfSession->total_score ?? 0 }}</p>
+                                <p class="text-sm text-teal-600 mt-1">out of {{ $selfSession->total_possible_score ?? 0 }}</p>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                                <p class="text-sm font-medium text-blue-700 mb-2">Pass Threshold</p>
+                                <p class="text-4xl font-bold text-blue-900">{{ $selfSession->pass_threshold ?? 70 }}</p>
+                                <p class="text-sm text-blue-600 mt-1">points required</p>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br {{ $selfSession->is_passed ? 'from-green-50 to-green-100 border-green-200' : 'from-red-50 to-red-100 border-red-200' }} rounded-xl p-6 border">
+                                <p class="text-sm font-medium {{ $selfSession->is_passed ? 'text-green-700' : 'text-red-700' }} mb-2">Result</p>
+                                <p class="text-4xl font-bold {{ $selfSession->is_passed ? 'text-green-900' : 'text-red-900' }}">
+                                    {{ $selfSession->is_passed ? 'PASSED' : 'FAILED' }}
+                                </p>
+                                @if(isset($selfSession->time_taken_seconds) && $selfSession->time_taken_seconds)
+                                    <p class="text-sm {{ $selfSession->is_passed ? 'text-green-600' : 'text-red-600' }} mt-1">
+                                        Time: {{ gmdate('i:s', $selfSession->time_taken_seconds) }}
+                                    </p>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Question Review -->
+                        <div class="max-h-[60vh] overflow-y-auto">
+                            <h4 class="text-xl font-semibold text-gray-800 mb-4">Answer Review</h4>
+
+                            @foreach($selfQuestions as $question)
+                                @php
+                                    $userAnswer = $selfSession->answers[$question->id] ?? null;
+                                    $hasOptions = !empty($question->options);
+                                    $isCorrect = $hasOptions
+                                        && $question->correct_answer !== null
+                                        && strtolower(trim($userAnswer ?? '')) === strtolower(trim($question->correct_answer));
+                                @endphp
+
+                                <div class="mb-6 p-5 rounded-xl border-2 {{ $hasOptions ? ($isCorrect ? 'border-green-200 bg-green-50' : 'border-blue-200 bg-blue-50') : 'border-slate-200 bg-slate-50' }}">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div class="flex items-center gap-2">
+                                            @if($hasOptions)
+                                                @if($isCorrect)
+                                                    <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                    <span class="text-sm font-medium text-green-700">Preferred answer (+{{ $question->points }} points)</span>
+                                                @else
+                                                    <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                    <span class="text-sm font-medium text-blue-700">Different from preferred answer</span>
+                                                @endif
+                                            @else
+                                                <span class="text-sm font-medium text-slate-700">Open‑ended question</span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <p class="text-gray-900 font-medium mb-3">{{ $question->question }}</p>
+
+                                    @if($hasOptions)
+                                        <div class="space-y-2">
+                                            @foreach($question->options as $key => $option)
+                                                @php
+                                                    $isUserAnswer = strtolower($key) === strtolower(trim($userAnswer ?? ''));
+                                                    $isCorrectAnswer = $question->correct_answer !== null &&
+                                                        strtolower($key) === strtolower(trim($question->correct_answer));
+                                                @endphp
+                                                <div class="p-3 rounded-lg border-2 {{ $isCorrectAnswer ? 'border-green-400 bg-green-100' : ($isUserAnswer ? 'border-blue-400 bg-blue-100' : 'border-gray-200') }}">
+                                                    <span class="font-semibold mr-2">{{ strtoupper($key) }}.</span>
+                                                    {{ $option }}
+                                                    @if($isCorrectAnswer)
+                                                        <span class="ml-2 text-green-700 font-medium">Preferred</span>
+                                                    @endif
+                                                    @if($isUserAnswer && !$isCorrectAnswer)
+                                                        <span class="ml-2 text-blue-700 font-medium">Candidate choice</span>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <div class="mt-2 p-3 rounded-lg border border-slate-200 bg-white">
+                                            <p class="text-sm text-slate-700 whitespace-pre-line">
+                                                {{ $userAnswer ?: 'No response provided.' }}
+                                            </p>
+                                        </div>
+                                    @endif
+
+                                    @if($question->explanation)
+                                        <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                            <p class="text-sm text-blue-900">
+                                                <span class="font-semibold">Notes:</span> {{ $question->explanation }}
+                                            </p>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div class="mt-6 text-right">
+                            <button type="button"
+                                    onclick="closeSelfInterviewResultsModal()"
+                                    class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:text-sm">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openSelfInterviewResultsModal() {
+                const modal = document.getElementById('selfInterviewResultsModal');
+                if (!modal) return;
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSelfInterviewResultsModal() {
+                const modal = document.getElementById('selfInterviewResultsModal');
+                if (!modal) return;
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+
+            // Close modals on Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeAptitudeResultsModal();
+                    closeSelfInterviewResultsModal();
+                }
+            });
+
+            // Auto‑prompt HR to schedule first interview when both tests are passed
+            document.addEventListener('DOMContentLoaded', function () {
+                const shouldPromptSchedule = {{ $application->aptitude_test_passed && $application->self_interview_passed && !($application->interviews && $application->interviews->where('interview_type', 'online_interview')->isNotEmpty()) ? 'true' : 'false' }};
+
+                if (shouldPromptSchedule && typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Next Step: Schedule Interview',
+                        html: 'This candidate has <strong>passed AI sieving, aptitude test, and self interview</strong>. Do you want to schedule their first interview now?',
+                        icon: 'info',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, schedule now',
+                        cancelButtonText: 'Later',
+                        confirmButtonColor: '#0f766e',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const card = document.getElementById('schedule-interview-card');
+                            if (card) {
+                                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                card.classList.add('ring-2', 'ring-amber-400');
+                                setTimeout(() => {
+                                    card.classList.remove('ring-2', 'ring-amber-400');
+                                }, 1500);
+                            }
+                        }
+                    });
+                }
+            });
+        </script>
+    @endif
+
+    <!-- Candidate View Modal -->
+    @if($publicStatusToken)
+        <div id="candidateViewModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeCandidateViewModal()"></div>
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-2xl font-bold text-gray-900" id="modal-title">Candidate View - Application Status</h3>
+                            <button type="button" onclick="closeCandidateViewModal()" class="text-gray-400 hover:text-gray-500">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="candidateStatusContent" class="max-h-[80vh] overflow-y-auto">
+                            <div class="text-center py-8">
+                                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                                <p class="mt-2 text-gray-600">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openSelfInterviewResultsModal() {
+                const modal = document.getElementById('selfInterviewResultsModal');
+                if (!modal) return;
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSelfInterviewResultsModal() {
+                const modal = document.getElementById('selfInterviewResultsModal');
+                if (!modal) return;
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+
+            // Close modals on Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeAptitudeResultsModal();
+                    closeSelfInterviewResultsModal();
+                }
+            });
+        </script>
+    @endif
+
+    <!-- Aptitude Test Modal -->
+    @if($canTakeAptitudeTest)
+        <div id="aptitudeTestModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeAptitudeTestModal()"></div>
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-2xl font-bold text-gray-900" id="modal-title">Aptitude Test</h3>
+                            <button type="button" onclick="closeAptitudeTestModal()" class="text-gray-400 hover:text-gray-500">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="aptitudeTestContent" class="max-h-[80vh] overflow-y-auto">
+                            <div class="text-center py-8">
+                                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                                <p class="mt-2 text-gray-600">Loading test...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Candidate Dashboard Modal -->
+    @if($application->candidate)
+        <div id="candidateDashboardModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeCandidateDashboardModal()"></div>
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-2xl font-bold text-gray-900" id="modal-title">Candidate Dashboard</h3>
+                            <button type="button" onclick="closeCandidateDashboardModal()" class="text-gray-400 hover:text-gray-500">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <iframe src="{{ route('admin.job-applications.view-candidate-dashboard', $application) }}" class="w-full h-[85vh] border-0 rounded-lg"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <script>
+        // Candidate View Modal Functions
+        function openCandidateViewModal() {
+            const modal = document.getElementById('candidateViewModal');
+            const contentDiv = document.getElementById('candidateStatusContent');
+            
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            // Load candidate status content via AJAX
+            fetch('{{ route("admin.job-applications.preview-candidate-status", $application) }}')
+                .then(response => response.text())
+                .then(html => {
+                    contentDiv.innerHTML = html;
+                })
+                .catch(error => {
+                    contentDiv.innerHTML = '<div class="text-center py-8 text-red-600">Error loading content. Please try again.</div>';
+                    console.error('Error loading candidate status:', error);
+                });
+        }
+
+        function closeCandidateViewModal() {
+            document.getElementById('candidateViewModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            // Reset content for next time
+            document.getElementById('candidateStatusContent').innerHTML = '<div class="text-center py-8"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div><p class="mt-2 text-gray-600">Loading...</p></div>';
+        }
+
+        // Aptitude Test Modal Functions
+        function openAptitudeTestModal() {
+            const modal = document.getElementById('aptitudeTestModal');
+            const contentDiv = document.getElementById('aptitudeTestContent');
+            
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            // Load test content via AJAX
+            fetch('{{ route("admin.job-applications.preview-aptitude-test", $application) }}')
+                .then(response => response.text())
+                .then(html => {
+                    contentDiv.innerHTML = html;
+                })
+                .catch(error => {
+                    contentDiv.innerHTML = '<div class="text-center py-8 text-red-600">Error loading test. Please try again.</div>';
+                    console.error('Error loading aptitude test:', error);
+                });
+        }
+
+        function closeAptitudeTestModal() {
+            document.getElementById('aptitudeTestModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            // Reset content for next time
+            document.getElementById('aptitudeTestContent').innerHTML = '<div class="text-center py-8"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div><p class="mt-2 text-gray-600">Loading test...</p></div>';
+        }
+
+        // Candidate Dashboard Modal Functions
+        function openCandidateDashboardModal() {
+            document.getElementById('candidateDashboardModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCandidateDashboardModal() {
+            document.getElementById('candidateDashboardModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+
+        // Close modals on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                @if($publicStatusToken)
+                    closeCandidateViewModal();
+                @endif
+                @if($canTakeAptitudeTest)
+                    closeAptitudeTestModal();
+                @endif
+                @if($application->candidate)
+                    closeCandidateDashboardModal();
+                @endif
+                @if($application->aptitudeTestSession && $application->aptitudeTestSession->completed_at && $questions->count() > 0)
+                    closeAptitudeResultsModal();
+                @endif
             }
         });
     </script>
