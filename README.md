@@ -1,6 +1,6 @@
-# Fortress Lenders Web Platform
+# Career Module - Standalone Recruitment Platform
 
-An end-to-end marketing site and lightweight operations dashboard for Fortress Lenders Ltd. The stack is Laravel 11 + Vite/Tailwind for the public pages, with an authenticated admin area for managing loan products, job applications, contact enquiries, and comprehensive content management.
+A comprehensive career and recruitment management system built with Laravel 12. This module provides a complete solution for companies to advertise job openings, manage applications, conduct aptitude tests and interviews, and track candidates through the hiring process. The stack uses Laravel 12 + Vite/Tailwind for a modern, responsive interface with an authenticated admin area for managing all recruitment activities.
 
 ## Features
 
@@ -8,10 +8,9 @@ An end-to-end marketing site and lightweight operations dashboard for Fortress L
 - **Responsive Design**: Fully responsive public site with modern UI/UX
 - **Home Page**: Dynamic homepage with customizable content sections
 - **About Page**: Company information, team members, and CEO message
-- **Products**: Dynamic product catalogue with images, descriptions, and CTAs
+- **Products**: Dynamic product catalogue with images, descriptions, and CTAs (optional)
 - **Careers**: Job posting system with application form and interview scheduling
 - **Contact**: Contact form with honeypot protection and email notifications
-- **Loan Applications**: Online loan application form with status tracking
 - **FAQ**: Frequently asked questions management
 - **Blog/News**: Content management system for posts and news
 - **Newsletter**: Email subscription system integrated in footer
@@ -19,9 +18,8 @@ An end-to-end marketing site and lightweight operations dashboard for Fortress L
 
 ### Admin Dashboard
 - **Admin Panel**: Role-gated admin access with comprehensive dashboard
-- **Product Management**: Full CRUD for products with image galleries
+- **Product Management**: Full CRUD for products with image galleries (optional)
 - **Contact Management**: Review, reply, and track contact messages
-- **Loan Application Management**: Process loan applications with messaging
 - **Job Posting & Applications**: Manage job posts, applications, interviews, and reviews
 - **Content Management**: Manage FAQs, blog posts, CEO messages, and team members
 - **Branch Management**: Manage company branch locations
@@ -77,13 +75,6 @@ The seeder creates the initial admin user using the `ADMIN_NAME`, `ADMIN_EMAIL` 
 4. The sender receives an acknowledgement email.
 5. Admin staff can change the status to `in_progress` or `handled`, add notes, and mark the time the request was resolved.
 6. Admin can send replies via email, SMS, or WhatsApp.
-
-### Loan Application Flow
-1. Visitor submits loan application form (throttled for security).
-2. Application is stored and confirmation email sent to applicant.
-3. Admin receives notification email.
-4. Admin can review, update status, and send messages to applicants.
-5. Full communication history tracked in the system.
 
 ### Job Application & Interview Management
 1. Job posts published on careers page with detailed descriptions.
