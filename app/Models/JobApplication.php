@@ -117,6 +117,11 @@ class JobApplication extends Model
         return $this->hasOne(SelfInterviewSession::class);
     }
 
+    public function cvParsedData()
+    {
+        return $this->hasOne(CvParsedData::class);
+    }
+
     public function scopePending($query)
     {
         return $query->where('status', 'pending');

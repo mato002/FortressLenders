@@ -13,6 +13,9 @@ use App\Models\JobApplicationReview;
 use App\Models\JobApplicationStatusHistory;
 use App\Models\Interview;
 use App\Services\MessagingService;
+use App\Services\CvParserService;
+use App\Services\AIAnalysisService;
+use App\Jobs\ProcessCvJob;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -1049,6 +1052,106 @@ class JobApplicationController extends Controller
         });
 
         return view('admin.job-applications.calendar', compact('interviews', 'calendar', 'events'));
+    }
+
+    /**
+     * Manually trigger CV parsing for an application
+     */
+    public function parseCv(JobApplication $application): RedirectResponse
+    {
+        try {
+            // Note: CV parsing is currently rule-based, not AI-powered
+            // If you add AI-enhanced parsing later, add token check here
+            $cvParser = new CvParserService();
+            $cvParsedData = $cvParser->parse($application);
+            
+            if ($cvParsedData) {
+                return back()->with('success', 'CV parsed successfully! Confidence: ' . number_format($cvParsedData->parsing_confidence * 100, 1) . '%');
+            } else {
+                return back()->withErrors(['error' => 'Failed to parse CV. Please check if CV file exists.']);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Manual CV parsing failed', [
+                'application_id' => $application->id,
+                'error' => $e->getMessage()
+            ]);
+            return back()->withErrors(['error' => 'CV parsing failed: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Manually trigger AI analysis for an application
+     */
+    public function analyzeWithAI(JobApplication $application): RedirectResponse
+    {
+        try {
+            // Check token availability before processing
+            $company = \App\Models\Company::first();
+            if ($company) {
+                $tokenService = app(\App\Services\TokenService::class);
+                $estimatedTokens = $tokenService->estimateTokens('cv_analyze', 5000) + 
+                                  $tokenService->estimateTokens('scoring', 5000);
+                
+                if (!$tokenService->hasEnoughTokens($company->id, $estimatedTokens)) {
+                    return back()->withErrors([
+                        'error' => 'Insufficient tokens available. Please purchase more tokens to use AI features.'
+                    ]);
+                }
+            }
+            
+            $aiAnalysis = new AIAnalysisService();
+            
+            // Generate CV analysis
+            $analysis = $aiAnalysis->analyzeCv($application);
+            
+            // Generate profile summary
+            $profileSummary = $aiAnalysis->generateProfileSummary($application);
+            
+            // Update application
+            $application->update([
+                'ai_summary' => $profileSummary ?: ($analysis['summary'] ?? $application->ai_summary),
+                'ai_details' => json_encode($analysis, JSON_PRETTY_PRINT),
+            ]);
+            
+            // Re-run sieving with AI analysis
+            if (config('ai.enable_auto_sieving', true)) {
+                $sievingService = new \App\Services\AISievingService();
+                $sievingService->evaluate($application);
+            }
+            
+            return back()->with('success', 'AI analysis completed successfully!');
+        } catch (\Exception $e) {
+            \Log::error('Manual AI analysis failed', [
+                'application_id' => $application->id,
+                'error' => $e->getMessage()
+            ]);
+            
+            $errorMessage = $e->getMessage();
+            if (str_contains($errorMessage, 'Insufficient tokens')) {
+                return back()->withErrors(['error' => $errorMessage]);
+            }
+            
+            return back()->withErrors(['error' => 'AI analysis failed: ' . $errorMessage]);
+        }
+    }
+
+    /**
+     * Process CV and AI analysis (full processing)
+     */
+    public function processCvAndAI(JobApplication $application): RedirectResponse
+    {
+        try {
+            // Dispatch async job
+            ProcessCvJob::dispatch($application);
+            
+            return back()->with('success', 'CV processing and AI analysis queued. Results will be available shortly.');
+        } catch (\Exception $e) {
+            \Log::error('Failed to queue CV processing', [
+                'application_id' => $application->id,
+                'error' => $e->getMessage()
+            ]);
+            return back()->withErrors(['error' => 'Failed to queue processing: ' . $e->getMessage()]);
+        }
     }
 }
 

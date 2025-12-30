@@ -31,6 +31,7 @@ use App\Http\Controllers\Admin\JobPostController;
 use App\Http\Controllers\Admin\JobApplicationController as AdminJobApplicationController;
 use App\Http\Controllers\Admin\ActivityLogController as AdminActivityLogController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\TokenController as AdminTokenController;
 use App\Http\Controllers\CookieConsentController;
 use App\Http\Controllers\NewsletterController;
 use Illuminate\Support\Facades\Route;
@@ -246,6 +247,17 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
                 Route::get('calendar', [AdminJobApplicationController::class, 'interviewCalendar'])->name('calendar');
             });
             Route::get('job-applications/{application}/view-cv', [AdminJobApplicationController::class, 'viewCv'])->name('job-applications.view-cv');
+        });
+        
+        // Token Management Routes - Accessible by Admin
+        Route::middleware('role:admin')->group(function () {
+            Route::get('tokens', [AdminTokenController::class, 'index'])->name('tokens.index');
+            Route::get('tokens/usage', [AdminTokenController::class, 'usage'])->name('tokens.usage');
+            Route::get('tokens/purchases', [AdminTokenController::class, 'purchases'])->name('tokens.purchases');
+            Route::post('tokens/purchases', [AdminTokenController::class, 'createPurchase'])->name('tokens.purchases.create');
+            Route::post('tokens/allocate', [AdminTokenController::class, 'allocate'])->name('tokens.allocate');
+            Route::get('tokens/balance', [AdminTokenController::class, 'balance'])->name('tokens.balance');
+            Route::get('tokens/stats', [AdminTokenController::class, 'stats'])->name('tokens.stats');
             Route::get('job-applications/{application}/download-cv', [AdminJobApplicationController::class, 'downloadCv'])->name('job-applications.download-cv');
             Route::resource('job-applications', AdminJobApplicationController::class)->only(['index', 'show', 'destroy']);
             Route::post('job-applications/{application}/review', [AdminJobApplicationController::class, 'review'])->name('job-applications.review');
@@ -260,6 +272,9 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             Route::get('job-applications/{application}/preview-candidate-status', [AdminJobApplicationController::class, 'previewCandidateStatus'])->name('job-applications.preview-candidate-status');
             Route::post('job-applications/bulk-create-candidate-accounts', [AdminJobApplicationController::class, 'bulkCreateCandidateAccounts'])->name('job-applications.bulk-create-candidate-accounts');
             Route::post('interviews/{interview}/update-result', [AdminJobApplicationController::class, 'updateInterviewResult'])->name('interviews.update-result');
+            Route::post('job-applications/{application}/parse-cv', [AdminJobApplicationController::class, 'parseCv'])->name('job-applications.parse-cv');
+            Route::post('job-applications/{application}/analyze-with-ai', [AdminJobApplicationController::class, 'analyzeWithAI'])->name('job-applications.analyze-with-ai');
+            Route::post('job-applications/{application}/process-cv-and-ai', [AdminJobApplicationController::class, 'processCvAndAI'])->name('job-applications.process-cv-and-ai');
         });
         Route::prefix('products/{product}/images')
             ->name('products.images.')

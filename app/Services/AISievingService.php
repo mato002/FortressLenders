@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\Mail;
 
 class AISievingService
 {
+    protected AIAnalysisService $aiAnalysisService;
+
+    public function __construct(AIAnalysisService $aiAnalysisService = null)
+    {
+        $this->aiAnalysisService = $aiAnalysisService ?? new AIAnalysisService();
+    }
+
     /**
      * Evaluate a job application using AI sieving
      */
@@ -25,18 +32,46 @@ class AISievingService
         // Calculate rule-based score
         $ruleScore = $this->calculateRuleBasedScore($application, $criteria);
         
-        // Calculate AI confidence (simplified - can be enhanced with LLM)
-        $confidence = $this->calculateConfidence($application, $ruleScore);
+        // Get AI-enhanced analysis if enabled
+        $aiAnalysis = null;
+        $aiScore = null;
+        $aiConfidence = null;
+        
+        if (config('ai.enable_ai_analysis', true)) {
+            try {
+                $aiAnalysis = $this->aiAnalysisService->analyzeApplication($application);
+                
+                if (!empty($aiAnalysis)) {
+                    $aiScore = $aiAnalysis['match_score'] ?? null;
+                    $aiConfidence = $aiAnalysis['confidence'] ?? null;
+                    
+                    // Blend rule-based and AI scores (weighted average)
+                    if ($aiScore !== null && $aiConfidence !== null) {
+                        $aiWeight = min(0.7, $aiConfidence); // Use AI score more if confidence is high
+                        $ruleWeight = 1 - $aiWeight;
+                        $ruleScore = (int) round(($ruleScore * $ruleWeight) + ($aiScore * $aiWeight));
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::warning('AI analysis failed during sieving, using rule-based only', [
+                    'application_id' => $application->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+        
+        // Calculate confidence
+        $confidence = $this->calculateConfidence($application, $ruleScore, $aiConfidence);
         
         // Determine decision
-        $decision = $this->makeDecision($ruleScore, $confidence, $criteria);
+        $decision = $this->makeDecision($ruleScore, $confidence, $criteria, $aiAnalysis);
         
-        // Extract strengths and weaknesses
-        $strengths = $this->extractStrengths($application, $criteria);
-        $weaknesses = $this->extractWeaknesses($application, $criteria);
+        // Extract strengths and weaknesses (enhanced with AI if available)
+        $strengths = $this->extractStrengths($application, $criteria, $aiAnalysis);
+        $weaknesses = $this->extractWeaknesses($application, $criteria, $aiAnalysis);
         
-        // Generate reasoning
-        $reasoning = $this->generateReasoning($application, $ruleScore, $decision, $strengths, $weaknesses);
+        // Generate reasoning (enhanced with AI insights)
+        $reasoning = $this->generateReasoning($application, $ruleScore, $decision, $strengths, $weaknesses, $aiAnalysis);
         
         // Store or update decision
         $aiDecision = AISievingDecision::updateOrCreate(
@@ -274,24 +309,45 @@ class AISievingService
     /**
      * Calculate confidence level (0.0-1.0)
      */
-    private function calculateConfidence(JobApplication $application, int $score): float
+    private function calculateConfidence(JobApplication $application, int $score, ?float $aiConfidence = null): float
     {
-        // Higher confidence for extreme scores
+        // Base confidence from score
+        $baseConfidence = 0.70;
         if ($score >= 80 || $score <= 30) {
-            return 0.90;
+            $baseConfidence = 0.90;
         } elseif ($score >= 70 || $score <= 40) {
-            return 0.85;
-        } else {
-            // Lower confidence for middle scores
-            return 0.70;
+            $baseConfidence = 0.85;
         }
+        
+        // If AI confidence is available, blend it
+        if ($aiConfidence !== null) {
+            // Weighted average: 60% AI confidence, 40% rule-based
+            return min(1.0, ($aiConfidence * 0.6) + ($baseConfidence * 0.4));
+        }
+        
+        return $baseConfidence;
     }
 
     /**
      * Make decision based on score and confidence
      */
-    private function makeDecision(int $score, float $confidence, JobSievingCriteria $criteria): string
+    private function makeDecision(int $score, float $confidence, JobSievingCriteria $criteria, ?array $aiAnalysis = null): string
     {
+        // If AI analysis recommends a decision, consider it
+        if ($aiAnalysis && isset($aiAnalysis['recommendation'])) {
+            $aiRecommendation = $aiAnalysis['recommendation'];
+            $aiConfidence = $aiAnalysis['confidence'] ?? 0.5;
+            
+            // Use AI recommendation if confidence is high enough
+            if ($aiConfidence >= config('ai.min_confidence_for_auto_pass', 0.85)) {
+                if ($aiRecommendation === 'pass' && $score >= $criteria->auto_pass_threshold) {
+                    return 'pass';
+                } elseif ($aiRecommendation === 'reject' && $score <= $criteria->auto_reject_threshold) {
+                    return 'reject';
+                }
+            }
+        }
+        
         // Auto-pass: high score + high confidence
         if ($score >= $criteria->auto_pass_threshold && $confidence >= $criteria->auto_pass_confidence) {
             return 'pass';
@@ -309,10 +365,16 @@ class AISievingService
     /**
      * Extract strengths
      */
-    private function extractStrengths(JobApplication $application, JobSievingCriteria $criteria): array
+    private function extractStrengths(JobApplication $application, JobSievingCriteria $criteria, ?array $aiAnalysis = null): array
     {
         $strengths = [];
         
+        // Add AI-identified strengths if available
+        if ($aiAnalysis && !empty($aiAnalysis['matching_points'])) {
+            $strengths = array_merge($strengths, (array) $aiAnalysis['matching_points']);
+        }
+        
+        // Add rule-based strengths
         if (!empty($application->education_level)) {
             $strengths[] = "Education: {$application->education_level}";
         }
@@ -325,16 +387,23 @@ class AISievingService
             $strengths[] = "Relevant Skills: " . substr($application->relevant_skills, 0, 100);
         }
         
-        return $strengths;
+        // Remove duplicates
+        return array_unique($strengths);
     }
 
     /**
      * Extract weaknesses
      */
-    private function extractWeaknesses(JobApplication $application, JobSievingCriteria $criteria): array
+    private function extractWeaknesses(JobApplication $application, JobSievingCriteria $criteria, ?array $aiAnalysis = null): array
     {
         $weaknesses = [];
         
+        // Add AI-identified weaknesses if available
+        if ($aiAnalysis && !empty($aiAnalysis['missing_requirements'])) {
+            $weaknesses = array_merge($weaknesses, (array) $aiAnalysis['missing_requirements']);
+        }
+        
+        // Add rule-based weaknesses
         if (empty($application->education_level)) {
             $weaknesses[] = "Education level not specified";
         }
@@ -347,15 +416,22 @@ class AISievingService
             $weaknesses[] = "Why interested response is too brief";
         }
         
-        return $weaknesses;
+        // Remove duplicates
+        return array_unique($weaknesses);
     }
 
     /**
      * Generate reasoning text
      */
-    private function generateReasoning(JobApplication $application, int $score, string $decision, array $strengths, array $weaknesses): string
+    private function generateReasoning(JobApplication $application, int $score, string $decision, array $strengths, array $weaknesses, ?array $aiAnalysis = null): string
     {
         $reasoning = "AI Evaluation Score: {$score}/100\n\n";
+        
+        // Add AI match score if available
+        if ($aiAnalysis && isset($aiAnalysis['match_score'])) {
+            $reasoning .= "AI Match Score: {$aiAnalysis['match_score']}/100\n";
+        }
+        
         $reasoning .= "Decision: " . strtoupper($decision) . "\n\n";
         
         if (!empty($strengths)) {
@@ -364,6 +440,11 @@ class AISievingService
         
         if (!empty($weaknesses)) {
             $reasoning .= "Weaknesses:\n" . implode("\n", array_map(fn($w) => "- {$w}", $weaknesses)) . "\n\n";
+        }
+        
+        // Add AI assessment if available
+        if ($aiAnalysis && !empty($aiAnalysis['assessment'])) {
+            $reasoning .= "AI Assessment: {$aiAnalysis['assessment']}\n\n";
         }
         
         return $reasoning;

@@ -9,6 +9,7 @@ use App\Models\GeneralSetting;
 use App\Models\JobApplication;
 use App\Models\JobPost;
 use App\Services\AISievingService;
+use App\Jobs\ProcessCvJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -156,7 +157,12 @@ class JobApplicationController extends Controller
                 $application->update(['candidate_id' => $candidate->id]);
             }
             
-            // Run AI sieving evaluation
+            // Dispatch CV processing job (async)
+            if ($application->cv_path) {
+                ProcessCvJob::dispatch($application);
+            }
+            
+            // Run AI sieving evaluation (after CV processing if possible, or async)
             try {
                 $sievingService = new AISievingService();
                 $sievingService->evaluate($application);
