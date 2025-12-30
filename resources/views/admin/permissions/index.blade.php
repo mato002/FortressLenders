@@ -67,16 +67,16 @@
                                         <span class="text-xs font-normal text-gray-500">Careers Focus</span>
                                     </div>
                                 </th>
-                                <th scope="col" class="px-4 sm:px-6 py-4 text-center text-xs font-bold text-blue-700 uppercase tracking-wider">
-                                    <div class="flex flex-col items-center gap-1">
-                                        <span>Loan Manager</span>
-                                        <span class="text-xs font-normal text-gray-500">Loans Focus</span>
-                                    </div>
-                                </th>
                                 <th scope="col" class="px-4 sm:px-6 py-4 text-center text-xs font-bold text-green-700 uppercase tracking-wider">
                                     <div class="flex flex-col items-center gap-1">
                                         <span>Editor</span>
                                         <span class="text-xs font-normal text-gray-500">Content Focus</span>
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-4 sm:px-6 py-4 text-center text-xs font-bold text-teal-700 uppercase tracking-wider">
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span>Client</span>
+                                        <span class="text-xs font-normal text-gray-500">Careers Only</span>
                                     </div>
                                 </th>
                                 <th scope="col" class="px-4 sm:px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
@@ -122,10 +122,10 @@
                                         <label class="inline-flex items-center cursor-pointer">
                                             <input 
                                                 type="checkbox" 
-                                                name="permissions[{{ $permission->permission_key }}][loan_manager]" 
+                                                name="permissions[{{ $permission->permission_key }}][editor]" 
                                                 value="1"
-                                                {{ $permission->hasRole('loan_manager') ? 'checked' : '' }}
-                                                class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                                                {{ $permission->hasRole('editor') ? 'checked' : '' }}
+                                                class="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
                                             >
                                         </label>
                                     </td>
@@ -133,10 +133,10 @@
                                         <label class="inline-flex items-center cursor-pointer">
                                             <input 
                                                 type="checkbox" 
-                                                name="permissions[{{ $permission->permission_key }}][editor]" 
+                                                name="permissions[{{ $permission->permission_key }}][client]" 
                                                 value="1"
-                                                {{ $permission->hasRole('editor') ? 'checked' : '' }}
-                                                class="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
+                                                {{ $permission->hasRole('client') ? 'checked' : '' }}
+                                                class="w-5 h-5 text-teal-600 border-gray-300 rounded focus:ring-teal-500 focus:ring-2"
                                             >
                                         </label>
                                     </td>
@@ -176,7 +176,7 @@
         </form>
 
         <!-- Role Summaries -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
             <!-- Administrator -->
             <div class="bg-white rounded-2xl shadow-sm border border-purple-200 overflow-hidden">
                 <div class="bg-gradient-to-r from-purple-50 to-indigo-50 px-4 sm:px-6 py-4 border-b border-purple-200">
@@ -251,43 +251,6 @@
                 </div>
             </div>
 
-            <!-- Loan Manager -->
-            <div class="bg-white rounded-2xl shadow-sm border border-blue-200 overflow-hidden">
-                <div class="bg-gradient-to-r from-blue-50 to-cyan-50 px-4 sm:px-6 py-4 border-b border-blue-200">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-blue-900">Loan Manager</h3>
-                    </div>
-                </div>
-                <div class="p-4 sm:p-6">
-                    <p class="text-sm text-gray-700 mb-4">Manages loan applications, status updates, and customer communications.</p>
-                    <ul class="space-y-2 text-sm text-gray-600">
-                        <li class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                            Loan applications
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                            Content management
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                            No careers access
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
             <!-- Editor -->
             <div class="bg-white rounded-2xl shadow-sm border border-green-200 overflow-hidden">
                 <div class="bg-gradient-to-r from-green-50 to-emerald-50 px-4 sm:px-6 py-4 border-b border-green-200">
@@ -320,6 +283,43 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                             No admin features
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Client (Company Admin) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-teal-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-teal-50 to-cyan-50 px-4 sm:px-6 py-4 border-b border-teal-200">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-teal-900">Client</h3>
+                    </div>
+                </div>
+                <div class="p-4 sm:p-6">
+                    <p class="text-sm text-gray-700 mb-4">SaaS clients with access only to the careers module for managing job applications.</p>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Job posts & applications
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Aptitude & interview tests
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            No other admin access
                         </li>
                     </ul>
                 </div>

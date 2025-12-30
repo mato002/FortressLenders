@@ -4,9 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\ContactMessageConfirmation;
 use App\Mail\ContactMessageReceived;
-use App\Models\Branch;
 use App\Models\ContactMessage;
-use App\Models\ContactSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -15,13 +13,7 @@ class ContactController extends Controller
 {
     public function index()
     {
-        $contactSettings = ContactSetting::query()->latest()->first();
-        $branches = Branch::active()
-            ->orderBy('display_order')
-            ->orderBy('name')
-            ->get();
-
-        return view('contact', compact('contactSettings', 'branches'));
+        return view('contact');
     }
 
     public function store(Request $request): RedirectResponse

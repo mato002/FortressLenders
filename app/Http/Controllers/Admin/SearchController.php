@@ -3,13 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product;
 use App\Models\JobPost;
 use App\Models\JobApplication;
 use App\Models\ContactMessage;
-use App\Models\LoanApplication;
 use App\Models\TeamMember;
-use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -28,42 +25,11 @@ class SearchController extends Controller
             }
 
         $results = [
-            'products' => [],
             'jobs' => [],
             'job_applications' => [],
             'contact_messages' => [],
-            'loan_applications' => [],
             'team_members' => [],
-            'branches' => [],
         ];
-
-        // Search Products
-        try {
-            $results['products'] = Product::where(function($q) use ($query) {
-                    $q->where('title', 'like', "%{$query}%")
-                      ->orWhere('description', 'like', "%{$query}%")
-                      ->orWhere('summary', 'like', "%{$query}%")
-                      ->orWhere('category', 'like', "%{$query}%");
-                })
-                ->limit(5)
-                ->get()
-                ->map(function ($product) {
-                    try {
-                        return [
-                            'id' => $product->id,
-                            'title' => $product->title,
-                            'description' => Str::limit(strip_tags($product->description ?? $product->summary ?? ''), 100),
-                            'url' => route('admin.products.show', $product->id),
-                            'type' => 'Product',
-                            'icon' => 'package'
-                        ];
-                    } catch (\Exception $e) {
-                        return null;
-                    }
-                })->filter();
-        } catch (\Exception $e) {
-            $results['products'] = collect();
-        }
 
         // Search Job Posts
         try {
@@ -148,33 +114,6 @@ class SearchController extends Controller
             $results['contact_messages'] = collect();
         }
 
-        // Search Loan Applications
-        try {
-            $results['loan_applications'] = LoanApplication::where(function($q) use ($query) {
-                    $q->where('full_name', 'like', "%{$query}%")
-                      ->orWhere('email', 'like', "%{$query}%")
-                      ->orWhere('phone', 'like', "%{$query}%");
-                })
-                ->limit(5)
-                ->get()
-                ->map(function ($application) {
-                    try {
-                        return [
-                            'id' => $application->id,
-                            'title' => $application->full_name ?? 'N/A',
-                            'description' => ($application->email ?? '') . ' - ' . ($application->loan_type ?? 'N/A'),
-                            'url' => route('admin.loan-applications.show', $application->id),
-                            'type' => 'Loan Application',
-                            'icon' => 'dollar-sign'
-                        ];
-                    } catch (\Exception $e) {
-                        return null;
-                    }
-                })->filter();
-        } catch (\Exception $e) {
-            $results['loan_applications'] = collect();
-        }
-
         // Search Team Members
         try {
             $results['team_members'] = TeamMember::where(function($q) use ($query) {
@@ -200,33 +139,6 @@ class SearchController extends Controller
                 })->filter();
         } catch (\Exception $e) {
             $results['team_members'] = collect();
-        }
-
-        // Search Branches
-        try {
-            $results['branches'] = Branch::where(function($q) use ($query) {
-                    $q->where('name', 'like', "%{$query}%")
-                      ->orWhere('address_line1', 'like', "%{$query}%")
-                      ->orWhere('city', 'like', "%{$query}%");
-                })
-                ->limit(5)
-                ->get()
-                ->map(function ($branch) {
-                    try {
-                        return [
-                            'id' => $branch->id,
-                            'title' => $branch->name,
-                            'description' => $branch->address_line1 . ', ' . ($branch->city ?? ''),
-                            'url' => route('admin.branches.edit', $branch->id),
-                            'type' => 'Branch',
-                            'icon' => 'map-pin'
-                        ];
-                    } catch (\Exception $e) {
-                        return null;
-                    }
-                })->filter();
-        } catch (\Exception $e) {
-            $results['branches'] = collect();
         }
 
         // Flatten results

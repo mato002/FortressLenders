@@ -11,11 +11,37 @@ use Illuminate\Http\Request;
 class SelfInterviewQuestionController extends Controller
 {
     /**
+     * Apply company filter if user is a client
+     */
+    protected function applyCompanyFilter($query)
+    {
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id) {
+            return $query->where('company_id', $user->company_id);
+        }
+        return $query;
+    }
+
+    /**
+     * Check if user can access this question (for clients, must belong to their company)
+     */
+    protected function checkQuestionAccess(SelfInterviewQuestion $question)
+    {
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id && $question->company_id !== $user->company_id) {
+            abort(403, 'You do not have permission to access this question.');
+        }
+    }
+
+    /**
      * Display a listing of self‑interview questions.
      */
     public function index(Request $request)
     {
         $query = SelfInterviewQuestion::with('jobPost');
+        
+        // Filter by company for clients
+        $query = $this->applyCompanyFilter($query);
 
         // Filter by job post
         $jobPostId = $request->input('job_post_id');
@@ -43,9 +69,13 @@ class SelfInterviewQuestionController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        $jobPosts = JobPost::select('id', 'title')
-            ->orderBy('title')
-            ->get();
+        // Get job posts for filter (filtered by company for clients)
+        $jobPostsQuery = JobPost::select('id', 'title');
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id) {
+            $jobPostsQuery->where('company_id', $user->company_id);
+        }
+        $jobPosts = $jobPostsQuery->orderBy('title')->get();
 
         return view('admin.self-interview.index', compact('questions', 'jobPosts'));
     }
@@ -58,7 +88,13 @@ class SelfInterviewQuestionController extends Controller
             'display_order' => 0,
         ]);
 
-        $jobPosts = JobPost::select('id', 'title')->orderBy('title')->get();
+        // Get job posts (filtered by company for clients)
+        $jobPostsQuery = JobPost::select('id', 'title');
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id) {
+            $jobPostsQuery->where('company_id', $user->company_id);
+        }
+        $jobPosts = $jobPostsQuery->orderBy('title')->get();
 
         return view('admin.self-interview.create', compact('question', 'jobPosts'));
     }
@@ -79,6 +115,12 @@ class SelfInterviewQuestionController extends Controller
 
         $validated['created_by'] = auth()->id();
         $validated['is_active'] = $request->has('is_active');
+        
+        // Auto-assign company_id for clients
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id) {
+            $validated['company_id'] = $user->company_id;
+        }
 
         if (empty($validated['job_post_id'])) {
             $validated['job_post_id'] = null;
@@ -95,7 +137,15 @@ class SelfInterviewQuestionController extends Controller
 
     public function edit(SelfInterviewQuestion $selfInterview)
     {
-        $jobPosts = JobPost::select('id', 'title')->orderBy('title')->get();
+        $this->checkQuestionAccess($selfInterview);
+        
+        // Get job posts (filtered by company for clients)
+        $jobPostsQuery = JobPost::select('id', 'title');
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id) {
+            $jobPostsQuery->where('company_id', $user->company_id);
+        }
+        $jobPosts = $jobPostsQuery->orderBy('title')->get();
 
         return view('admin.self-interview.edit', [
             'question' => $selfInterview,
@@ -105,6 +155,8 @@ class SelfInterviewQuestionController extends Controller
 
     public function update(Request $request, SelfInterviewQuestion $selfInterview): RedirectResponse
     {
+        $this->checkQuestionAccess($selfInterview);
+        
         $validated = $request->validate([
             'job_post_id' => 'nullable|exists:job_posts,id',
             'question' => 'required|string',
@@ -133,6 +185,8 @@ class SelfInterviewQuestionController extends Controller
 
     public function destroy(SelfInterviewQuestion $selfInterview): RedirectResponse
     {
+        $this->checkQuestionAccess($selfInterview);
+        
         $selfInterview->delete();
 
         return redirect()->route('admin.self-interview.index')
@@ -141,6 +195,8 @@ class SelfInterviewQuestionController extends Controller
 
     public function toggleStatus(SelfInterviewQuestion $selfInterview): RedirectResponse
     {
+        $this->checkQuestionAccess($selfInterview);
+        
         $selfInterview->update(['is_active' => ! $selfInterview->is_active]);
 
         $status = $selfInterview->is_active ? 'activated' : 'deactivated';

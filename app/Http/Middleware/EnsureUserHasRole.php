@@ -28,7 +28,7 @@ class EnsureUserHasRole
             if ($user->hasRole($role) || 
                 ($role === 'admin' && $user->isAdmin()) ||
                 ($role === 'hr_manager' && $user->isHrManager()) ||
-                ($role === 'loan_manager' && $user->isLoanManager())) {
+                ($role === 'client' && $user->isClient())) {
                 $hasRole = true;
                 break;
             }

@@ -18,15 +18,12 @@ class DatabaseSeeder extends Seeder
     {
         $this->seedAdminUser();
         $this->call([
-            ProductSeeder::class,
+            UserSeeder::class,
             TeamMemberSeeder::class,
-            BranchSeeder::class,
             JobPostSeeder::class,
             AptitudeTestQuestionSeeder::class,
             SelfInterviewQuestionSeeder::class,
             JobApplicationSeeder::class,
-            FaqSeeder::class,
-            PostSeeder::class,
         ]);
     }
 

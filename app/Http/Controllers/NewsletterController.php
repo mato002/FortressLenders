@@ -55,12 +55,12 @@ class NewsletterController extends Controller
         $subscriber = NewsletterSubscriber::where('email', $request->email)->first();
 
         if (!$subscriber) {
-            return redirect()->route('home')
+            return redirect()->route('careers.index')
                 ->with('newsletter_error', 'Email address not found in our newsletter list.');
         }
 
         if (!$subscriber->isActive()) {
-            return redirect()->route('home')
+            return redirect()->route('careers.index')
                 ->with('newsletter_error', 'You are already unsubscribed from our newsletter.');
         }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GeneralSetting;
 use App\Models\JobPost;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,9 @@ class CareerController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(12);
 
-        return view('careers.index', compact('jobs'));
+        $generalSettings = GeneralSetting::query()->latest()->first();
+
+        return view('careers.index', compact('jobs', 'generalSettings'));
     }
 
     public function show(JobPost $jobPost)
@@ -35,7 +38,9 @@ class CareerController extends Controller
             ->limit(3)
             ->get();
 
-        return view('careers.show', compact('job', 'relatedJobs'));
+        $generalSettings = GeneralSetting::query()->latest()->first();
+
+        return view('careers.show', compact('job', 'relatedJobs', 'generalSettings'));
     }
 }
 

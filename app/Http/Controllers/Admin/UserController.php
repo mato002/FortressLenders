@@ -156,7 +156,7 @@ class UserController extends Controller
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email' . ($user ? ",{$user->id}" : '')],
-            'role' => ['required', 'string', 'in:user,admin,hr_manager,loan_manager,editor'],
+            'role' => ['required', 'string', 'in:user,admin,hr_manager,editor,client'],
             'is_admin' => ['sometimes', 'boolean'],
         ];
 

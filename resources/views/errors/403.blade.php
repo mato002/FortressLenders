@@ -33,7 +33,7 @@
 
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <a href="{{ route('home') }}" 
+            <a href="{{ route('careers.index') }}" 
                class="px-6 py-3 bg-teal-800 text-white rounded-lg hover:bg-teal-900 transition-colors font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
                 Go to Homepage
             </a>

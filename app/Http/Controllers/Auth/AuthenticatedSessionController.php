@@ -47,7 +47,7 @@ class AuthenticatedSessionController extends Controller
                 return redirect()->intended(route('candidate.dashboard', absolute: false));
             }
 
-            // Check if employee is logged in
+            // Check if employee/user is logged in
             $user = Auth::guard('web')->user();
             if ($user) {
                 $this->sessionManagementService->trackSession($user, $request);

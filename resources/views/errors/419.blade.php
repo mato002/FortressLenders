@@ -37,7 +37,7 @@
                     class="px-6 py-3 bg-teal-800 text-white rounded-lg hover:bg-teal-900 transition-colors font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
                 Refresh Page
             </button>
-            <a href="{{ route('home') }}" 
+            <a href="{{ route('careers.index') }}" 
                class="px-6 py-3 bg-white text-teal-800 border-2 border-teal-800 rounded-lg hover:bg-teal-50 transition-colors font-semibold shadow-md hover:shadow-lg">
                 Go to Homepage
             </a>

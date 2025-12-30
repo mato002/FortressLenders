@@ -12,6 +12,7 @@ class AptitudeTestQuestion extends Model
 
     protected $fillable = [
         'job_post_id',
+        'company_id',
         'section',
         'question',
         'options',
@@ -31,6 +32,11 @@ class AptitudeTestQuestion extends Model
     public function jobPost(): BelongsTo
     {
         return $this->belongsTo(JobPost::class);
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 
     public function createdBy(): BelongsTo
@@ -60,13 +66,27 @@ class AptitudeTestQuestion extends Model
     }
 
     /**
+     * Scope to filter by company
+     */
+    public function scopeForCompany($query, $companyId)
+    {
+        return $query->where('company_id', $companyId);
+    }
+
+    /**
      * Get questions for a test (randomized, limited per section)
      * If job_post_id is provided, gets job-specific questions + global questions
      * If null, gets only global questions
+     * Now also filters by company_id
      */
-    public static function getTestQuestions(?int $jobPostId = null): array
+    public static function getTestQuestions(?int $jobPostId = null, ?int $companyId = null): array
     {
         $query = self::active();
+        
+        // Filter by company if provided
+        if ($companyId) {
+            $query->forCompany($companyId);
+        }
         
         if ($jobPostId) {
             // Get job-specific questions + global questions (where job_post_id is null)

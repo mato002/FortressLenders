@@ -1,8 +1,71 @@
-@extends('layouts.website')
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
+    <meta name="description" content="{{ Str::limit(strip_tags($job->description), 160) }}">
+    <meta name="keywords" content="careers, jobs, Kenya, recruitment, {{ $job->title }}, {{ $job->department }}">
+    <title>{{ $job->title }} - Careers - {{ $generalSettings->company_name ?? 'Company' }}</title>
 
-@section('title', $job->title . ' - Careers - Fortress Lenders Ltd')
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
 
-@section('content')
+    <!-- Styles -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased overflow-x-hidden">
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white shadow-md transition-all duration-300" id="navbar" role="navigation" aria-label="Main navigation">
+        <div class="w-full px-4 sm:px-6 lg:px-12">
+            <div class="flex justify-between items-center h-16 md:h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <a href="{{ route('careers.index') }}" class="flex items-center space-x-2">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-teal-700 to-teal-800 rounded-lg flex items-center justify-center shadow-lg">
+                            <span class="text-amber-400 font-bold text-lg sm:text-xl">F</span>
+                        </div>
+                        <span class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 hidden sm:inline">{{ $generalSettings->company_name ?? 'Company' }}</span>
+                        <span class="text-base font-bold text-gray-900 sm:hidden">{{ mb_substr($generalSettings->company_name ?? 'Company', 0, 10) }}</span>
+                    </a>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex md:items-center md:space-x-8">
+                    <a href="{{ route('careers.index') }}" class="nav-link text-gray-700 hover:text-teal-700 transition-colors">← Back to Jobs</a>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button
+                        type="button"
+                        id="mobile-menu-button"
+                        class="text-gray-700 hover:text-teal-700 focus:outline-none p-2 -mr-2"
+                        aria-label="Toggle navigation menu"
+                        aria-expanded="false"
+                        aria-controls="mobile-menu"
+                    >
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t shadow-lg" role="menu" aria-label="Mobile navigation menu">
+            <div class="px-4 py-4 space-y-3">
+                <a href="{{ route('careers.index') }}" class="block py-3 text-gray-700 hover:text-teal-700 transition-colors font-medium border-b border-gray-100">← Back to Jobs</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-16 md:pt-20 overflow-x-hidden">
+        @php 
+        use Illuminate\Support\Str;
+        @endphp
     <!-- Hero Section -->
     <section
         class="relative text-white py-12 sm:py-16 md:py-20 overflow-hidden"
@@ -351,14 +414,33 @@
         </section>
     @endif
 
-    @push('scripts')
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+            <div class="text-center">
+                <div class="flex items-center justify-center space-x-2 mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-teal-700 to-teal-800 rounded-lg flex items-center justify-center">
+                        <span class="text-amber-400 font-bold text-xl">F</span>
+                    </div>
+                    <span class="text-xl font-bold text-white">{{ $generalSettings->company_name ?? 'Company' }}</span>
+                </div>
+                <p class="text-sm mb-4">{{ $generalSettings->company_description ?? $generalSettings->footer_text ?? 'Empowering careers and connecting talent with opportunities.' }}</p>
+                <p class="text-sm text-gray-400">&copy; {{ date('Y') }} {{ $generalSettings->company_name ?? 'Company' }}. {{ $generalSettings->copyright_text ?? 'All rights reserved.' }}</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
     <script>
         (function() {
             'use strict';
             
             const url = window.location.href;
             const title = {!! json_encode($job->title) !!};
-            const text = 'Check out this job opportunity at Fortress Lenders: ' + title;
+            const companyName = {!! json_encode($generalSettings->company_name ?? '') !!};
+            const text = 'Check out this job opportunity' + (companyName ? ' at ' + companyName : '') + ': ' + title;
             
             function toggleShareMenu() {
                 const menu = document.getElementById('share-menu');
@@ -505,6 +587,36 @@
             });
         })();
     </script>
-    @endpush
-@endsection
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', function() {
+                const isHidden = mobileMenu.classList.toggle('hidden');
+                mobileMenuButton.setAttribute('aria-expanded', String(!isHidden));
+            });
+        }
+
+        // Navbar scroll effect
+        let lastScroll = 0;
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (navbar) {
+                const currentScroll = window.pageYOffset;
+                
+                if (currentScroll > 100) {
+                    navbar.classList.add('shadow-lg');
+                } else {
+                    navbar.classList.remove('shadow-lg');
+                }
+                
+                lastScroll = currentScroll;
+            }
+        });
+    </script>
+</body>
+</html>
 

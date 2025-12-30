@@ -70,7 +70,7 @@
                 <h2 class="text-2xl sm:text-3xl font-bold mb-4">Ready to get started?</h2>
                 <p class="text-lg text-teal-100 mb-6">Contact us today to learn more about our services.</p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="{{ route('contact') }}" class="inline-block px-6 py-3 bg-white text-teal-800 rounded-lg font-semibold hover:bg-teal-50 transition-colors">
+                    <a href="mailto:{{ $generalSettings->company_email ?? 'info@example.com' }}" class="inline-block px-6 py-3 bg-white text-teal-800 rounded-lg font-semibold hover:bg-teal-50 transition-colors">
                         Contact Us
                     </a>
                     <a href="{{ route('products') }}" class="inline-block px-6 py-3 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition-colors">

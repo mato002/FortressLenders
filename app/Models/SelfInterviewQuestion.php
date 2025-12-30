@@ -12,6 +12,7 @@ class SelfInterviewQuestion extends Model
 
     protected $fillable = [
         'job_post_id',
+        'company_id',
         'question',
         'options',
         'correct_answer',
@@ -32,9 +33,22 @@ class SelfInterviewQuestion extends Model
         return $this->belongsTo(JobPost::class);
     }
 
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Scope to filter by company
+     */
+    public function scopeForCompany($query, $companyId)
+    {
+        return $query->where('company_id', $companyId);
     }
 }
 

@@ -5,7 +5,7 @@
 @section('header-description', 'Upload and manage the website logo that appears in the header.')
 
 @section('header-actions')
-    <a href="{{ route('home') }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-100">
+    <a href="{{ route('careers.index') }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-100">
         Preview Website
     </a>
 @endsection

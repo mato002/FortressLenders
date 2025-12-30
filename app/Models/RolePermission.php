@@ -53,7 +53,6 @@ class RolePermission extends Model
             $formatted[$permission->permission_name] = [
                 'admin' => $permission->hasRole('admin'),
                 'hr_manager' => $permission->hasRole('hr_manager'),
-                'loan_manager' => $permission->hasRole('loan_manager'),
                 'editor' => $permission->hasRole('editor'),
                 'user' => $permission->hasRole('user'),
                 'key' => $permission->permission_key,

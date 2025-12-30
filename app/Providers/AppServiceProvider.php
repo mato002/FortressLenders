@@ -37,7 +37,15 @@ class AppServiceProvider extends ServiceProvider
                 ->orWhere('status', 'new')
                 ->count();
 
+            $generalSettings = GeneralSetting::latest()->first();
+            
             $view->with('adminUnreadMessagesCount', $unreadCount);
+            $view->with('generalSettings', $generalSettings);
+        });
+
+        View::composer('layouts.candidate', function ($view): void {
+            $generalSettings = GeneralSetting::latest()->first();
+            $view->with('generalSettings', $generalSettings);
         });
     }
 }

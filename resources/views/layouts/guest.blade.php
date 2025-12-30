@@ -24,7 +24,7 @@
             <div class="flex justify-between items-center h-16 md:h-20">
                 <!-- Logo -->
                 <div class="flex-shrink-0">
-                    <a href="{{ route('home') }}" class="flex items-center space-x-2">
+                    <a href="{{ route('careers.index') }}" class="flex items-center space-x-2">
                         <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-teal-700 to-teal-800 rounded-lg flex items-center justify-center shadow-lg">
                             <span class="text-amber-400 font-bold text-lg sm:text-xl">F</span>
                         </div>
@@ -35,10 +35,9 @@
 
                 <!-- Desktop Navigation -->
                 <div class="hidden md:flex md:items-center md:space-x-8">
-                    <a href="{{ route('home') }}" class="nav-link text-gray-700 hover:text-teal-700 transition-colors">Home</a>
+                    <a href="{{ route('careers.index') }}" class="nav-link text-gray-700 hover:text-teal-700 transition-colors">Home</a>
                     <a href="{{ route('about') }}" class="nav-link text-gray-700 hover:text-teal-700 transition-colors">About Us</a>
                     <a href="{{ route('products') }}" class="nav-link text-gray-700 hover:text-teal-700 transition-colors">Products</a>
-                    <a href="{{ route('contact') }}" class="nav-link text-gray-700 hover:text-teal-700 transition-colors">Contact</a>
                 </div>
             </div>
         </div>

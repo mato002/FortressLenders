@@ -2,29 +2,14 @@
 
 use App\Http\Controllers\Admin\ContactMessageController as AdminContactMessageController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\ContactSettingsController as AdminContactSettingsController;
-use App\Http\Controllers\Admin\HomeSettingsController as AdminHomeSettingsController;
-use App\Http\Controllers\Admin\ProductController as AdminProductController;
-use App\Http\Controllers\Admin\ProductImageController as AdminProductImageController;
 use App\Http\Controllers\Admin\TeamMemberController as AdminTeamMemberController;
-use App\Http\Controllers\Admin\BranchController as AdminBranchController;
-use App\Http\Controllers\Admin\FaqController as AdminFaqController;
-use App\Http\Controllers\Admin\PostController as AdminPostController;
-use App\Http\Controllers\Admin\CeoMessageController as AdminCeoMessageController;
 use App\Http\Controllers\AboutPageController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\LoanApplicationController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Admin\AboutSettingsController;
 use App\Http\Controllers\Admin\LogoSettingsController;
 use App\Http\Controllers\Admin\ApiSettingsController;
 use App\Http\Controllers\Admin\GeneralSettingsController;
-use App\Http\Controllers\FaqController;
-use App\Http\Controllers\PostController;
-use App\Http\Controllers\CeoMessageController;
-use App\Http\Controllers\Admin\LoanApplicationController as AdminLoanApplicationController;
 use App\Http\Controllers\CareerController;
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\Admin\JobPostController;
@@ -37,58 +22,8 @@ use App\Http\Controllers\NewsletterController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 
-// Public Website Routes
-Route::get('/', HomeController::class)->name('home');
-Route::get('/about', AboutPageController::class)->name('about');
-
-Route::get('/products', [ProductController::class, 'index'])->name('products');
-
-Route::get('/apply-loan', [LoanApplicationController::class, 'create'])->name('loan.apply');
-Route::post('/apply-loan', [LoanApplicationController::class, 'store'])
-    ->middleware('throttle:5,1')
-    ->name('loan.apply.submit');
-
-Route::get('/contact', [ContactController::class, 'index'])->name('contact');
-Route::post('/contact', [ContactController::class, 'store'])
-    ->middleware('throttle:5,1')
-    ->name('contact.store');
-
-Route::get('/faq', [FaqController::class, 'index'])->name('faq');
-Route::get('/news', [PostController::class, 'index'])->name('posts.index');
-Route::get('/news/{post:slug}', [PostController::class, 'show'])->name('posts.show');
-Route::get('/ceo-message', [CeoMessageController::class, 'index'])->name('ceo-message');
-
-// Legal / Terms
-Route::view('/terms', 'terms')->name('terms');
-
-// Company Profile (PDF)
-Route::get('/company-profile', function () {
-    $path = base_path('Fortress company profile.pdf');
-
-    if (! file_exists($path)) {
-        abort(404);
-    }
-
-    return response()->file($path, [
-        'Content-Type' => 'application/pdf',
-        'Cache-Control' => 'public, max-age=86400',
-    ]);
-})->name('company.profile');
-
-// Cookie Consent Routes
-Route::post('/cookie-consent/accept', [CookieConsentController::class, 'accept'])->name('cookie.consent.accept');
-Route::post('/cookie-consent/reject', [CookieConsentController::class, 'reject'])->name('cookie.consent.reject');
-Route::get('/cookie-consent/check', [CookieConsentController::class, 'check'])->name('cookie.consent.check');
-
-// Newsletter Routes
-Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])
-    ->middleware('throttle:5,1')
-    ->name('newsletter.subscribe');
-Route::post('/newsletter/unsubscribe', [NewsletterController::class, 'unsubscribe'])
-    ->middleware('throttle:5,1')
-    ->name('newsletter.unsubscribe');
-
-// Career Routes
+// Public Website Routes - Careers is now the home page
+Route::get('/', [CareerController::class, 'index'])->name('careers.index');
 Route::get('/careers', [CareerController::class, 'index'])->name('careers.index');
 Route::get('/careers/{jobPost:slug}', [CareerController::class, 'show'])->name('careers.show');
 Route::get('/careers/{jobPost:slug}/apply', [JobApplicationController::class, 'create'])->name('careers.apply');
@@ -124,7 +59,7 @@ Route::get('/dashboard', function () {
     
     // Check if employee/user is logged in
     $user = auth()->user();
-    if ($user && in_array($user->role, ['admin', 'hr_manager', 'loan_manager', 'editor'])) {
+    if ($user && (in_array($user->role, ['admin', 'hr_manager', 'editor']) || $user->isClient())) {
         return redirect()->route('admin.dashboard');
     }
 
@@ -157,15 +92,9 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/search', [\App\Http\Controllers\Admin\SearchController::class, 'search'])->name('search');
         Route::get('/profile', [ProfileController::class, 'editAdmin'])->name('profile');
-        // Admin-only routes: Settings, Team, Branches
+        // Admin-only routes: Settings, Team
         Route::middleware('role:admin')->group(function () {
             // Settings
-            Route::get('/home', [AdminHomeSettingsController::class, 'edit'])->name('home.edit');
-            Route::post('/home', [AdminHomeSettingsController::class, 'update'])->name('home.update');
-            Route::get('/about', [AboutSettingsController::class, 'edit'])->name('about.edit');
-            Route::post('/about', [AboutSettingsController::class, 'update'])->name('about.update');
-            Route::get('/contact-page', [AdminContactSettingsController::class, 'edit'])->name('contact.edit');
-            Route::post('/contact-page', [AdminContactSettingsController::class, 'update'])->name('contact.update');
             Route::get('/logo', [LogoSettingsController::class, 'edit'])->name('logo.edit');
             Route::post('/logo', [LogoSettingsController::class, 'update'])->name('logo.update');
             Route::get('/api', [ApiSettingsController::class, 'edit'])->name('api.edit');
@@ -176,9 +105,6 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             // Team Members
             Route::resource('team-members', AdminTeamMemberController::class);
             
-            // Branches
-            Route::resource('branches', AdminBranchController::class)->except(['show']);
-            
             // Activity Logs
             Route::resource('activity-logs', AdminActivityLogController::class)->only(['index', 'show']);
             Route::post('activity-logs/{activityLog}/block-ip', [AdminActivityLogController::class, 'blockIp'])->name('activity-logs.block-ip');
@@ -188,39 +114,26 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             Route::post('users/{user}/unban', [AdminActivityLogController::class, 'unbanUser'])->name('users.unban');
         });
         
-        Route::resource('products', AdminProductController::class);
         Route::post('contact-messages/bulk-update-status', [AdminContactMessageController::class, 'bulkUpdateStatus'])->name('contact-messages.bulk-update-status');
         Route::post('contact-messages/bulk-delete', [AdminContactMessageController::class, 'bulkDelete'])->name('contact-messages.bulk-delete');
         Route::get('contact-messages/export', [AdminContactMessageController::class, 'export'])->name('contact-messages.export');
         Route::resource('contact-messages', AdminContactMessageController::class)->only(['index', 'show', 'update', 'destroy']);
         Route::post('contact-messages/{contactMessage}/reply', [AdminContactMessageController::class, 'sendReply'])->name('contact-messages.reply');
-        Route::resource('faqs', AdminFaqController::class)->except(['show']);
-        Route::resource('posts', AdminPostController::class);
-        Route::resource('ceo-messages', AdminCeoMessageController::class)->except(['show']);
         
         // User Management - Only accessible by admins
         Route::middleware('role:admin')->group(function () {
             Route::resource('users', AdminUserController::class);
             Route::get('permissions', [\App\Http\Controllers\Admin\PermissionsController::class, 'index'])->name('permissions.index');
             Route::put('permissions', [\App\Http\Controllers\Admin\PermissionsController::class, 'update'])->name('permissions.update');
+            
+            // Company Management
+            Route::resource('companies', \App\Http\Controllers\Admin\CompanyController::class);
+            Route::post('companies/{company}/regenerate-api-key', [\App\Http\Controllers\Admin\CompanyController::class, 'regenerateApiKey'])->name('companies.regenerate-api-key');
+            Route::post('companies/{company}/toggle-status', [\App\Http\Controllers\Admin\CompanyController::class, 'toggleStatus'])->name('companies.toggle-status');
         });
         
-        // Loan Applications Routes - Accessible by Admin and Loan Manager
-        Route::middleware('role:admin,loan_manager')->group(function () {
-            Route::prefix('loan-applications')->name('loan-applications.')->group(function () {
-                // Bulk actions must come before resource routes to avoid route conflicts
-                Route::post('bulk-send-confirmation', [AdminLoanApplicationController::class, 'sendBulkConfirmationEmails'])->name('bulk-send-confirmation');
-                Route::post('bulk-update-status', [AdminLoanApplicationController::class, 'bulkUpdateStatus'])->name('bulk-update-status');
-                Route::post('bulk-delete', [AdminLoanApplicationController::class, 'bulkDelete'])->name('bulk-delete');
-                Route::get('export', [AdminLoanApplicationController::class, 'export'])->name('export');
-            });
-            Route::resource('loan-applications', AdminLoanApplicationController::class)->only(['index', 'show', 'update', 'destroy']);
-            Route::post('loan-applications/{loanApplication}/message', [AdminLoanApplicationController::class, 'sendMessage'])->name('loan-applications.message');
-            Route::post('loan-applications/{loanApplication}/send-confirmation', [AdminLoanApplicationController::class, 'sendConfirmationEmail'])->name('loan-applications.send-confirmation');
-        });
-        
-        // Careers Routes - Accessible by Admin and HR Manager
-        Route::middleware('role:admin,hr_manager')->group(function () {
+        // Careers Routes - Accessible by Admin, HR Manager, and Clients
+        Route::middleware('role:admin,hr_manager,client')->group(function () {
             Route::resource('jobs', JobPostController::class)->except(['destroy']);
             Route::post('jobs/{job}/toggle-status', [JobPostController::class, 'toggleStatus'])->name('jobs.toggle-status');
             Route::get('jobs/{job}/configure-sieving', [JobPostController::class, 'configureSieving'])->name('jobs.configure-sieving');
@@ -247,17 +160,6 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
                 Route::get('calendar', [AdminJobApplicationController::class, 'interviewCalendar'])->name('calendar');
             });
             Route::get('job-applications/{application}/view-cv', [AdminJobApplicationController::class, 'viewCv'])->name('job-applications.view-cv');
-        });
-        
-        // Token Management Routes - Accessible by Admin
-        Route::middleware('role:admin')->group(function () {
-            Route::get('tokens', [AdminTokenController::class, 'index'])->name('tokens.index');
-            Route::get('tokens/usage', [AdminTokenController::class, 'usage'])->name('tokens.usage');
-            Route::get('tokens/purchases', [AdminTokenController::class, 'purchases'])->name('tokens.purchases');
-            Route::post('tokens/purchases', [AdminTokenController::class, 'createPurchase'])->name('tokens.purchases.create');
-            Route::post('tokens/allocate', [AdminTokenController::class, 'allocate'])->name('tokens.allocate');
-            Route::get('tokens/balance', [AdminTokenController::class, 'balance'])->name('tokens.balance');
-            Route::get('tokens/stats', [AdminTokenController::class, 'stats'])->name('tokens.stats');
             Route::get('job-applications/{application}/download-cv', [AdminJobApplicationController::class, 'downloadCv'])->name('job-applications.download-cv');
             Route::resource('job-applications', AdminJobApplicationController::class)->only(['index', 'show', 'destroy']);
             Route::post('job-applications/{application}/review', [AdminJobApplicationController::class, 'review'])->name('job-applications.review');
@@ -276,13 +178,17 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             Route::post('job-applications/{application}/analyze-with-ai', [AdminJobApplicationController::class, 'analyzeWithAI'])->name('job-applications.analyze-with-ai');
             Route::post('job-applications/{application}/process-cv-and-ai', [AdminJobApplicationController::class, 'processCvAndAI'])->name('job-applications.process-cv-and-ai');
         });
-        Route::prefix('products/{product}/images')
-            ->name('products.images.')
-            ->group(function () {
-                Route::post('reorder', [AdminProductImageController::class, 'reorder'])->name('reorder');
-                Route::post('{image}/primary', [AdminProductImageController::class, 'makePrimary'])->name('primary');
-                Route::delete('{image}', [AdminProductImageController::class, 'destroy'])->name('destroy');
-            });
+        
+        // Token Management Routes - Accessible by Admin
+        Route::middleware('role:admin')->group(function () {
+            Route::get('tokens', [AdminTokenController::class, 'index'])->name('tokens.index');
+            Route::get('tokens/usage', [AdminTokenController::class, 'usage'])->name('tokens.usage');
+            Route::get('tokens/purchases', [AdminTokenController::class, 'purchases'])->name('tokens.purchases');
+            Route::post('tokens/purchases', [AdminTokenController::class, 'createPurchase'])->name('tokens.purchases.create');
+            Route::post('tokens/allocate', [AdminTokenController::class, 'allocate'])->name('tokens.allocate');
+            Route::get('tokens/balance', [AdminTokenController::class, 'balance'])->name('tokens.balance');
+            Route::get('tokens/stats', [AdminTokenController::class, 'stats'])->name('tokens.stats');
+        });
 
         // Temporary maintenance route to clear caches from browser (admin only).
         // Visit /admin/maintenance/clear-caches once in production, then remove this route.

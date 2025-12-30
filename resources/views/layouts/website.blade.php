@@ -8,13 +8,13 @@
     @hasSection('meta_description')
         <meta name="description" content="@yield('meta_description')">
     @else
-        <meta name="description" content="Fortress Lenders Ltd - Microfinance and microcredit services in Kenya. Empowering communities through accessible financial solutions.">
+        <meta name="description" content="Fortress Lenders Ltd - Leading recruitment and career opportunities platform in Kenya. Connecting talent with opportunities.">
     @endif
 
     @hasSection('meta_keywords')
         <meta name="keywords" content="@yield('meta_keywords')">
     @else
-        <meta name="keywords" content="microfinance, loans, Kenya, Nakuru, financial services, credit institution, microcredit, SME financing">
+        <meta name="keywords" content="careers, jobs, Kenya, recruitment, job opportunities, career opportunities, talent acquisition">
     @endif
     
     <title>
@@ -41,7 +41,7 @@
             <div class="flex justify-between items-center h-16 md:h-20">
                 <!-- Logo -->
                 <div class="flex-shrink-0">
-                    <a href="{{ route('home') }}" class="flex items-center space-x-2">
+                    <a href="{{ route('careers.index') }}" class="flex items-center space-x-2">
                         <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-teal-700 to-teal-800 rounded-lg flex items-center justify-center shadow-lg">
                             <span class="text-amber-400 font-bold text-lg sm:text-xl">F</span>
                         </div>
@@ -52,16 +52,9 @@
 
                 <!-- Desktop Navigation -->
                 <div class="hidden md:flex md:items-center md:space-x-8">
-                    <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'text-teal-700 font-semibold' : 'text-gray-700 hover:text-teal-700' }} transition-colors">Home</a>
+                    <a href="{{ route('careers.index') }}" class="nav-link {{ request()->routeIs('careers.index') ? 'text-teal-700 font-semibold' : 'text-gray-700 hover:text-teal-700' }} transition-colors">Home</a>
                     <a href="{{ route('about') }}" class="nav-link {{ request()->routeIs('about') ? 'text-teal-700 font-semibold' : 'text-gray-700 hover:text-teal-700' }} transition-colors">About Us</a>
-                    <a href="{{ route('products') }}" class="nav-link {{ request()->routeIs('products') ? 'text-teal-700 font-semibold' : 'text-gray-700 hover:text-teal-700' }} transition-colors">Products</a>
-                    <a href="{{ route('faq') }}" class="nav-link {{ request()->routeIs('faq') ? 'text-teal-700 font-semibold' : 'text-gray-700 hover:text-teal-700' }} transition-colors">FAQs</a>
-                    <a href="{{ route('posts.index') }}" class="nav-link {{ request()->routeIs('posts.*') ? 'text-teal-700 font-semibold' : 'text-gray-700 hover:text-teal-700' }} transition-colors">Blog</a>
                     <a href="{{ route('careers.index') }}" class="nav-link {{ request()->routeIs('careers.*') ? 'text-teal-700 font-semibold' : 'text-gray-700 hover:text-teal-700' }} transition-colors">Careers</a>
-                    <a href="{{ route('contact') }}" class="nav-link {{ request()->routeIs('contact') ? 'text-teal-700 font-semibold' : 'text-gray-700 hover:text-teal-700' }} transition-colors">Contact</a>
-                    <div class="flex items-center space-x-3">
-                        <a href="{{ route('loan.apply') }}" class="px-4 py-2 bg-teal-800 text-white rounded-lg hover:bg-teal-900 transition-colors font-semibold">Apply for Loan</a>
-                    </div>
                 </div>
 
                 <!-- Mobile menu button -->
@@ -85,16 +78,9 @@
         <!-- Mobile Navigation -->
         <div id="mobile-menu" class="hidden md:hidden bg-white border-t shadow-lg" role="menu" aria-label="Mobile navigation menu">
             <div class="px-4 py-4 space-y-3">
-                <a href="{{ route('home') }}" class="block py-3 text-gray-700 hover:text-teal-700 transition-colors font-medium border-b border-gray-100">Home</a>
+                <a href="{{ route('careers.index') }}" class="block py-3 text-gray-700 hover:text-teal-700 transition-colors font-medium border-b border-gray-100">Home</a>
                 <a href="{{ route('about') }}" class="block py-3 text-gray-700 hover:text-teal-700 transition-colors font-medium border-b border-gray-100">About Us</a>
-                <a href="{{ route('products') }}" class="block py-3 text-gray-700 hover:text-teal-700 transition-colors font-medium border-b border-gray-100">Products</a>
-                <a href="{{ route('faq') }}" class="block py-3 text-gray-700 hover:text-teal-700 transition-colors font-medium border-b border-gray-100">FAQs</a>
-                <a href="{{ route('posts.index') }}" class="block py-3 text-gray-700 hover:text-teal-700 transition-colors font-medium border-b border-gray-100">Blog</a>
                 <a href="{{ route('careers.index') }}" class="block py-3 text-gray-700 hover:text-teal-700 transition-colors font-medium border-b border-gray-100">Careers</a>
-                <a href="{{ route('contact') }}" class="block py-3 text-gray-700 hover:text-teal-700 transition-colors font-medium border-b border-gray-100">Contact</a>
-                <div class="pt-2">
-                    <a href="{{ route('loan.apply') }}" class="block text-center px-4 py-3 bg-teal-800 text-white rounded-lg hover:bg-teal-900 transition-colors font-semibold">Apply for Loan</a>
-                </div>
             </div>
         </div>
     </nav>
@@ -119,7 +105,7 @@
                     @if($generalSettings->company_description ?? null)
                         <p class="text-sm mb-4">{{ $generalSettings->company_description }}</p>
                     @else
-                        <p class="text-sm mb-4">The Force Of Possibilities! Empowering communities through accessible financial solutions.</p>
+                        <p class="text-sm mb-4">The Force Of Possibilities! Empowering careers and connecting talent with opportunities.</p>
                     @endif
                     @if($generalSettings->company_address ?? null)
                         <p class="text-sm mb-4">
@@ -190,14 +176,10 @@
                 <div>
                     <h3 class="text-white font-semibold mb-4">Quick Links</h3>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="{{ route('home') }}" class="hover:text-white transition-colors">Home</a></li>
+                        <li><a href="{{ route('careers.index') }}" class="hover:text-white transition-colors">Home</a></li>
                         <li><a href="{{ route('about') }}" class="hover:text-white transition-colors">About Us</a></li>
-                        <li><a href="{{ route('products') }}" class="hover:text-white transition-colors">Products</a></li>
-                        <li><a href="{{ route('faq') }}" class="hover:text-white transition-colors">FAQs</a></li>
-                        <li><a href="{{ route('posts.index') }}" class="hover:text-white transition-colors">Blog</a></li>
                         <li><a href="{{ route('careers.index') }}" class="hover:text-white transition-colors">Careers</a></li>
                         <li><a href="{{ route('company.profile') }}" target="_blank" rel="noopener" class="hover:text-white transition-colors">Company Profile (PDF)</a></li>
-                        <li><a href="{{ route('contact') }}" class="hover:text-white transition-colors">Contact</a></li>
                     </ul>
                 </div>
 
@@ -360,7 +342,7 @@
                 <div class="p-4 border-b border-gray-200">
                     <div class="space-y-2">
                         <button type="button" class="quick-action-btn w-full text-left px-4 py-3 bg-gray-50 hover:bg-teal-50 rounded-lg transition-colors flex items-center justify-between group">
-                            <span class="text-sm text-gray-700 group-hover:text-teal-700">Loan Information</span>
+                            <span class="text-sm text-gray-700 group-hover:text-teal-700">Job Opportunities</span>
                             <svg class="w-4 h-4 text-gray-400 group-hover:text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                             </svg>
@@ -372,7 +354,7 @@
                             </svg>
                         </button>
                         <button type="button" class="quick-action-btn w-full text-left px-4 py-3 bg-gray-50 hover:bg-teal-50 rounded-lg transition-colors flex items-center justify-between group">
-                            <span class="text-sm text-gray-700 group-hover:text-teal-700">Apply for Loan</span>
+                            <span class="text-sm text-gray-700 group-hover:text-teal-700">Apply for Job</span>
                             <svg class="w-4 h-4 text-gray-400 group-hover:text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                             </svg>
@@ -405,7 +387,7 @@
                     </button>
                 </form>
                 <div class="mt-2 text-center">
-                    <a href="{{ route('contact') }}" class="text-xs text-teal-700 hover:text-teal-800 transition-colors">Or visit our contact page</a>
+                    <a href="mailto:{{ $generalSettings->company_email ?? 'support@example.com' }}" class="text-xs text-teal-700 hover:text-teal-800 transition-colors">Or contact us via email</a>
                 </div>
             </div>
         </div>
@@ -521,12 +503,12 @@
                 // Simulate bot response
                 setTimeout(() => {
                     let response = '';
-                    if (action === 'Loan Information') {
-                        response = 'We offer various loan products including personal loans, business loans, and microfinance solutions. You can visit our Products page or contact us at +254 743 838 312 for more details.';
+                    if (action === 'Job Opportunities') {
+                        response = 'We have various job opportunities across different industries. You can visit our Careers page to browse available positions or contact us at +254 743 838 312 for more details.';
                     } else if (action === 'Contact Details') {
                         response = 'You can reach us at:\n📞 +254 743 838 312\n📞 +254 722 295 194\n📧 info@fortresslenders.com\n📍 Fortress Hse, Nakuru County, Barnabas Muguga Opp. Epic ridge Academy';
-                    } else if (action === 'Apply for Loan') {
-                        response = 'Great! You can apply for a loan by visiting our loan application page. I can redirect you there, or you can click the "Apply for Loan" button in the navigation menu.';
+                    } else if (action === 'Apply for Job') {
+                        response = 'Great! You can apply for a job by visiting our Careers page. Browse available positions and submit your application online.';
                     } else {
                         response = 'Thank you for your interest! How can I help you further?';
                     }
@@ -696,7 +678,7 @@
                             <p class="text-sm text-gray-600">
                                 We use cookies to enhance your browsing experience, analyze site traffic, and personalize content. 
                                 By clicking "Accept All", you consent to our use of cookies. 
-                                <a href="{{ route('contact') }}" class="text-teal-700 hover:text-teal-800 underline">Learn more</a>
+                                <a href="mailto:{{ $generalSettings->company_email ?? 'support@example.com' }}" class="text-teal-700 hover:text-teal-800 underline">Contact us</a>
                             </p>
                         </div>
                     </div>

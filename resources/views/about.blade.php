@@ -6,11 +6,7 @@
     <!-- Hero Section -->
     <section
         class="relative text-white py-12 sm:py-16 md:py-20 overflow-hidden"
-        @if (!empty($aboutSettings?->hero_image_path))
-            style="background-image: linear-gradient(to bottom right, rgba(4, 120, 87, 0.9), rgba(6, 78, 59, 0.9)), url('{{ asset('storage/'.$aboutSettings->hero_image_path) }}'); background-size: cover; background-position: center;"
-        @else
-            style="background-image: linear-gradient(to bottom right, #115e59, #0f766e, #134e4a);"
-        @endif
+        style="background-image: linear-gradient(to bottom right, #115e59, #0f766e, #134e4a);"
     >
         <div class="relative w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32 text-center">
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 px-4">About Fortress Lenders</h1>

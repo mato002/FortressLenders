@@ -270,6 +270,7 @@ class TokenService
                 'used' => 0,
                 'remaining' => 0,
                 'percentage_used' => 0,
+                'percentage_remaining' => 0,
                 'status' => 'no_allocation',
             ];
         }

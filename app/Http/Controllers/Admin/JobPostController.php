@@ -10,9 +10,24 @@ use Illuminate\Support\Str;
 
 class JobPostController extends Controller
 {
+    /**
+     * Apply company filter if user is a client
+     */
+    protected function applyCompanyFilter($query)
+    {
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id) {
+            return $query->where('company_id', $user->company_id);
+        }
+        return $query;
+    }
+
     public function index(Request $request)
     {
         $query = JobPost::withCount('applications');
+        
+        // Filter by company for clients
+        $query = $this->applyCompanyFilter($query);
 
         // Search filter
         if ($request->filled('search')) {
@@ -36,14 +51,15 @@ class JobPostController extends Controller
             $query->where('department', $request->string('department'));
         }
 
-        $totalJobsCount = JobPost::count();
+        // Get counts with company filter applied
+        $totalJobsCount = $this->applyCompanyFilter(JobPost::query())->count();
         $filteredJobsCount = $query->count();
 
         $jobs = $query->orderBy('created_at', 'desc')
             ->paginate(15)
             ->withQueryString();
 
-        $departments = JobPost::whereNotNull('department')
+        $departments = $this->applyCompanyFilter(JobPost::whereNotNull('department'))
             ->distinct()
             ->pluck('department')
             ->sort()
@@ -74,6 +90,12 @@ class JobPostController extends Controller
 
         $validated['slug'] = Str::slug($validated['title']);
         $validated['is_active'] = $request->has('is_active');
+        
+        // Auto-assign company_id for clients
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id) {
+            $validated['company_id'] = $user->company_id;
+        }
 
         JobPost::create($validated);
 
@@ -83,12 +105,24 @@ class JobPostController extends Controller
 
     public function show(JobPost $job)
     {
+        // Check if client can access this job (must belong to their company)
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id && $job->company_id !== $user->company_id) {
+            abort(403, 'You do not have permission to access this job post.');
+        }
+        
         $job->loadCount('applications');
         return view('admin.jobs.show', compact('job'));
     }
 
     public function edit(JobPost $job)
     {
+        // Check if client can access this job (must belong to their company)
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id && $job->company_id !== $user->company_id) {
+            abort(403, 'You do not have permission to access this job post.');
+        }
+        
         return view('admin.jobs.edit', compact('job'));
     }
 
@@ -121,6 +155,12 @@ class JobPostController extends Controller
 
     public function toggleStatus(JobPost $job)
     {
+        // Check if client can access this job (must belong to their company)
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id && $job->company_id !== $user->company_id) {
+            abort(403, 'You do not have permission to modify this job post.');
+        }
+        
         $job->update([
             'is_active' => !$job->is_active
         ]);
@@ -133,6 +173,12 @@ class JobPostController extends Controller
 
     public function configureSieving(JobPost $job)
     {
+        // Check if client can access this job (must belong to their company)
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id && $job->company_id !== $user->company_id) {
+            abort(403, 'You do not have permission to access this job post.');
+        }
+        
         $criteria = $job->sievingCriteria ?? new JobSievingCriteria([
             'job_post_id' => $job->id,
             'criteria_json' => JobSievingCriteria::getDefaultCriteria(),
@@ -147,6 +193,12 @@ class JobPostController extends Controller
 
     public function storeSieving(Request $request, JobPost $job)
     {
+        // Check if client can access this job (must belong to their company)
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id && $job->company_id !== $user->company_id) {
+            abort(403, 'You do not have permission to modify this job post.');
+        }
+        
         $validated = $request->validate([
             'auto_pass_threshold' => 'required|integer|min:0|max:100',
             'auto_reject_threshold' => 'required|integer|min:0|max:100',

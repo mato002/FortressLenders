@@ -10,9 +10,6 @@
     <!-- Hero Section -->
     <section
         class="relative text-white overflow-hidden bg-gradient-to-br from-teal-800 via-teal-700 to-teal-900"
-        @if (!empty($homeSettings?->hero_image_path))
-            style="background-image: linear-gradient(to bottom right, rgba(4, 120, 87, 0.85), rgba(6, 78, 59, 0.9)), url('{{ asset('storage/'.$homeSettings->hero_image_path) }}'); background-size: cover; background-position: center;"
-        @endif
     >
         <div class="absolute inset-0 bg-black opacity-10"></div>
         <div class="absolute inset-0 hidden md:block">
@@ -32,15 +29,7 @@
             <p class="text-base sm:text-lg md:text-xl mb-8 sm:mb-10 max-w-3xl mx-auto text-teal-50 animate-fade-in-up animation-delay-400 px-4">
                     Empowering communities through accessible financial solutions. We enable people to achieve their dreams through customer-centric microfinance and microcredit services.
             </p>
-            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-fade-in-up animation-delay-600 px-4">
-                <a href="{{ route('loan.apply') }}" class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-teal-800 rounded-lg font-semibold hover:bg-teal-50 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base">
-                    Apply for a Loan
-                </a>
-                <a href="{{ route('products') }}" class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base">
-                    View Products
-                </a>
-                </div>
-            </div>
+            
         </div>
     </section>
 
@@ -74,37 +63,37 @@
             <div class="text-center mb-8 sm:mb-12 md:mb-16">
                 <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 px-4">Our Services</h2>
                 <p class="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
-                    Comprehensive financial solutions designed to support individuals, groups, and micro-enterprises
+                    Comprehensive career solutions designed to connect talent with opportunities
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
-                <!-- Loans Card -->
+                <!-- Career Opportunities Card -->
                 <div class="bg-white rounded-xl shadow-lg p-6 sm:p-8 hover:shadow-2xl transition-all transform hover:-translate-y-2 animate-fade-in-up">
                     <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-teal-700 to-teal-800 rounded-lg flex items-center justify-center mb-4 sm:mb-6">
                         <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                     </div>
-                    <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">Loans</h3>
-                    <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Individual, Group, Agricultural, Education, and Emergency loans tailored to your needs.</p>
-                    <a href="{{ route('products') }}" class="text-teal-800 font-semibold hover:text-teal-700 inline-flex items-center">
-                        Learn More
+                    <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">Job Opportunities</h3>
+                    <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Explore diverse career opportunities across various industries and find your perfect match.</p>
+                    <a href="{{ route('careers.index') }}" class="text-teal-800 font-semibold hover:text-teal-700 inline-flex items-center">
+                        View Jobs
                         <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </a>
                 </div>
 
-                <!-- Financial Advisory Card -->
+                <!-- Career Development Card -->
                 <div class="bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all transform hover:-translate-y-2 animate-fade-in-up animation-delay-400">
                     <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center mb-6">
                         <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-4">Financial Advisory</h3>
-                    <p class="text-gray-600 mb-6">Free financial literacy and business management programs to help you succeed.</p>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Career Development</h3>
+                    <p class="text-gray-600 mb-6">Professional growth programs and resources to help you advance in your career journey.</p>
                     <a href="{{ route('about') }}" class="text-blue-900 font-semibold hover:text-blue-700 inline-flex items-center">
                         Learn More
                         <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,10 +112,10 @@
                 <div class="animate-fade-in px-4 lg:px-0">
                     <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">About Fortress Lenders</h2>
                     <p class="text-base sm:text-lg text-gray-600 mb-3 sm:mb-4">
-                        Fortress Lenders Ltd is a registered credit-only institution in the Republic of Kenya, established in 2019. We are licensed and trade as a credit-only institution as stated in our company memorandum.
+                        Fortress Lenders Ltd is a leading recruitment and career development platform in Kenya, established in 2019. We specialize in connecting talented professionals with exceptional career opportunities.
                     </p>
                     <p class="text-lg text-gray-600 mb-6">
-                        Our mission is to provide a full range of financial and non-financial products aimed at improving lives of low-income rural and urban communities, deriving great economic impact with increased income levels and restoring customer dignity.
+                        Our mission is to provide comprehensive career solutions aimed at empowering individuals and organizations, creating meaningful connections between talent and opportunity, and fostering professional growth across all industries.
                     </p>
                     <a href="{{ route('about') }}" class="inline-block px-6 py-3 bg-gradient-to-r from-teal-800 to-teal-700 text-white rounded-lg font-semibold hover:from-teal-700 hover:to-teal-600 transition-all transform hover:scale-105">
                     Learn More About Us
@@ -307,10 +296,10 @@
                         </div>
                         <div>
                             <div class="font-semibold">Jane Muthoni</div>
-                            <div class="text-sm text-gray-400">Nakuru Branch</div>
+                            <div class="text-sm text-gray-400">Software Developer</div>
                         </div>
                     </div>
-                    <p class="text-gray-300 italic">"Fortress Lenders helped me expand my small business. Their loan process was smooth, and the financial advisory services were invaluable. I'm grateful for their support!"</p>
+                    <p class="text-gray-300 italic">"Fortress Lenders helped me find my dream job. Their recruitment process was smooth, and the career support services were invaluable. I'm grateful for their assistance!"</p>
                 </div>
 
                 <div class="bg-gray-800 rounded-xl p-8 hover:bg-gray-700 transition-all animate-fade-in-up animation-delay-200">
@@ -320,10 +309,10 @@
                         </div>
                         <div>
                             <div class="font-semibold">Peter Kariuki</div>
-                            <div class="text-sm text-gray-400">Gilgil Branch</div>
+                            <div class="text-sm text-gray-400">Marketing Manager</div>
                         </div>
                     </div>
-                    <p class="text-gray-300 italic">"The agricultural loan helped me expand my farming operations. Fortress Lenders made the process smooth, and their customer service is excellent. I'm grateful for their support!"</p>
+                    <p class="text-gray-300 italic">"The career opportunities helped me advance in my field. Fortress Lenders made the application process smooth, and their customer service is excellent. I'm grateful for their support!"</p>
                 </div>
 
                 <div class="bg-gray-800 rounded-xl p-8 hover:bg-gray-700 transition-all animate-fade-in-up animation-delay-400">
@@ -333,28 +322,28 @@
                         </div>
                         <div>
                             <div class="font-semibold">Ann Wanjiru</div>
-                            <div class="text-sm text-gray-400">Olkalou Branch</div>
+                            <div class="text-sm text-gray-400">HR Specialist</div>
                         </div>
                     </div>
-                    <p class="text-gray-300 italic">"The agricultural loan transformed my farming operations. The flexible payment terms and excellent customer service make Fortress Lenders my preferred financial partner."</p>
+                    <p class="text-gray-300 italic">"The career platform transformed my professional journey. The user-friendly interface and excellent support make Fortress Lenders my preferred career partner."</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- CTA Section -->
-    <section class="py-12 sm:py-16 md:py-20 bg-gradient-to-r from-teal-800 to-teal-700 text-white" id="apply-loan">
+    <section class="py-12 sm:py-16 md:py-20 bg-gradient-to-r from-teal-800 to-teal-700 text-white" id="careers">
         <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32 text-center">
             <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 px-4">Ready to Get Started?</h2>
             <p class="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-teal-100 max-w-2xl mx-auto px-4">
-                Whether you need a loan for your business, education, or personal needs, we're here to help you achieve your goals.
+                Whether you're looking for your next career opportunity or seeking talented professionals, we're here to help you achieve your goals.
             </p>
             <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
-                <a href="{{ route('contact') }}" class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-teal-800 rounded-lg font-semibold hover:bg-teal-50 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base">
+                <a href="mailto:{{ $generalSettings->company_email ?? 'info@example.com' }}" class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-teal-800 rounded-lg font-semibold hover:bg-teal-50 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base">
                     Contact Us Today
                 </a>
-                <a href="{{ route('products') }}" class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base">
-                    View Loan Products
+                <a href="{{ route('careers.index') }}" class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base">
+                    View Job Opportunities
                 </a>
             </div>
         </div>

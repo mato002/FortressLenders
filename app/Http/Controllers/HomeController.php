@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\HomeSetting;
+use App\Models\GeneralSetting;
 use App\Models\TeamMember;
 use Illuminate\View\View;
 
@@ -16,9 +16,9 @@ class HomeController extends Controller
             ->limit(6)
             ->get();
 
-        $homeSettings = HomeSetting::query()->latest()->first();
+        $generalSettings = GeneralSetting::query()->latest()->first();
 
-        return view('home', compact('teamMembers', 'homeSettings'));
+        return view('home', compact('teamMembers', 'generalSettings'));
     }
 }
 

@@ -19,7 +19,7 @@
                 </p>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-4 sm:mt-6">
-                    <a href="{{ route('home') }}"
+                    <a href="{{ route('careers.index') }}"
                        class="px-4 py-3 sm:px-5 sm:py-4 rounded-xl bg-white text-teal-900 font-semibold text-sm sm:text-base shadow-md hover:bg-teal-50 transition-colors">
                         Home
                     </a>
@@ -27,7 +27,7 @@
                        class="px-4 py-3 sm:px-5 sm:py-4 rounded-xl bg-amber-500 text-white font-semibold text-sm sm:text-base shadow-md hover:bg-amber-600 transition-colors">
                         Apply for a Loan
                     </a>
-                    <a href="{{ route('contact') }}"
+                    <a href="{{ route('careers.index') }}"
                        class="px-4 py-3 sm:px-5 sm:py-4 rounded-xl bg-white/10 border border-white/20 text-white font-semibold text-sm sm:text-base hover:bg-white/15 transition-colors">
                         Contact Us
                     </a>

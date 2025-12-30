@@ -122,6 +122,11 @@ class JobApplicationController extends Controller
 
         $validated['job_post_id'] = $job->id;
         $validated['status'] = 'pending';
+        
+        // Auto-assign company_id from job post
+        if ($job->company_id) {
+            $validated['company_id'] = $job->company_id;
+        }
 
         // Generate AI summary (placeholder - you can integrate actual AI service)
         $validated['ai_summary'] = $this->generateAISummary($validated);

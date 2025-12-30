@@ -38,7 +38,6 @@
                             <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-semibold 
                                 @if($user->role === 'admin') bg-purple-100 text-purple-700 border border-purple-200
                                 @elseif($user->role === 'hr_manager') bg-pink-100 text-pink-700 border border-pink-200
-                                @elseif($user->role === 'loan_manager') bg-blue-100 text-blue-700 border border-blue-200
                                 @elseif($user->role === 'editor') bg-green-100 text-green-700 border border-green-200
                                 @else bg-slate-100 text-slate-700 border border-slate-200
                                 @endif">

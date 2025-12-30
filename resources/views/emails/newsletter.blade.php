@@ -74,7 +74,7 @@
                                 <a href="{{ route('products') }}" style="display: inline-block; padding: 10px 20px; background-color: #0d9488; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; margin-right: 10px;">
                                     View Products
                                 </a>
-                                <a href="{{ route('contact') }}" style="display: inline-block; padding: 10px 20px; background-color: #ffffff; color: #0d9488; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; border: 2px solid #0d9488;">
+                                <a href="mailto:{{ $generalSettings->company_email ?? 'info@example.com' }}" style="display: inline-block; padding: 10px 20px; background-color: #ffffff; color: #0d9488; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; border: 2px solid #0d9488;">
                                     Contact Us
                                 </a>
                             </div>

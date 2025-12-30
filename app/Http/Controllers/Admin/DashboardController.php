@@ -5,15 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\ActivityLog;
-use App\Models\Branch;
 use App\Models\ContactMessage;
-use App\Models\Faq;
 use App\Models\JobApplication;
 use App\Models\JobPost;
-use App\Models\LoanApplication;
 use App\Models\NewsletterSubscriber;
-use App\Models\Post;
-use App\Models\Product;
 use App\Models\TeamMember;
 use App\Models\User;
 
@@ -33,18 +28,9 @@ class DashboardController extends Controller
         $endDate = now()->endOfDay();
 
         $stats = [
-            // Products
-            'products' => Product::count(),
-            'active_products' => Product::where('is_active', true)->count(),
-            
             // Messages
             'unread_messages' => ContactMessage::whereNull('handled_at')->count(),
             'total_messages' => ContactMessage::count(),
-            
-            // Loan Applications
-            'pending_loan_applications' => LoanApplication::where('status', 'pending')->count(),
-            'total_loan_applications' => LoanApplication::count(),
-            'approved_loan_applications' => LoanApplication::where('status', 'approved')->count(),
             
             // Job Applications
             'pending_job_applications' => JobApplication::where('status', 'pending')->count(),
@@ -56,14 +42,8 @@ class DashboardController extends Controller
             'active_job_posts' => JobPost::where('is_active', true)->count(),
             'total_job_posts' => JobPost::count(),
             
-            // Branches
-            'branches' => Branch::count(),
-            'active_branches' => Branch::where('is_active', true)->count(),
-            
-            // Content
+            // Team
             'team_members' => TeamMember::count(),
-            'blog_posts' => Post::count(),
-            'faqs' => Faq::count(),
             
             // Subscribers
             'newsletter_subscribers' => NewsletterSubscriber::count(),
@@ -74,12 +54,6 @@ class DashboardController extends Controller
         ];
 
         // Time-series analytics
-        $loanApplicationsTrend = LoanApplication::selectRaw('DATE(created_at) as date, COUNT(*) as count')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-
         $jobApplicationsTrend = JobApplication::selectRaw('DATE(created_at) as date, COUNT(*) as count')
             ->whereBetween('created_at', [$startDate, $endDate])
             ->groupBy('date')
@@ -93,9 +67,7 @@ class DashboardController extends Controller
             ->get();
 
         $recentMessages = ContactMessage::latest()->limit(10)->get();
-        $recentLoanApplications = LoanApplication::latest()->limit(10)->get();
         $recentJobApplications = JobApplication::with('jobPost')->latest()->limit(10)->get();
-        $latestProducts = Product::latest()->limit(10)->get();
         $recentActivityLogs = ActivityLog::with('user')->latest()->limit(10)->get();
         $latestJobPosts = JobPost::latest()->limit(10)->get();
 
@@ -103,13 +75,10 @@ class DashboardController extends Controller
             'user',
             'stats',
             'range',
-            'loanApplicationsTrend',
             'jobApplicationsTrend',
             'contactMessagesTrend',
             'recentMessages',
-            'recentLoanApplications',
             'recentJobApplications',
-            'latestProducts',
             'recentActivityLogs',
             'latestJobPosts'
         ));

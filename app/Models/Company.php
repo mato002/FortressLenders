@@ -117,5 +117,21 @@ class Company extends Model
             && ($this->subscription_expires_at === null || $this->subscription_expires_at->isFuture())
             && $this->is_active;
     }
+
+    /**
+     * Get users (admins) for this company
+     */
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
+
+    /**
+     * Get the primary admin user for this company
+     */
+    public function primaryAdmin()
+    {
+        return $this->users()->where('role', 'client')->first();
+    }
 }
 

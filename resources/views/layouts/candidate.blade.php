@@ -200,7 +200,7 @@
                 <footer class="bg-white/80 border-t border-teal-100 py-3 sm:py-4">
                     <div class="px-3 sm:px-4 lg:px-10 text-xs sm:text-sm text-teal-600 flex flex-col sm:flex-row justify-between items-center gap-2">
                         <span>© {{ now()->year }} Fortress Lenders Ltd.</span>
-                        <span>Need help? <a href="{{ route('contact') }}" class="text-amber-600 font-semibold">Contact support</a></span>
+                        <span>Need help? <a href="mailto:{{ $generalSettings->company_email ?? 'support@example.com' }}" class="text-amber-600 font-semibold">Contact support</a></span>
                     </div>
                 </footer>
             </div>

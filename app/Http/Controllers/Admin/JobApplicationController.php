@@ -24,6 +24,29 @@ use Illuminate\Support\Facades\Storage;
 class JobApplicationController extends Controller
 {
     /**
+     * Apply company filter if user is a client
+     */
+    protected function applyCompanyFilter($query)
+    {
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id) {
+            return $query->where('company_id', $user->company_id);
+        }
+        return $query;
+    }
+
+    /**
+     * Check if user can access this application (for clients, must belong to their company)
+     */
+    protected function checkApplicationAccess(JobApplication $application)
+    {
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id && $application->company_id !== $user->company_id) {
+            abort(403, 'You do not have permission to access this application.');
+        }
+    }
+
+    /**
      * Record a status change in the history table.
      */
     protected function recordStatusChange(JobApplication $application, string $newStatus, ?string $source = null, ?string $notes = null): void
@@ -46,6 +69,9 @@ class JobApplicationController extends Controller
     public function index(Request $request)
     {
         $query = JobApplication::with(['jobPost', 'candidate']);
+        
+        // Filter by company for clients
+        $query = $this->applyCompanyFilter($query);
 
         // Filter by status
         if ($request->filled('status')) {
@@ -74,11 +100,11 @@ class JobApplicationController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        // Get total counts for banner
-        $totalApplications = JobApplication::count();
+        // Get total counts for banner (with company filter)
+        $totalApplications = $this->applyCompanyFilter(JobApplication::query())->count();
         $filteredCount = $applications->total();
 
-        // Get status counts for filters - include all possible statuses
+        // Get status counts for filters - include all possible statuses (with company filter)
         $allStatuses = [
             'pending',
             'sieving_passed',
@@ -99,13 +125,16 @@ class JobApplicationController extends Controller
         
         $statusCounts = [];
         foreach ($allStatuses as $status) {
-            $statusCounts[$status] = JobApplication::where('status', $status)->count();
+            $statusCounts[$status] = $this->applyCompanyFilter(JobApplication::where('status', $status))->count();
         }
 
-        // Get job posts for filter dropdown
-        $jobPosts = \App\Models\JobPost::select('id', 'title')
-            ->orderBy('title')
-            ->get();
+        // Get job posts for filter dropdown (with company filter)
+        $jobPostsQuery = \App\Models\JobPost::select('id', 'title');
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id) {
+            $jobPostsQuery->where('company_id', $user->company_id);
+        }
+        $jobPosts = $jobPostsQuery->orderBy('title')->get();
 
         return view('admin.job-applications.index', compact(
             'applications',
@@ -120,6 +149,9 @@ class JobApplicationController extends Controller
     {
         // Use the route model binding parameter name
         $application = $job_application;
+        
+        // Check if client can access this application
+        $this->checkApplicationAccess($application);
         
         // Refresh the model to ensure we have the latest data
         $application->refresh();
@@ -176,7 +208,8 @@ class JobApplicationController extends Controller
         if (!$session) {
             // Create new test session - use job-specific questions
             $jobPostId = $application->job_post_id;
-            $questions = \App\Models\AptitudeTestQuestion::getTestQuestions($jobPostId);
+            $companyId = $application->company_id;
+            $questions = \App\Models\AptitudeTestQuestion::getTestQuestions($jobPostId, $companyId);
             $allQuestions = collect($questions['numerical'])
                 ->merge($questions['logical'])
                 ->merge($questions['verbal'])
@@ -200,7 +233,8 @@ class JobApplicationController extends Controller
             // If session data expired or is empty, regenerate questions
             if (empty($questionIds)) {
                 $jobPostId = $application->job_post_id;
-                $questions = \App\Models\AptitudeTestQuestion::getTestQuestions($jobPostId);
+                $companyId = $application->company_id;
+                $questions = \App\Models\AptitudeTestQuestion::getTestQuestions($jobPostId, $companyId);
                 $allQuestions = collect($questions['numerical'])
                     ->merge($questions['logical'])
                     ->merge($questions['verbal'])
@@ -275,6 +309,8 @@ class JobApplicationController extends Controller
 
     public function sendMessage(Request $request, JobApplication $application): RedirectResponse
     {
+        $this->checkApplicationAccess($application);
+        
         $validated = $request->validate([
             'channel' => 'required|in:email,sms,whatsapp',
             'message' => 'required|string|max:5000',
@@ -311,6 +347,8 @@ class JobApplicationController extends Controller
 
     public function review(Request $request, JobApplication $application)
     {
+        $this->checkApplicationAccess($application);
+        
         $validated = $request->validate([
             'decision' => 'required|in:pass,regret',
             'review_notes' => 'nullable|string',
@@ -341,6 +379,8 @@ class JobApplicationController extends Controller
 
     public function scheduleInterview(Request $request, JobApplication $application)
     {
+        $this->checkApplicationAccess($application);
+        
         $validated = $request->validate([
             'interview_type' => 'required|in:first,second,written_test,case_study',
             'scheduled_at' => 'required|date',
@@ -437,6 +477,8 @@ class JobApplicationController extends Controller
 
     public function updateStatus(Request $request, JobApplication $application)
     {
+        $this->checkApplicationAccess($application);
+        
         $validated = $request->validate([
             'status' => 'required|in:pending,sieving_passed,sieving_rejected,pending_manual_review,stage_2_passed,reviewed,shortlisted,rejected,interview_scheduled,interview_passed,interview_failed,second_interview,written_test,case_study,hired',
         ]);
@@ -468,6 +510,8 @@ class JobApplicationController extends Controller
     {
         $application = $job_application;
         
+        $this->checkApplicationAccess($application);
+        
         // Delete CV file if it exists
         if ($application->cv_path && Storage::disk('public')->exists($application->cv_path)) {
             Storage::disk('public')->delete($application->cv_path);
@@ -485,6 +529,8 @@ class JobApplicationController extends Controller
      */
     public function createCandidateAccount(JobApplication $application): RedirectResponse
     {
+        $this->checkApplicationAccess($application);
+        
         // Check if candidate already exists
         $candidate = Candidate::where('email', $application->email)->first();
         
@@ -718,6 +764,8 @@ class JobApplicationController extends Controller
 
     public function sendConfirmationEmail(JobApplication $application): RedirectResponse
     {
+        $this->checkApplicationAccess($application);
+        
         if (! $application->email) {
             return back()->withErrors(['email' => 'This application does not have an email address.']);
         }
@@ -1059,6 +1107,8 @@ class JobApplicationController extends Controller
      */
     public function parseCv(JobApplication $application): RedirectResponse
     {
+        $this->checkApplicationAccess($application);
+        
         try {
             // Note: CV parsing is currently rule-based, not AI-powered
             // If you add AI-enhanced parsing later, add token check here
@@ -1084,9 +1134,14 @@ class JobApplicationController extends Controller
      */
     public function analyzeWithAI(JobApplication $application): RedirectResponse
     {
+        $this->checkApplicationAccess($application);
+        
         try {
             // Check token availability before processing
-            $company = \App\Models\Company::first();
+            $user = auth()->user();
+            $company = $user && $user->isClient() && $user->company_id 
+                ? $user->company 
+                : \App\Models\Company::first();
             if ($company) {
                 $tokenService = app(\App\Services\TokenService::class);
                 $estimatedTokens = $tokenService->estimateTokens('cv_analyze', 5000) + 
@@ -1140,6 +1195,8 @@ class JobApplicationController extends Controller
      */
     public function processCvAndAI(JobApplication $application): RedirectResponse
     {
+        $this->checkApplicationAccess($application);
+        
         try {
             // Dispatch async job
             ProcessCvJob::dispatch($application);

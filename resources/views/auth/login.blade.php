@@ -20,7 +20,7 @@
     <main class="min-h-screen flex flex-col justify-center items-center py-12 sm:py-16 px-4">
         <!-- Logo -->
         <div class="mb-8">
-            <a href="{{ route('home') }}" class="flex items-center space-x-2 justify-center">
+            <a href="{{ route('careers.index') }}" class="flex items-center space-x-2 justify-center">
                 @if(isset($logoPath) && $logoPath)
                     <img src="{{ asset('storage/'.$logoPath) }}" alt="Fortress Lenders" class="h-12 md:h-16 w-auto object-contain">
                 @else
@@ -183,7 +183,7 @@
 
                     <!-- Back to Home -->
                     <div class="mt-6 text-center">
-                        <a href="{{ route('home') }}" class="text-sm text-gray-600 hover:text-teal-800 transition-colors inline-flex items-center">
+                        <a href="{{ route('careers.index') }}" class="text-sm text-gray-600 hover:text-teal-800 transition-colors inline-flex items-center">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>

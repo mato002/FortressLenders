@@ -6,11 +6,7 @@
     <!-- Hero Section -->
     <section
         class="relative text-white py-12 sm:py-16 md:py-20 overflow-hidden"
-        @if (!empty($contactSettings?->hero_image_path))
-            style="background-image: linear-gradient(to bottom right, rgba(4, 120, 87, 0.9), rgba(6, 78, 59, 0.9)), url('{{ asset('storage/'.$contactSettings->hero_image_path) }}'); background-size: cover; background-position: center;"
-        @else
-            style="background-image: linear-gradient(to bottom right, rgba(4, 120, 87, 0.9), rgba(6, 78, 59, 0.9)), url('https://images.unsplash.com/photo-1423666639041-f56000c27a9a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80'); background-size: cover; background-position: center;"
-        @endif
+        style="background-image: linear-gradient(to bottom right, rgba(4, 120, 87, 0.9), rgba(6, 78, 59, 0.9)), url('https://images.unsplash.com/photo-1423666639041-f56000c27a9a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80'); background-size: cover; background-position: center;"
     >
         <div class="absolute inset-0 bg-black opacity-10"></div>
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -75,7 +71,7 @@
                             <select id="subject" name="subject"
                                 class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300 hover:border-teal-400">
                                 <option value="">Select a subject</option>
-                                <option value="loan" @selected(old('subject') === 'loan')>Loan Inquiry</option>
+                                <option value="career" @selected(old('subject') === 'career')>Career Inquiry</option>
                                 <option value="general" @selected(old('subject') === 'general')>General Inquiry</option>
                                 <option value="complaint" @selected(old('subject') === 'complaint')>Complaint</option>
                                 <option value="other" @selected(old('subject') === 'other')>Other</option>
@@ -183,74 +179,14 @@
                                 <div>
                                     <h3 class="text-xl font-bold text-gray-900 mb-2">Quick Actions</h3>
                                     <div class="space-y-2">
-                                        <a href="{{ route('loan.apply') }}" class="block text-teal-800 hover:text-teal-700 font-medium transition-colors">Apply for a Loan</a>
-                                        <a href="{{ route('products') }}" class="block text-teal-800 hover:text-teal-700 font-medium transition-colors">View Our Products</a>
+                                        <a href="{{ route('careers.index') }}" class="block text-teal-800 hover:text-teal-700 font-medium transition-colors">View Job Opportunities</a>
+                                        <a href="{{ route('about') }}" class="block text-teal-800 hover:text-teal-700 font-medium transition-colors">Learn More About Us</a>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Branch Locations Section -->
-    <section class="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-gray-50 via-white to-gray-50">
-        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32">
-            <div class="text-center mb-8 sm:mb-10 md:mb-12">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-teal-700 to-teal-800 rounded-2xl mb-4">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                </div>
-                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 px-4">Our Branch Locations</h2>
-                <p class="text-gray-600 mt-2 px-4">Visit us at any of our convenient locations</p>
-            </div>
-            @php
-                $colorClasses = [
-                    'teal' => 'from-teal-700 to-teal-800',
-                    'amber' => 'from-amber-500 to-yellow-500',
-                    'green' => 'from-green-500 to-green-600',
-                    'purple' => 'from-purple-500 to-purple-600',
-                ];
-            @endphp
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                @forelse($branches as $branch)
-                    <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-2xl transition-all transform hover:-translate-y-2 hover:scale-105">
-                        <div class="w-12 h-12 bg-gradient-to-br {{ $colorClasses[$branch->accent_color] ?? $colorClasses['teal'] }} rounded-lg flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-3">{{ $branch->name }}</h3>
-                        <p class="text-gray-600 mb-4">
-                            {{ $branch->address_line1 }}<br>
-                            @if($branch->address_line2)
-                                {{ $branch->address_line2 }}<br>
-                            @endif
-                            @if($branch->city)
-                                {{ $branch->city }}
-                            @endif
-                        </p>
-                        <div class="space-y-1">
-                            @if($branch->phone_primary)
-                                <a href="tel:{{ preg_replace('/\s+/', '', $branch->phone_primary) }}" class="block text-teal-800 hover:text-teal-700 font-medium transition-colors">
-                                    {{ $branch->phone_primary }}
-                                </a>
-                            @endif
-                            @if($branch->phone_secondary)
-                                <a href="tel:{{ preg_replace('/\s+/', '', $branch->phone_secondary) }}" class="block text-teal-800 hover:text-teal-700 font-medium transition-colors">
-                                    {{ $branch->phone_secondary }}
-                                </a>
-                            @endif
-                        </div>
-                    </div>
-                @empty
-                    <div class="sm:col-span-2 lg:col-span-3 bg-white border border-dashed border-gray-200 rounded-2xl p-8 text-center text-gray-500">
-                        Branch information is coming soon.
-                    </div>
-                @endforelse
             </div>
         </div>
     </section>
