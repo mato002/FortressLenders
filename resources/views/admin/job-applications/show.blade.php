@@ -1614,10 +1614,11 @@
     <script>
         // Handle delete form with SweetAlert
         document.addEventListener('DOMContentLoaded', function() {
-            const deleteForm = document.querySelector('.delete-form');
-            if (deleteForm) {
+            const deleteForms = document.querySelectorAll('.delete-form');
+            deleteForms.forEach(function(deleteForm) {
                 deleteForm.addEventListener('submit', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     
                     const formElement = this;
                     const applicantName = formElement.getAttribute('data-name') || 'this application';
@@ -1632,7 +1633,7 @@
                         confirmButtonText: 'Yes, delete it!',
                         cancelButtonText: 'Cancel',
                         reverseButtons: true,
-                        width: '500px'
+                        width: window.innerWidth <= 640 ? '90%' : '500px'
                     }).then((result) => {
                         if (result.isConfirmed) {
                             // Show loading state
@@ -1652,7 +1653,7 @@
                         }
                     });
                 });
-            }
+            });
         });
     </script>
 
