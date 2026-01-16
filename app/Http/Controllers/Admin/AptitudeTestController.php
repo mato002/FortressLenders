@@ -10,11 +10,26 @@ use Illuminate\Http\Request;
 class AptitudeTestController extends Controller
 {
     /**
+     * Apply company filter if user is a client
+     */
+    protected function applyCompanyFilter($query)
+    {
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id) {
+            return $query->where('company_id', $user->company_id);
+        }
+        return $query;
+    }
+
+    /**
      * Display list of aptitude test questions
      */
     public function index(Request $request)
     {
         $query = AptitudeTestQuestion::query()->with('jobPost');
+        
+        // Filter by company for clients
+        $query = $this->applyCompanyFilter($query);
 
         // Filter by job post - must work independently
         $jobPostId = $request->input('job_post_id');
@@ -48,6 +63,9 @@ class AptitudeTestController extends Controller
 
         // Build section counts query with same filters
         $sectionCountsQuery = AptitudeTestQuestion::query();
+        
+        // Apply company filter to section counts
+        $sectionCountsQuery = $this->applyCompanyFilter($sectionCountsQuery);
         
         // Apply same job post filter to section counts
         $jobPostId = $request->input('job_post_id');
@@ -101,10 +119,13 @@ class AptitudeTestController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        // Get job posts for filter
-        $jobPosts = \App\Models\JobPost::select('id', 'title')
-            ->orderBy('title')
-            ->get();
+        // Get job posts for filter (filtered by company for clients)
+        $jobPostsQuery = \App\Models\JobPost::select('id', 'title');
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id) {
+            $jobPostsQuery->where('company_id', $user->company_id);
+        }
+        $jobPosts = $jobPostsQuery->orderBy('title')->get();
 
         return view('admin.aptitude-test.index', compact('questions', 'sectionCounts', 'jobPosts'));
     }
@@ -144,6 +165,12 @@ class AptitudeTestController extends Controller
         $validated['created_by'] = auth()->id();
         $validated['is_active'] = $request->has('is_active');
         
+        // Auto-assign company_id for clients
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id) {
+            $validated['company_id'] = $user->company_id;
+        }
+        
         // Convert empty string to null for job_post_id
         if (empty($validated['job_post_id'])) {
             $validated['job_post_id'] = null;
@@ -171,6 +198,13 @@ class AptitudeTestController extends Controller
     public function edit($id)
     {
         $question = AptitudeTestQuestion::findOrFail($id);
+        
+        // Check if client can access this question
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id && $question->company_id !== $user->company_id) {
+            abort(403, 'You do not have permission to access this question.');
+        }
+        
         return view('admin.aptitude-test.edit', compact('question'));
     }
 
@@ -210,6 +244,13 @@ class AptitudeTestController extends Controller
         $validated['options'] = $optionsArray;
 
         $question = AptitudeTestQuestion::findOrFail($id);
+        
+        // Check if client can access this question
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id && $question->company_id !== $user->company_id) {
+            abort(403, 'You do not have permission to modify this question.');
+        }
+        
         $question->update($validated);
 
         return redirect()->route('admin.aptitude-test.index')
@@ -221,6 +262,14 @@ class AptitudeTestController extends Controller
      */
     public function destroy($id): RedirectResponse
     {
+        $question = AptitudeTestQuestion::findOrFail($id);
+        
+        // Check if client can access this question
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id && $question->company_id !== $user->company_id) {
+            abort(403, 'You do not have permission to delete this question.');
+        }
+        
         $question = AptitudeTestQuestion::findOrFail($id);
         $question->delete();
 

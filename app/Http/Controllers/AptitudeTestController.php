@@ -52,7 +52,8 @@ class AptitudeTestController extends Controller
         if (!$session) {
             // Create new test session - use job-specific questions
             $jobPostId = $application->job_post_id;
-            $questions = AptitudeTestQuestion::getTestQuestions($jobPostId);
+            $companyId = $application->company_id;
+            $questions = AptitudeTestQuestion::getTestQuestions($jobPostId, $companyId);
             $allQuestions = collect($questions['numerical'])
                 ->merge($questions['logical'])
                 ->merge($questions['verbal'])
@@ -76,7 +77,8 @@ class AptitudeTestController extends Controller
             // If session data expired or is empty, regenerate questions
             if (empty($questionIds)) {
                 $jobPostId = $application->job_post_id;
-                $questions = AptitudeTestQuestion::getTestQuestions($jobPostId);
+                $companyId = $application->company_id;
+                $questions = AptitudeTestQuestion::getTestQuestions($jobPostId, $companyId);
                 $allQuestions = collect($questions['numerical'])
                     ->merge($questions['logical'])
                     ->merge($questions['verbal'])

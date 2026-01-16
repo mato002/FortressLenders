@@ -25,6 +25,12 @@
                 </svg>
                 <span class="hidden sm:inline">Send Emails (<span id="selected-count">0</span>)</span>
             </button>
+            <button type="button" id="bulk-sieving-btn" class="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 whitespace-nowrap">
+                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                </svg>
+                <span class="hidden sm:inline">Run Sieving (<span id="selected-count-5">0</span>)</span>
+            </button>
             <button type="button" id="bulk-status-btn" class="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 whitespace-nowrap">
                 <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -164,6 +170,10 @@
         @csrf
         <div id="bulk-email-inputs"></div>
     </form>
+    <form id="bulk-sieving-form" method="POST" action="{{ route('admin.job-applications.bulk-sieving') }}" style="display: none;">
+        @csrf
+        <div id="bulk-sieving-inputs"></div>
+    </form>
     <form id="bulk-status-form" method="POST" action="{{ route('admin.job-applications.bulk-update-status') }}" style="display: none;">
         @csrf
         <div id="bulk-status-inputs"></div>
@@ -300,10 +310,11 @@
         const selectAllCheckbox = document.getElementById('select-all');
         const applicationCheckboxes = document.querySelectorAll('.application-checkbox');
         const bulkActionsContainer = document.getElementById('bulk-actions-container');
-        const selectedCountSpans = document.querySelectorAll('#selected-count, #selected-count-2, #selected-count-3');
+        const selectedCountSpans = document.querySelectorAll('#selected-count, #selected-count-2, #selected-count-3, #selected-count-5');
         const bulkEmailForm = document.getElementById('bulk-email-form');
         const bulkStatusForm = document.getElementById('bulk-status-form');
         const bulkDeleteForm = document.getElementById('bulk-delete-form');
+        const bulkSievingForm = document.getElementById('bulk-sieving-form');
 
         function updateBulkActionsButton() {
             const selectedCount = document.querySelectorAll('.application-checkbox:checked').length;
@@ -424,6 +435,59 @@
                         });
                         
                         bulkEmailForm.submit();
+                    }
+                });
+            });
+        }
+
+        // Bulk sieving button
+        const bulkSievingBtn = document.getElementById('bulk-sieving-btn');
+        if (bulkSievingBtn && bulkSievingForm) {
+            bulkSievingBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const selectedIds = getSelectedApplicationIds();
+                const selectedCount = selectedIds.length;
+                
+                if (selectedCount === 0) {
+                    Swal.fire({ icon: 'warning', title: 'No Selection', text: 'Please select at least one application.' });
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Run AI Sieving',
+                    html: `
+                        <p class="mb-4">Run AI sieving evaluation on <strong>${selectedCount}</strong> application(s)?</p>
+                        <p class="text-sm text-gray-600">This will analyze each application and update their sieving status based on AI evaluation.</p>
+                    `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#4f46e5',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Run Sieving',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({ 
+                            title: 'Processing...', 
+                            html: `Running AI sieving on ${selectedCount} application(s). This may take a moment.`,
+                            allowOutsideClick: false, 
+                            allowEscapeKey: false,
+                            showConfirmButton: false, 
+                            didOpen: () => Swal.showLoading() 
+                        });
+                        
+                        // Populate form
+                        const inputsDiv = document.getElementById('bulk-sieving-inputs');
+                        inputsDiv.innerHTML = '';
+                        selectedIds.forEach(id => {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = 'application_ids[]';
+                            input.value = id;
+                            inputsDiv.appendChild(input);
+                        });
+                        
+                        bulkSievingForm.submit();
                     }
                 });
             });

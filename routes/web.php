@@ -42,6 +42,7 @@ Route::get('/', HomeController::class)->name('home');
 Route::get('/about', AboutPageController::class)->name('about');
 
 Route::get('/products', [ProductController::class, 'index'])->name('products');
+Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
 
 Route::get('/apply-loan', [LoanApplicationController::class, 'create'])->name('loan.apply');
 Route::post('/apply-loan', [LoanApplicationController::class, 'store'])
@@ -124,7 +125,7 @@ Route::get('/dashboard', function () {
     
     // Check if employee/user is logged in
     $user = auth()->user();
-    if ($user && in_array($user->role, ['admin', 'hr_manager', 'loan_manager', 'editor'])) {
+    if ($user && (in_array($user->role, ['admin', 'hr_manager', 'loan_manager', 'editor']) || $user->isClient())) {
         return redirect()->route('admin.dashboard');
     }
 
@@ -135,6 +136,21 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth:candidate'])->prefix('candidate')->name('candidate.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\CandidateDashboardController::class, 'index'])->name('dashboard');
     Route::get('/application/{application}', [\App\Http\Controllers\CandidateDashboardController::class, 'show'])->name('application.show');
+    
+    // Bio Data
+    Route::get('/bio-data', [\App\Http\Controllers\Candidate\BioDataController::class, 'index'])->name('bio-data.index');
+    Route::post('/bio-data', [\App\Http\Controllers\Candidate\BioDataController::class, 'update'])->name('bio-data.update');
+    
+    // Documents
+    Route::get('/documents', [\App\Http\Controllers\Candidate\DocumentController::class, 'index'])->name('documents.index');
+    Route::get('/documents/{document}/download', [\App\Http\Controllers\Candidate\DocumentController::class, 'download'])->name('documents.download');
+    Route::post('/documents/upload', [\App\Http\Controllers\Candidate\DocumentController::class, 'upload'])->name('documents.upload');
+    Route::delete('/documents/{document}', [\App\Http\Controllers\Candidate\DocumentController::class, 'destroy'])->name('documents.destroy');
+    
+    // Appraisals
+    Route::get('/appraisals', [\App\Http\Controllers\Candidate\AppraisalController::class, 'index'])->name('appraisals.index');
+    Route::get('/appraisals/{appraisal}', [\App\Http\Controllers\Candidate\AppraisalController::class, 'show'])->name('appraisals.show');
+    Route::post('/appraisals/{appraisal}/acknowledge', [\App\Http\Controllers\Candidate\AppraisalController::class, 'acknowledge'])->name('appraisals.acknowledge');
 });
 
 // Profile routes (accessible by both candidates and employees)
@@ -203,6 +219,11 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             Route::resource('users', AdminUserController::class);
             Route::get('permissions', [\App\Http\Controllers\Admin\PermissionsController::class, 'index'])->name('permissions.index');
             Route::put('permissions', [\App\Http\Controllers\Admin\PermissionsController::class, 'update'])->name('permissions.update');
+            
+            // Company Management
+            Route::resource('companies', \App\Http\Controllers\Admin\CompanyController::class);
+            Route::post('companies/{company}/regenerate-api-key', [\App\Http\Controllers\Admin\CompanyController::class, 'regenerateApiKey'])->name('companies.regenerate-api-key');
+            Route::post('companies/{company}/toggle-status', [\App\Http\Controllers\Admin\CompanyController::class, 'toggleStatus'])->name('companies.toggle-status');
         });
         
         // Loan Applications Routes - Accessible by Admin and Loan Manager
@@ -219,8 +240,8 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             Route::post('loan-applications/{loanApplication}/send-confirmation', [AdminLoanApplicationController::class, 'sendConfirmationEmail'])->name('loan-applications.send-confirmation');
         });
         
-        // Careers Routes - Accessible by Admin and HR Manager
-        Route::middleware('role:admin,hr_manager')->group(function () {
+        // Careers Routes - Accessible by Admin, HR Manager, and Clients
+        Route::middleware('role:admin,hr_manager,client')->group(function () {
             Route::resource('jobs', JobPostController::class)->except(['destroy']);
             Route::post('jobs/{job}/toggle-status', [JobPostController::class, 'toggleStatus'])->name('jobs.toggle-status');
             Route::get('jobs/{job}/configure-sieving', [JobPostController::class, 'configureSieving'])->name('jobs.configure-sieving');
@@ -243,10 +264,30 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
                 Route::post('bulk-send-confirmation', [AdminJobApplicationController::class, 'sendBulkConfirmationEmails'])->name('bulk-send-confirmation');
                 Route::post('bulk-update-status', [AdminJobApplicationController::class, 'bulkUpdateStatus'])->name('bulk-update-status');
                 Route::post('bulk-delete', [AdminJobApplicationController::class, 'bulkDelete'])->name('bulk-delete');
+                Route::post('bulk-sieving', [AdminJobApplicationController::class, 'bulkSieving'])->name('bulk-sieving');
                 Route::get('export', [AdminJobApplicationController::class, 'export'])->name('export');
                 Route::get('calendar', [AdminJobApplicationController::class, 'interviewCalendar'])->name('calendar');
             });
             Route::get('job-applications/{application}/view-cv', [AdminJobApplicationController::class, 'viewCv'])->name('job-applications.view-cv');
+            Route::get('job-applications/{application}/download-cv', [AdminJobApplicationController::class, 'downloadCv'])->name('job-applications.download-cv');
+            Route::resource('job-applications', AdminJobApplicationController::class)->only(['index', 'show', 'destroy']);
+            Route::post('job-applications/{application}/review', [AdminJobApplicationController::class, 'review'])->name('job-applications.review');
+            Route::post('job-applications/{application}/schedule-interview', [AdminJobApplicationController::class, 'scheduleInterview'])->name('job-applications.schedule-interview');
+            Route::post('job-applications/{application}/update-status', [AdminJobApplicationController::class, 'updateStatus'])->name('job-applications.update-status');
+            Route::post('job-applications/{application}/send-message', [AdminJobApplicationController::class, 'sendMessage'])->middleware('throttle:10,1')->name('job-applications.send-message');
+            Route::post('job-applications/{application}/send-confirmation', [AdminJobApplicationController::class, 'sendConfirmationEmail'])->name('job-applications.send-confirmation');
+            Route::post('job-applications/{application}/upload-document', [AdminJobApplicationController::class, 'uploadDocument'])->name('job-applications.upload-document');
+            Route::post('documents/{document}/update-status', [AdminJobApplicationController::class, 'updateDocumentStatus'])->name('documents.update-status');
+            Route::post('job-applications/{application}/create-candidate-account', [AdminJobApplicationController::class, 'createCandidateAccount'])->name('job-applications.create-candidate-account');
+            Route::post('job-applications/{application}/resend-candidate-credentials', [AdminJobApplicationController::class, 'resendCandidateCredentials'])->name('job-applications.resend-candidate-credentials');
+            Route::get('job-applications/{application}/view-candidate-dashboard', [AdminJobApplicationController::class, 'viewCandidateDashboard'])->name('job-applications.view-candidate-dashboard');
+            Route::get('job-applications/{application}/preview-aptitude-test', [AdminJobApplicationController::class, 'previewAptitudeTest'])->name('job-applications.preview-aptitude-test');
+            Route::get('job-applications/{application}/preview-candidate-status', [AdminJobApplicationController::class, 'previewCandidateStatus'])->name('job-applications.preview-candidate-status');
+            Route::post('job-applications/bulk-create-candidate-accounts', [AdminJobApplicationController::class, 'bulkCreateCandidateAccounts'])->name('job-applications.bulk-create-candidate-accounts');
+            Route::post('interviews/{interview}/update-result', [AdminJobApplicationController::class, 'updateInterviewResult'])->name('interviews.update-result');
+            Route::post('job-applications/{application}/parse-cv', [AdminJobApplicationController::class, 'parseCv'])->name('job-applications.parse-cv');
+            Route::post('job-applications/{application}/analyze-with-ai', [AdminJobApplicationController::class, 'analyzeWithAI'])->name('job-applications.analyze-with-ai');
+            Route::post('job-applications/{application}/process-cv-and-ai', [AdminJobApplicationController::class, 'processCvAndAI'])->name('job-applications.process-cv-and-ai');
         });
         
         // Token Management Routes - Accessible by Admin
@@ -258,23 +299,6 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             Route::post('tokens/allocate', [AdminTokenController::class, 'allocate'])->name('tokens.allocate');
             Route::get('tokens/balance', [AdminTokenController::class, 'balance'])->name('tokens.balance');
             Route::get('tokens/stats', [AdminTokenController::class, 'stats'])->name('tokens.stats');
-            Route::get('job-applications/{application}/download-cv', [AdminJobApplicationController::class, 'downloadCv'])->name('job-applications.download-cv');
-            Route::resource('job-applications', AdminJobApplicationController::class)->only(['index', 'show', 'destroy']);
-            Route::post('job-applications/{application}/review', [AdminJobApplicationController::class, 'review'])->name('job-applications.review');
-            Route::post('job-applications/{application}/schedule-interview', [AdminJobApplicationController::class, 'scheduleInterview'])->name('job-applications.schedule-interview');
-            Route::post('job-applications/{application}/update-status', [AdminJobApplicationController::class, 'updateStatus'])->name('job-applications.update-status');
-            Route::post('job-applications/{application}/send-message', [AdminJobApplicationController::class, 'sendMessage'])->name('job-applications.send-message');
-            Route::post('job-applications/{application}/send-confirmation', [AdminJobApplicationController::class, 'sendConfirmationEmail'])->name('job-applications.send-confirmation');
-            Route::post('job-applications/{application}/create-candidate-account', [AdminJobApplicationController::class, 'createCandidateAccount'])->name('job-applications.create-candidate-account');
-            Route::post('job-applications/{application}/resend-candidate-credentials', [AdminJobApplicationController::class, 'resendCandidateCredentials'])->name('job-applications.resend-candidate-credentials');
-            Route::get('job-applications/{application}/view-candidate-dashboard', [AdminJobApplicationController::class, 'viewCandidateDashboard'])->name('job-applications.view-candidate-dashboard');
-            Route::get('job-applications/{application}/preview-aptitude-test', [AdminJobApplicationController::class, 'previewAptitudeTest'])->name('job-applications.preview-aptitude-test');
-            Route::get('job-applications/{application}/preview-candidate-status', [AdminJobApplicationController::class, 'previewCandidateStatus'])->name('job-applications.preview-candidate-status');
-            Route::post('job-applications/bulk-create-candidate-accounts', [AdminJobApplicationController::class, 'bulkCreateCandidateAccounts'])->name('job-applications.bulk-create-candidate-accounts');
-            Route::post('interviews/{interview}/update-result', [AdminJobApplicationController::class, 'updateInterviewResult'])->name('interviews.update-result');
-            Route::post('job-applications/{application}/parse-cv', [AdminJobApplicationController::class, 'parseCv'])->name('job-applications.parse-cv');
-            Route::post('job-applications/{application}/analyze-with-ai', [AdminJobApplicationController::class, 'analyzeWithAI'])->name('job-applications.analyze-with-ai');
-            Route::post('job-applications/{application}/process-cv-and-ai', [AdminJobApplicationController::class, 'processCvAndAI'])->name('job-applications.process-cv-and-ai');
         });
         Route::prefix('products/{product}/images')
             ->name('products.images.')

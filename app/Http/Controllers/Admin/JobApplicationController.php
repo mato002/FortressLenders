@@ -9,20 +9,48 @@ use App\Mail\CandidateAccountCreated;
 use App\Models\JobApplication;
 use App\Models\Candidate;
 use App\Models\JobApplicationMessage;
+use App\Models\CandidateDocument;
 use App\Models\JobApplicationReview;
 use App\Models\JobApplicationStatusHistory;
 use App\Models\Interview;
 use App\Services\MessagingService;
+use App\Jobs\SendMessageJob;
 use App\Services\CvParserService;
 use App\Services\AIAnalysisService;
 use App\Jobs\ProcessCvJob;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class JobApplicationController extends Controller
 {
+    /**
+     * Apply company filter if user is a client
+     */
+    protected function applyCompanyFilter($query)
+    {
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id) {
+            return $query->where('company_id', $user->company_id);
+        }
+        return $query;
+    }
+
+    /**
+     * Check if user can access this application (for clients, must belong to their company)
+     */
+    protected function checkApplicationAccess(JobApplication $application)
+    {
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id && $application->company_id !== $user->company_id) {
+            abort(403, 'You do not have permission to access this application.');
+        }
+    }
+
     /**
      * Record a status change in the history table.
      */
@@ -46,6 +74,9 @@ class JobApplicationController extends Controller
     public function index(Request $request)
     {
         $query = JobApplication::with(['jobPost', 'candidate']);
+        
+        // Filter by company for clients
+        $query = $this->applyCompanyFilter($query);
 
         // Filter by status
         if ($request->filled('status')) {
@@ -74,11 +105,11 @@ class JobApplicationController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        // Get total counts for banner
-        $totalApplications = JobApplication::count();
+        // Get total counts for banner (with company filter)
+        $totalApplications = $this->applyCompanyFilter(JobApplication::query())->count();
         $filteredCount = $applications->total();
 
-        // Get status counts for filters - include all possible statuses
+        // Get status counts for filters - include all possible statuses (with company filter)
         $allStatuses = [
             'pending',
             'sieving_passed',
@@ -99,13 +130,16 @@ class JobApplicationController extends Controller
         
         $statusCounts = [];
         foreach ($allStatuses as $status) {
-            $statusCounts[$status] = JobApplication::where('status', $status)->count();
+            $statusCounts[$status] = $this->applyCompanyFilter(JobApplication::where('status', $status))->count();
         }
 
-        // Get job posts for filter dropdown
-        $jobPosts = \App\Models\JobPost::select('id', 'title')
-            ->orderBy('title')
-            ->get();
+        // Get job posts for filter dropdown (with company filter)
+        $jobPostsQuery = \App\Models\JobPost::select('id', 'title');
+        $user = auth()->user();
+        if ($user && $user->isClient() && $user->company_id) {
+            $jobPostsQuery->where('company_id', $user->company_id);
+        }
+        $jobPosts = $jobPostsQuery->orderBy('title')->get();
 
         return view('admin.job-applications.index', compact(
             'applications',
@@ -120,6 +154,9 @@ class JobApplicationController extends Controller
     {
         // Use the route model binding parameter name
         $application = $job_application;
+        
+        // Check if client can access this application
+        $this->checkApplicationAccess($application);
         
         // Refresh the model to ensure we have the latest data
         $application->refresh();
@@ -176,7 +213,8 @@ class JobApplicationController extends Controller
         if (!$session) {
             // Create new test session - use job-specific questions
             $jobPostId = $application->job_post_id;
-            $questions = \App\Models\AptitudeTestQuestion::getTestQuestions($jobPostId);
+            $companyId = $application->company_id;
+            $questions = \App\Models\AptitudeTestQuestion::getTestQuestions($jobPostId, $companyId);
             $allQuestions = collect($questions['numerical'])
                 ->merge($questions['logical'])
                 ->merge($questions['verbal'])
@@ -200,7 +238,8 @@ class JobApplicationController extends Controller
             // If session data expired or is empty, regenerate questions
             if (empty($questionIds)) {
                 $jobPostId = $application->job_post_id;
-                $questions = \App\Models\AptitudeTestQuestion::getTestQuestions($jobPostId);
+                $companyId = $application->company_id;
+                $questions = \App\Models\AptitudeTestQuestion::getTestQuestions($jobPostId, $companyId);
                 $allQuestions = collect($questions['numerical'])
                     ->merge($questions['logical'])
                     ->merge($questions['verbal'])
@@ -275,6 +314,18 @@ class JobApplicationController extends Controller
 
     public function sendMessage(Request $request, JobApplication $application): RedirectResponse
     {
+        $this->checkApplicationAccess($application);
+        // Per-user short-term rate limit (10 attempts per minute)
+        $user = auth()->user();
+        $userId = $user ? $user->id : 'guest';
+        $limiterKey = 'send-message:' . $userId . ':' . $application->id;
+
+        if (RateLimiter::tooManyAttempts($limiterKey, 10)) {
+            return back()->withErrors(['message' => 'Too many message attempts. Please wait a minute and try again.']);
+        }
+
+        RateLimiter::hit($limiterKey, 60);
+
         $validated = $request->validate([
             'channel' => 'required|in:email,sms,whatsapp',
             'message' => 'required|string|max:5000',
@@ -285,7 +336,18 @@ class JobApplicationController extends Controller
         if ($validated['channel'] === 'email') {
             $request->validate(['recipient' => 'email']);
         } else {
-            $request->validate(['recipient' => 'regex:/^[0-9+\-\s()]+$/']);
+            // Basic phone validation (allow +, digits, spaces, dashes, parentheses)
+            $request->validate(['recipient' => ['regex:/^[0-9+\-\s()]+$/', 'min:7', 'max:25']]);
+        }
+
+        // Enforce daily per-application limit to prevent spamming candidates (e.g., 20 messages/day)
+        $dailyCount = JobApplicationMessage::where('job_application_id', $application->id)
+            ->whereDate('created_at', now()->toDateString())
+            ->count();
+
+        if ($dailyCount >= 20) {
+            Log::warning('Daily message limit reached for application ' . $application->id, ['user_id' => auth()->id()]);
+            return back()->withErrors(['message' => 'Daily message limit for this application has been reached.']);
         }
 
         // Create message record
@@ -298,19 +360,16 @@ class JobApplicationController extends Controller
             'status' => 'pending',
         ]);
 
-        // Send the message
-        $messagingService = new MessagingService();
-        $sent = $messagingService->send($jobMessage);
+        // Queue the message for sending (retryable job)
+        SendMessageJob::dispatch($jobMessage)->onQueue('messages');
 
-        if ($sent) {
-            return back()->with('success', 'Message sent successfully via ' . strtoupper($validated['channel']) . '!');
-        } else {
-            return back()->withErrors(['message' => 'Failed to send message. Please check the error and try again.']);
-        }
+        return back()->with('success', 'Message queued for sending via ' . Str::upper($validated['channel']) . '.');
     }
 
     public function review(Request $request, JobApplication $application)
     {
+        $this->checkApplicationAccess($application);
+        
         $validated = $request->validate([
             'decision' => 'required|in:pass,regret',
             'review_notes' => 'nullable|string',
@@ -341,6 +400,8 @@ class JobApplicationController extends Controller
 
     public function scheduleInterview(Request $request, JobApplication $application)
     {
+        $this->checkApplicationAccess($application);
+        
         $validated = $request->validate([
             'interview_type' => 'required|in:first,second,written_test,case_study',
             'scheduled_at' => 'required|date',
@@ -437,6 +498,8 @@ class JobApplicationController extends Controller
 
     public function updateStatus(Request $request, JobApplication $application)
     {
+        $this->checkApplicationAccess($application);
+        
         $validated = $request->validate([
             'status' => 'required|in:pending,sieving_passed,sieving_rejected,pending_manual_review,stage_2_passed,reviewed,shortlisted,rejected,interview_scheduled,interview_passed,interview_failed,second_interview,written_test,case_study,hired',
         ]);
@@ -468,6 +531,8 @@ class JobApplicationController extends Controller
     {
         $application = $job_application;
         
+        $this->checkApplicationAccess($application);
+        
         // Delete CV file if it exists
         if ($application->cv_path && Storage::disk('public')->exists($application->cv_path)) {
             Storage::disk('public')->delete($application->cv_path);
@@ -485,6 +550,8 @@ class JobApplicationController extends Controller
      */
     public function createCandidateAccount(JobApplication $application): RedirectResponse
     {
+        $this->checkApplicationAccess($application);
+        
         // Check if candidate already exists
         $candidate = Candidate::where('email', $application->email)->first();
         
@@ -718,6 +785,8 @@ class JobApplicationController extends Controller
 
     public function sendConfirmationEmail(JobApplication $application): RedirectResponse
     {
+        $this->checkApplicationAccess($application);
+        
         if (! $application->email) {
             return back()->withErrors(['email' => 'This application does not have an email address.']);
         }
@@ -920,6 +989,69 @@ class JobApplicationController extends Controller
     }
 
     /**
+     * Bulk sieving - Run AI sieving on multiple applications
+     */
+    public function bulkSieving(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'application_ids' => 'required|array',
+            'application_ids.*' => 'exists:job_applications,id',
+        ]);
+
+        $applications = JobApplication::whereIn('id', $validated['application_ids'])->get();
+        
+        // Apply company filter for clients
+        $applications = $applications->filter(function ($application) {
+            $this->checkApplicationAccess($application);
+            return true;
+        });
+
+        $sievingService = new \App\Services\AISievingService();
+        $processed = 0;
+        $failed = 0;
+        $errors = [];
+
+        foreach ($applications as $application) {
+            try {
+                // Check token availability before processing
+                $companyId = $application->company_id;
+                if ($companyId) {
+                    $tokenService = app(\App\Services\TokenService::class);
+                    $estimatedTokens = $tokenService->estimateTokens('scoring', 1000); // Rough estimate
+                    
+                    if (!$tokenService->hasEnoughTokens($companyId, $estimatedTokens)) {
+                        $errors[] = "Application #{$application->id}: Insufficient tokens available.";
+                        $failed++;
+                        continue;
+                    }
+                }
+
+                // Run sieving evaluation
+                $sievingService->evaluate($application);
+                $processed++;
+            } catch (\Exception $e) {
+                Log::error('Bulk sieving failed for application', [
+                    'application_id' => $application->id,
+                    'error' => $e->getMessage()
+                ]);
+                $errors[] = "Application #{$application->id}: " . $e->getMessage();
+                $failed++;
+            }
+        }
+
+        $message = "Sieving completed: {$processed} application(s) processed successfully.";
+        if ($failed > 0) {
+            $message .= " {$failed} application(s) failed.";
+        }
+
+        if (!empty($errors) && count($errors) <= 5) {
+            return back()->with('success', $message)->with('errors', $errors);
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
      * Export applications to CSV
      */
     public function export(Request $request)
@@ -1059,6 +1191,8 @@ class JobApplicationController extends Controller
      */
     public function parseCv(JobApplication $application): RedirectResponse
     {
+        $this->checkApplicationAccess($application);
+        
         try {
             // Note: CV parsing is currently rule-based, not AI-powered
             // If you add AI-enhanced parsing later, add token check here
@@ -1084,9 +1218,14 @@ class JobApplicationController extends Controller
      */
     public function analyzeWithAI(JobApplication $application): RedirectResponse
     {
+        $this->checkApplicationAccess($application);
+        
         try {
             // Check token availability before processing
-            $company = \App\Models\Company::first();
+            $user = auth()->user();
+            $company = $user && $user->isClient() && $user->company_id 
+                ? $user->company 
+                : \App\Models\Company::first();
             if ($company) {
                 $tokenService = app(\App\Services\TokenService::class);
                 $estimatedTokens = $tokenService->estimateTokens('cv_analyze', 5000) + 
@@ -1140,6 +1279,8 @@ class JobApplicationController extends Controller
      */
     public function processCvAndAI(JobApplication $application): RedirectResponse
     {
+        $this->checkApplicationAccess($application);
+        
         try {
             // Dispatch async job
             ProcessCvJob::dispatch($application);
@@ -1152,6 +1293,72 @@ class JobApplicationController extends Controller
             ]);
             return back()->withErrors(['error' => 'Failed to queue processing: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * Upload document for a candidate (HR only)
+     */
+    public function uploadDocument(Request $request, JobApplication $application): RedirectResponse
+    {
+        $this->checkApplicationAccess($application);
+        
+        if (!$application->candidate_id) {
+            return back()->withErrors(['error' => 'Candidate account must be created first.']);
+        }
+
+        $validated = $request->validate([
+            'document_type' => ['required', 'string', 'in:offer_letter,contract'],
+            'file' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $candidate = Candidate::findOrFail($application->candidate_id);
+        $file = $request->file('file');
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $path = $file->storeAs('candidate_documents/' . $candidate->id, $filename, 'private');
+
+        // Delete existing document of the same type if exists
+        $existingDocument = CandidateDocument::where('candidate_id', $candidate->id)
+            ->where('document_type', $validated['document_type'])
+            ->first();
+
+        if ($existingDocument) {
+            Storage::disk('private')->delete($existingDocument->file_path);
+            $existingDocument->delete();
+        }
+
+        CandidateDocument::create([
+            'candidate_id' => $candidate->id,
+            'document_type' => $validated['document_type'],
+            'file_path' => $path,
+            'original_filename' => $file->getClientOriginalName(),
+            'file_size' => $file->getSize(),
+            'mime_type' => $file->getMimeType(),
+            'status' => 'pending',
+            'notes' => $validated['notes'] ?? null,
+            'uploaded_by' => auth()->id(),
+        ]);
+
+        return back()->with('success', 'Document uploaded successfully.');
+    }
+
+    /**
+     * Update document status (approve/reject)
+     */
+    public function updateDocumentStatus(Request $request, CandidateDocument $document): RedirectResponse
+    {
+        $validated = $request->validate([
+            'status' => ['required', 'string', 'in:approved,rejected'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $document->status = $validated['status'];
+        if ($validated['notes']) {
+            $document->notes = $validated['notes'];
+        }
+        $document->save();
+
+        return back()->with('success', 'Document status updated.');
     }
 }
 

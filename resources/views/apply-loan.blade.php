@@ -16,7 +16,7 @@
 
     <!-- How It Works & Eligibility (mobile-first cards) -->
     <section class="bg-white py-8 sm:py-10 md:py-12">
-        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32 max-w-6xl mx-auto space-y-8 sm:space-y-10">
+        <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 max-w-7xl mx-auto space-y-8 sm:space-y-10">
             <!-- How It Works -->
             <div>
                 <h2 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-4 sm:mb-5 text-center">
@@ -59,8 +59,8 @@
                 </div>
             </div>
 
-            <!-- Eligibility & Simple Estimator wrapper for mobile -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
+            <!-- Eligibility & Calculator wrapper -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
                 <!-- Eligibility -->
                 <div class="bg-gray-50 rounded-2xl border border-gray-100 p-5 sm:p-6 shadow-sm">
                     <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">
@@ -93,72 +93,112 @@
                     </p>
                 </div>
 
-                <!-- Simple Loan Estimator (client-side only) -->
-                <div class="bg-white rounded-2xl border border-teal-100 p-5 sm:p-6 shadow-sm">
+                <!-- Loan Calculator - Takes 2 columns on large screens -->
+                <div class="lg:col-span-2 bg-white rounded-2xl border border-teal-100 p-5 sm:p-6 shadow-sm">
                     <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">
-                        Quick Loan Estimate (Approximate)
+                        Loan Calculator
                     </h3>
                     <p class="text-xs sm:text-sm text-gray-600 mb-4">
-                        Use this simple tool to estimate a rough monthly repayment.
-                        Actual terms will be discussed with you by our team.
+                        Select the loan amount range you need, then enter your specific amount and duration.
                     </p>
                     <div class="space-y-4">
                         <div>
-                            <label for="estimate_amount" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                                Amount Requested (KES)
+                            <label for="calculator_range" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                                Loan Amount Range <span class="text-red-500">*</span>
                             </label>
-                            <input
-                                type="number"
-                                id="estimate_amount"
-                                min="1000"
-                                step="1000"
-                                inputmode="numeric"
+                            <select
+                                id="calculator_range"
                                 class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent text-sm"
-                                placeholder="e.g. 50000"
+                                onchange="updateCalculatorFields()"
                             >
+                                <option value="">-- Select loan amount range --</option>
+                                @foreach($loanRanges as $range)
+                                    @php
+                                        // Use the first product in the range as default (or you could pick the most common one)
+                                        $defaultProduct = $range['products'][0];
+                                    @endphp
+                                    <option 
+                                        value="{{ $defaultProduct->id }}"
+                                        data-min-amount="{{ $defaultProduct->min_loan_amount }}"
+                                        data-max-amount="{{ $defaultProduct->max_loan_amount }}"
+                                        data-service-charge-type="{{ $defaultProduct->service_charge_type }}"
+                                        data-service-charge-value="{{ $defaultProduct->service_charge_value }}"
+                                        data-service-charge-period="{{ $defaultProduct->service_charge_period }}"
+                                        data-max-duration="{{ $defaultProduct->max_duration_weeks }}"
+                                        data-payment-frequency="{{ $defaultProduct->payment_frequency }}"
+                                        data-target-clients="{{ $defaultProduct->target_clients }}"
+                                    >
+                                        KES {{ number_format($defaultProduct->min_loan_amount) }} - {{ number_format($defaultProduct->max_loan_amount) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Select the range that includes the amount you want to borrow</p>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                        <div id="calculator-fields" class="hidden space-y-4">
                             <div>
-                                <label for="estimate_period" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                                    Repayment Period
+                                <label for="calculator_amount" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                                    Enter Your Loan Amount (KES) <span class="text-red-500">*</span>
                                 </label>
-                                <select
-                                    id="estimate_period"
+                                <input
+                                    type="number"
+                                    id="calculator_amount"
+                                    min="0"
+                                    step="1000"
                                     class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent text-sm"
+                                    placeholder="Enter amount within the selected range"
                                 >
-                                    <option value="1">1 month</option>
-                                    <option value="3" selected>3 months</option>
-                                    <option value="6">6 months</option>
-                                    <option value="9">9 months</option>
-                                    <option value="12">12 months</option>
-                                </select>
+                                <p id="calculator-amount-range" class="text-xs text-gray-500 mt-1"></p>
                             </div>
+
                             <div>
-                                <label for="estimate_rate" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                                    Approx. Monthly Rate
+                                <label for="calculator_duration" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                                    Repayment Duration (Weeks) <span class="text-red-500">*</span>
                                 </label>
-                                <select
-                                    id="estimate_rate"
+                                <input
+                                    type="number"
+                                    id="calculator_duration"
+                                    min="1"
+                                    step="1"
                                     class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent text-sm"
+                                    placeholder="Enter number of weeks"
                                 >
-                                    <option value="0.02">2% per month</option>
-                                    <option value="0.025">2.5% per month</option>
-                                    <option value="0.03" selected>3% per month</option>
-                                    <option value="0.035">3.5% per month</option>
-                                </select>
+                                <p id="calculator-duration-max" class="text-xs text-gray-500 mt-1"></p>
                             </div>
-                        </div>
-                        <div class="bg-teal-50 border border-teal-100 rounded-xl p-4 text-sm sm:text-base">
-                            <p class="text-gray-700 mb-1">
-                                Estimated Monthly Repayment:
-                            </p>
-                            <p id="estimate_result" class="text-xl sm:text-2xl font-bold text-teal-800">
-                                KES 0
-                            </p>
-                            <p class="text-[11px] sm:text-xs text-gray-500 mt-2">
-                                This is a rough illustration using simple interest for your convenience and
-                                <span class="font-semibold">not</span> a formal offer or guarantee.
-                            </p>
+
+                            <div id="calculator-service-charge-info" class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs sm:text-sm">
+                                <p class="font-semibold text-blue-900 mb-1">Service Charge:</p>
+                                <p id="service-charge-display" class="text-blue-800"></p>
+                                <p id="payment-frequency-display" class="text-blue-700 mt-1"></p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onclick="calculateLoanPayment()"
+                                class="w-full px-4 py-3 bg-gradient-to-r from-teal-800 to-teal-700 text-white rounded-lg font-semibold hover:from-teal-900 hover:to-teal-800 transition-all shadow-md hover:shadow-lg text-sm sm:text-base"
+                            >
+                                Calculate Payment
+                            </button>
+
+                            <div id="calculator-results" class="hidden bg-teal-50 border border-teal-200 rounded-xl p-4 space-y-3">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="bg-white rounded-lg p-3">
+                                        <p class="text-xs text-gray-600 mb-1" id="payment-label">Payment</p>
+                                        <p id="payment-amount" class="text-lg sm:text-xl font-bold text-teal-800">KES 0</p>
+                                    </div>
+                                    <div class="bg-white rounded-lg p-3">
+                                        <p class="text-xs text-gray-600 mb-1">Total Service Charge</p>
+                                        <p id="total-service-charge" class="text-lg sm:text-xl font-bold text-blue-700">KES 0</p>
+                                    </div>
+                                </div>
+                                <div class="bg-white rounded-lg p-3">
+                                    <p class="text-xs text-gray-600 mb-1">Total Amount Payable</p>
+                                    <p id="total-amount" class="text-xl sm:text-2xl font-bold text-gray-900">KES 0</p>
+                                </div>
+                                <p class="text-[11px] sm:text-xs text-gray-500 text-center">
+                                    * Calculations are estimates. Actual terms will be discussed with you by our team.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -392,53 +432,126 @@
     </section>
     @push('scripts')
     <script>
-        // Loan estimator
-        (function () {
-            const amountInput = document.getElementById('estimate_amount');
-            const periodSelect = document.getElementById('estimate_period');
-            const rateSelect = document.getElementById('estimate_rate');
-            const resultEl = document.getElementById('estimate_result');
+        let selectedProduct = null;
 
-            if (!amountInput || !periodSelect || !rateSelect || !resultEl) {
+        function updateCalculatorFields() {
+            const select = document.getElementById('calculator_range');
+            const option = select.options[select.selectedIndex];
+            const fieldsDiv = document.getElementById('calculator-fields');
+            const resultsDiv = document.getElementById('calculator-results');
+
+            if (!option.value) {
+                fieldsDiv.classList.add('hidden');
+                resultsDiv.classList.add('hidden');
+                selectedProduct = null;
                 return;
             }
 
-            function formatKES(value) {
-                if (!isFinite(value) || value <= 0) {
-                    return 'KES 0';
+            selectedProduct = {
+                id: option.value,
+                minAmount: parseFloat(option.getAttribute('data-min-amount')),
+                maxAmount: parseFloat(option.getAttribute('data-max-amount')),
+                serviceChargeType: option.getAttribute('data-service-charge-type'),
+                serviceChargeValue: parseFloat(option.getAttribute('data-service-charge-value')),
+                serviceChargePeriod: option.getAttribute('data-service-charge-period'),
+                maxDuration: parseInt(option.getAttribute('data-max-duration')),
+                paymentFrequency: option.getAttribute('data-payment-frequency'),
+                targetClients: option.getAttribute('data-target-clients'),
+            };
+
+            // Update fields
+            document.getElementById('calculator_amount').value = selectedProduct.minAmount;
+            document.getElementById('calculator_amount').min = selectedProduct.minAmount;
+            document.getElementById('calculator_amount').max = selectedProduct.maxAmount;
+            document.getElementById('calculator-amount-range').textContent = 
+                `Range: KES ${selectedProduct.minAmount.toLocaleString('en-KE')} - ${selectedProduct.maxAmount.toLocaleString('en-KE')}`;
+
+            document.getElementById('calculator_duration').value = selectedProduct.maxDuration;
+            document.getElementById('calculator_duration').max = selectedProduct.maxDuration;
+            document.getElementById('calculator-duration-max').textContent = 
+                `Maximum: ${selectedProduct.maxDuration} weeks`;
+
+            // Update service charge display
+            let chargeDisplay = '';
+            if (selectedProduct.serviceChargeType === 'fixed_amount') {
+                chargeDisplay = `KES ${selectedProduct.serviceChargeValue.toLocaleString('en-KE', {minimumFractionDigits: 2})}`;
+                if (selectedProduct.serviceChargePeriod === 'per_month') {
+                    chargeDisplay += ' per month';
+                } else if (selectedProduct.serviceChargePeriod === 'for_6weeks') {
+                    chargeDisplay += ' for 6 weeks';
                 }
-                return 'KES ' + value.toLocaleString('en-KE', {
-                    maximumFractionDigits: 0
-                });
+            } else {
+                chargeDisplay = `${selectedProduct.serviceChargeValue}% per month`;
+            }
+            document.getElementById('service-charge-display').textContent = chargeDisplay;
+            document.getElementById('payment-frequency-display').textContent = 
+                `Payment Frequency: ${selectedProduct.paymentFrequency.charAt(0).toUpperCase() + selectedProduct.paymentFrequency.slice(1)}`;
+
+            // Update payment label
+            const paymentLabel = document.getElementById('payment-label');
+            paymentLabel.textContent = selectedProduct.paymentFrequency === 'weekly' ? 'Weekly Payment' : 'Monthly Payment';
+
+            fieldsDiv.classList.remove('hidden');
+            resultsDiv.classList.add('hidden');
+        }
+
+        function calculateLoanPayment() {
+            if (!selectedProduct) {
+                alert('Please select a loan product first.');
+                return;
             }
 
-            function recalc() {
-                const principal = parseFloat(amountInput.value || '0');
-                const months = parseInt(periodSelect.value || '0', 10);
-                const monthlyRate = parseFloat(rateSelect.value || '0');
+            const loanAmount = parseFloat(document.getElementById('calculator_amount').value) || 0;
+            const durationWeeks = parseInt(document.getElementById('calculator_duration').value) || 0;
 
-                if (!principal || !months || !monthlyRate) {
-                    resultEl.textContent = 'KES 0';
-                    return;
-                }
-
-                // Simple-interest style estimate for clarity on mobile:
-                // total = principal + (principal * monthlyRate * months)
-                const total = principal + (principal * monthlyRate * months);
-                const monthly = total / months;
-
-                resultEl.textContent = formatKES(monthly);
+            if (loanAmount < selectedProduct.minAmount || loanAmount > selectedProduct.maxAmount) {
+                alert(`Loan amount must be between KES ${selectedProduct.minAmount.toLocaleString('en-KE')} and KES ${selectedProduct.maxAmount.toLocaleString('en-KE')}`);
+                return;
             }
 
-            ['input', 'change'].forEach(evt => {
-                amountInput.addEventListener(evt, recalc);
-                periodSelect.addEventListener(evt, recalc);
-                rateSelect.addEventListener(evt, recalc);
-            });
+            if (durationWeeks <= 0 || durationWeeks > selectedProduct.maxDuration) {
+                alert(`Duration must be between 1 and ${selectedProduct.maxDuration} weeks`);
+                return;
+            }
 
-            // Initial calculation with any default values
-            recalc();
-        })();
+            let totalServiceCharge = 0;
+            let numberOfPayments = 0;
+
+            // Calculate number of payments
+            if (selectedProduct.paymentFrequency === 'weekly') {
+                numberOfPayments = durationWeeks;
+            } else {
+                numberOfPayments = Math.ceil(durationWeeks / 4.33); // Approximate weeks to months
+            }
+
+            // Calculate service charge
+            if (selectedProduct.serviceChargeType === 'fixed_amount') {
+                if (selectedProduct.serviceChargePeriod === 'for_6weeks') {
+                    const sixWeekPeriods = Math.ceil(durationWeeks / 6);
+                    totalServiceCharge = selectedProduct.serviceChargeValue * sixWeekPeriods;
+                } else {
+                    const months = durationWeeks / 4.33;
+                    totalServiceCharge = selectedProduct.serviceChargeValue * months;
+                }
+            } else {
+                const months = durationWeeks / 4.33;
+                totalServiceCharge = (loanAmount * selectedProduct.serviceChargeValue / 100) * months;
+            }
+
+            const totalAmount = loanAmount + totalServiceCharge;
+            const paymentAmount = totalAmount / numberOfPayments;
+
+            // Update results
+            document.getElementById('payment-amount').textContent = 
+                'KES ' + paymentAmount.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('total-service-charge').textContent = 
+                'KES ' + totalServiceCharge.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('total-amount').textContent = 
+                'KES ' + totalAmount.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            document.getElementById('calculator-results').classList.remove('hidden');
+            document.getElementById('calculator-results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
 
         // Multi-step loan application form
         (function () {

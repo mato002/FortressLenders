@@ -25,12 +25,30 @@ class TokenController extends Controller
      */
     public function index()
     {
-        // For now, get the first company (later: get from authenticated user's company)
-        $company = Company::first();
-        
-        if (!$company) {
+        try {
+            // Get or create default company (for single-tenant setup)
+            $company = Company::first();
+            
+            if (!$company) {
+                // Create a default company if none exists
+                $company = Company::create([
+                    'name' => config('app.name', 'Fortress Lenders'),
+                    'slug' => 'default',
+                    'email' => config('mail.from.address'),
+                    'subscription_plan' => 'professional',
+                    'subscription_status' => 'active',
+                    'is_active' => true,
+                    'ai_enabled' => true,
+                    'ai_auto_sieve' => false,
+                    'ai_threshold' => 7.0,
+                    'token_package_type' => 'prepaid',
+                    'token_alert_threshold' => 20,
+                ]);
+            }
+        } catch (\Exception $e) {
+            // If companies table doesn't exist, show migration message
             return redirect()->route('admin.dashboard')
-                ->with('warning', 'No company found. Please create a company first.');
+                ->with('error', 'Token management requires database migrations. Please run: php artisan migrate');
         }
 
         $balance = $this->tokenService->getBalance($company->id);
@@ -64,6 +82,9 @@ class TokenController extends Controller
     public function usage(Request $request)
     {
         $company = Company::first();
+        if (!$company) {
+            return redirect()->route('admin.tokens.index');
+        }
         $period = $request->get('period', 'month');
 
         $usageStats = $this->tokenService->getUsageStats($company->id, $period);
@@ -154,6 +175,10 @@ class TokenController extends Controller
     {
         $company = Company::first(); // Later: get from API key or auth
         
+        if (!$company) {
+            return response()->json(['error' => 'No company found'], 404);
+        }
+        
         $balance = $this->tokenService->getBalance($company->id);
         
         return response()->json($balance);
@@ -165,6 +190,11 @@ class TokenController extends Controller
     public function stats(Request $request)
     {
         $company = Company::first(); // Later: get from API key or auth
+        
+        if (!$company) {
+            return response()->json(['error' => 'No company found'], 404);
+        }
+        
         $period = $request->get('period', 'month');
 
         $stats = $this->tokenService->getUsageStats($company->id, $period);

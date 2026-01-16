@@ -13,7 +13,7 @@ return [
 
     'provider' => env('AI_PROVIDER', 'openai'),
 
-    'api_key' => env('AI_API_KEY', env('OPENAI_API_KEY')),
+    'api_key' => env('AI_API_KEY') ?: env('OPENAI_API_KEY'),
 
     'api_url' => env('AI_API_URL'),
 
@@ -54,4 +54,5 @@ return [
     'min_confidence_for_auto_reject' => env('AI_MIN_CONFIDENCE_AUTO_REJECT', 0.80),
 
 ];
+
 

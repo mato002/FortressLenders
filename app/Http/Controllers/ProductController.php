@@ -17,4 +17,23 @@ class ProductController extends Controller
 
         return view('products', compact('products'));
     }
+
+    public function show(Product $product)
+    {
+        if (!$product->is_active) {
+            abort(404);
+        }
+
+        $product->load('images');
+        
+        // Get related products
+        $relatedProducts = Product::where('is_active', true)
+            ->where('id', '!=', $product->id)
+            ->where('category', $product->category)
+            ->orderBy('display_order')
+            ->limit(3)
+            ->get();
+
+        return view('products.show', compact('product', 'relatedProducts'));
+    }
 }

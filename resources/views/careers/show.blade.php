@@ -2,6 +2,64 @@
 
 @section('title', $job->title . ' - Careers - Fortress Lenders Ltd')
 
+@php
+    use Illuminate\Support\Str;
+    
+    // Prepare job description for meta tags (strip HTML and limit length)
+    $jobDescription = strip_tags($job->description ?? '');
+    $jobDescription = Str::limit($jobDescription, 200);
+    
+    // Get logo URL for sharing (must be absolute URL)
+    $logoUrl = null;
+    if ($generalSettings->logo_path ?? null) {
+        $logoUrl = url('storage/' . $generalSettings->logo_path);
+    } else {
+        // Fallback: use a default image or create a simple logo
+        // For now, we'll use the site URL as fallback
+        $logoUrl = url('/images/fortress-logo.png');
+    }
+    
+    // Get the full absolute URL for this job post
+    $jobUrl = url(route('careers.show', $job->slug));
+    
+    // Prepare comprehensive job summary for sharing
+    $jobSummary = $jobDescription;
+    
+    // Add location and department if available
+    $jobDetails = [];
+    if ($job->location) {
+        $jobDetails[] = 'Location: ' . $job->location;
+    }
+    if ($job->department) {
+        $jobDetails[] = 'Department: ' . $job->department;
+    }
+    if ($job->employment_type) {
+        $jobDetails[] = 'Type: ' . ucfirst(str_replace('-', ' ', $job->employment_type));
+    }
+    
+    if (!empty($jobDetails)) {
+        $jobSummary = $jobDescription . ' | ' . implode(' | ', $jobDetails);
+    }
+    
+    // Limit to 300 characters for social media
+    $jobSummary = Str::limit($jobSummary, 300);
+@endphp
+
+{{-- Open Graph Meta Tags --}}
+@section('og_type', 'article')
+@section('og_url', $jobUrl)
+@section('og_title', $job->title . ' - Fortress Lenders Ltd')
+@section('og_description', $jobSummary)
+@section('og_image', $logoUrl)
+@section('og_image_width', '1200')
+@section('og_image_height', '630')
+
+{{-- Twitter Card Meta Tags --}}
+@section('twitter_card', 'summary_large_image')
+@section('twitter_title', $job->title . ' - Fortress Lenders Ltd')
+@section('twitter_description', $jobSummary)
+@section('twitter_image', $logoUrl)
+
 @section('content')
     <!-- Hero Section -->
     <section

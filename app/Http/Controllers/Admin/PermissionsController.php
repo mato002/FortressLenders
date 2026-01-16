@@ -21,6 +21,7 @@ class PermissionsController extends Controller
             'hr_manager' => 'HR Manager',
             'loan_manager' => 'Loan Manager',
             'editor' => 'Editor',
+            'client' => 'Client (Company Admin)',
             'user' => 'User',
         ];
 

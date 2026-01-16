@@ -25,6 +25,48 @@
         @endif
     </title>
 
+    {{-- Open Graph / Facebook Meta Tags --}}
+    @hasSection('og_title')
+        <meta property="og:type" content="@yield('og_type', 'website')">
+        <meta property="og:url" content="@yield('og_url', url()->current())">
+        <meta property="og:title" content="@yield('og_title')">
+        <meta property="og:description" content="@yield('og_description')">
+        @hasSection('og_image')
+            <meta property="og:image" content="@yield('og_image')">
+            <meta property="og:image:width" content="@yield('og_image_width', '1200')">
+            <meta property="og:image:height" content="@yield('og_image_height', '630')">
+            <meta property="og:image:alt" content="@yield('og_image_alt', $generalSettings->company_name ?? 'Fortress Lenders Ltd')">
+        @else
+            {{-- Fallback: Use logo if available --}}
+            @if($generalSettings->logo_path ?? null)
+                <meta property="og:image" content="{{ url('storage/' . $generalSettings->logo_path) }}">
+                <meta property="og:image:width" content="1200">
+                <meta property="og:image:height" content="630">
+                <meta property="og:image:alt" content="{{ $generalSettings->company_name ?? 'Fortress Lenders Ltd' }}">
+            @endif
+        @endif
+        <meta property="og:site_name" content="{{ $generalSettings->company_name ?? 'Fortress Lenders Ltd' }}">
+    @endif
+
+    {{-- Twitter Card Meta Tags --}}
+    @hasSection('twitter_card')
+        <meta name="twitter:card" content="@yield('twitter_card', 'summary_large_image')">
+        @hasSection('twitter_title')
+            <meta name="twitter:title" content="@yield('twitter_title')">
+        @endif
+        @hasSection('twitter_description')
+            <meta name="twitter:description" content="@yield('twitter_description')">
+        @endif
+        @hasSection('twitter_image')
+            <meta name="twitter:image" content="@yield('twitter_image')">
+        @else
+            {{-- Fallback: Use logo if available --}}
+            @if($generalSettings->logo_path ?? null)
+                <meta name="twitter:image" content="{{ url('storage/' . $generalSettings->logo_path) }}">
+            @endif
+        @endif
+    @endif
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />

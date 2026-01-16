@@ -134,6 +134,28 @@ class ProductController extends Controller
             'is_active' => ['sometimes', 'boolean'],
             'display_order' => ['nullable', 'integer', 'min:0'],
             'images.*' => ['nullable', 'image', 'max:4096'],
+            // Loan details
+            'min_loan_amount' => ['nullable', 'numeric', 'min:0'],
+            'max_loan_amount' => ['nullable', 'numeric', 'min:0', 'gte:min_loan_amount'],
+            'interest_rate_min' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'interest_rate_max' => ['nullable', 'numeric', 'min:0', 'max:100', 'gte:interest_rate_min'],
+            'interest_rate_type' => ['nullable', 'string', 'in:per_month,per_year,flat,reducing_balance'],
+            'repayment_period_min' => ['nullable', 'integer', 'min:1'],
+            'repayment_period_max' => ['nullable', 'integer', 'min:1', 'gte:repayment_period_min'],
+            'repayment_methods' => ['nullable', 'string'],
+            'repayment_schedule_info' => ['nullable', 'string'],
+            'eligibility_criteria' => ['nullable', 'string'],
+            'required_documents' => ['nullable', 'string'],
+            'processing_time' => ['nullable', 'string', 'max:255'],
+            'fees_and_charges' => ['nullable', 'string'],
+            'additional_info' => ['nullable', 'string'],
+            // Service charge fields
+            'service_charge_type' => ['nullable', 'string', 'in:fixed_amount,percentage'],
+            'service_charge_value' => ['nullable', 'numeric', 'min:0'],
+            'service_charge_period' => ['nullable', 'string', 'in:per_month,for_6weeks'],
+            'payment_frequency' => ['nullable', 'string', 'in:weekly,monthly'],
+            'max_duration_weeks' => ['nullable', 'integer', 'min:1'],
+            'target_clients' => ['nullable', 'string', 'max:255'],
         ]);
 
         return array_merge($validated, [

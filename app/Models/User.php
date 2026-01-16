@@ -25,6 +25,7 @@ class User extends Authenticatable
         'is_admin',
         'is_banned',
         'role',
+        'company_id',
     ];
 
     /**
@@ -88,15 +89,17 @@ class User extends Authenticatable
             'hr_manager' => 'HR Manager',
             'loan_manager' => 'Loan Manager',
             'editor' => 'Editor',
+            'client' => 'Client (Company Admin)',
         ];
     }
 
     /**
      * Check if user is HR Manager or has HR-related access.
+     * Clients have the same permissions as HR managers for careers module.
      */
     public function isHrManager(): bool
     {
-        return $this->role === 'hr_manager' || $this->isAdmin();
+        return $this->role === 'hr_manager' || $this->role === 'client' || $this->isAdmin();
     }
 
     /**
@@ -112,7 +115,7 @@ class User extends Authenticatable
      */
     public function canAccessCareers(): bool
     {
-        return $this->isHrManager() || $this->isAdmin();
+        return $this->isHrManager() || $this->isAdmin() || $this->isClient();
     }
 
     /**
@@ -170,6 +173,22 @@ class User extends Authenticatable
      */
     public function isEmployee(): bool
     {
-        return !$this->isCandidate() && ($this->is_admin || in_array($this->role, ['admin', 'hr_manager', 'loan_manager', 'editor']));
+        return !$this->isCandidate() && ($this->is_admin || in_array($this->role, ['admin', 'hr_manager', 'loan_manager', 'editor', 'client']));
+    }
+
+    /**
+     * Check if user is a client (company admin).
+     */
+    public function isClient(): bool
+    {
+        return $this->role === 'client';
+    }
+
+    /**
+     * Get the company this user belongs to.
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 }

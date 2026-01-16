@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\LoanApplicationConfirmation;
 use App\Mail\LoanApplicationReceived;
 use App\Models\LoanApplication;
+use App\Models\LoanProductType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -14,7 +15,34 @@ class LoanApplicationController extends Controller
 {
     public function create(): View
     {
-        return view('apply-loan');
+        $loanProductTypes = LoanProductType::where('is_active', true)
+            ->orderBy('min_loan_amount')
+            ->orderBy('max_loan_amount')
+            ->orderBy('display_order')
+            ->get();
+        
+        // Group products by loan amount ranges
+        $loanRanges = [];
+        foreach ($loanProductTypes as $product) {
+            $rangeKey = $product->min_loan_amount . '-' . $product->max_loan_amount;
+            
+            if (!isset($loanRanges[$rangeKey])) {
+                $loanRanges[$rangeKey] = [
+                    'min_amount' => $product->min_loan_amount,
+                    'max_amount' => $product->max_loan_amount,
+                    'products' => [],
+                ];
+            }
+            
+            $loanRanges[$rangeKey]['products'][] = $product;
+        }
+        
+        // Sort ranges by min amount
+        usort($loanRanges, function($a, $b) {
+            return $a['min_amount'] <=> $b['min_amount'];
+        });
+        
+        return view('apply-loan', compact('loanRanges', 'loanProductTypes'));
     }
 
     public function store(Request $request): RedirectResponse

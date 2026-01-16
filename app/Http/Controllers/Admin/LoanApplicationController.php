@@ -7,6 +7,7 @@ use App\Mail\LoanApplicationConfirmation;
 use App\Models\LoanApplication;
 use App\Models\LoanApplicationMessage;
 use App\Services\MessagingService;
+use App\Jobs\SendMessageJob;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -114,20 +115,15 @@ class LoanApplicationController extends Controller
             'status' => 'pending',
         ]);
 
-        // Send the message
-        $messagingService = new MessagingService();
-        $sent = $messagingService->send($message);
+        // Queue the message for sending so sending is asynchronous and retryable
+        SendMessageJob::dispatch($message)->onQueue('messages');
 
-        if ($sent) {
-            // Update loan application status if needed
-            if ($loanApplication->status === 'pending') {
-                $loanApplication->update(['status' => 'in_review']);
-            }
-
-            return back()->with('status', 'Message sent successfully via ' . strtoupper($validated['channel']) . '!');
-        } else {
-            return back()->withErrors(['message' => 'Failed to send message. Please check the error and try again.']);
+        // Update loan application status if needed (maintain existing behavior)
+        if ($loanApplication->status === 'pending') {
+            $loanApplication->update(['status' => 'in_review']);
         }
+
+        return back()->with('status', 'Message queued for sending via ' . strtoupper($validated['channel']) . '.');
     }
 
     public function destroy(LoanApplication $loanApplication): RedirectResponse

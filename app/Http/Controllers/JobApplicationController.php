@@ -122,6 +122,11 @@ class JobApplicationController extends Controller
 
         $validated['job_post_id'] = $job->id;
         $validated['status'] = 'pending';
+        
+        // Auto-assign company_id from job post
+        if ($job->company_id) {
+            $validated['company_id'] = $job->company_id;
+        }
 
         // Generate AI summary (placeholder - you can integrate actual AI service)
         $validated['ai_summary'] = $this->generateAISummary($validated);
@@ -162,16 +167,18 @@ class JobApplicationController extends Controller
                 ProcessCvJob::dispatch($application);
             }
             
-            // Run AI sieving evaluation (after CV processing if possible, or async)
-            try {
-                $sievingService = new AISievingService();
-                $sievingService->evaluate($application);
-            } catch (\Exception $e) {
-                // Log error but don't fail application submission
-                \Log::error('AI Sieving evaluation failed', [
-                    'application_id' => $application->id,
-                    'error' => $e->getMessage(),
-                ]);
+            // Run AI sieving evaluation automatically if enabled
+            if (config('ai.enable_auto_sieving', true)) {
+                try {
+                    $sievingService = new AISievingService();
+                    $sievingService->evaluate($application);
+                } catch (\Exception $e) {
+                    // Log error but don't fail application submission
+                    \Log::error('AI Sieving evaluation failed', [
+                        'application_id' => $application->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
         } catch (\Illuminate\Database\QueryException $e) {
             // Catch database unique constraint violation as a fallback

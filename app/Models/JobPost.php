@@ -23,6 +23,7 @@ class JobPost extends Model
         'application_deadline',
         'is_active',
         'views',
+        'company_id',
     ];
 
     protected $casts = [
@@ -46,9 +47,22 @@ class JobPost extends Model
         return $this->hasMany(JobApplication::class);
     }
 
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
+
     public function sievingCriteria()
     {
         return $this->hasOne(JobSievingCriteria::class);
+    }
+
+    /**
+     * Scope to filter by company
+     */
+    public function scopeForCompany($query, $companyId)
+    {
+        return $query->where('company_id', $companyId);
     }
 
     public function scopeActive($query)

@@ -16,13 +16,15 @@ class AIAnalysisService
     protected string $apiProvider;
     protected string $apiKey;
     protected string $apiUrl;
+    protected string $model;
     protected TokenService $tokenService;
 
     public function __construct(TokenService $tokenService = null)
     {
         $this->apiProvider = config('ai.provider', 'openai'); // openai, anthropic, local
-        $this->apiKey = config('ai.api_key', env('OPENAI_API_KEY'));
+        $this->apiKey = config('ai.api_key');
         $this->apiUrl = config('ai.api_url');
+        $this->model = config('ai.model', 'gpt-4o-mini');
         $this->tokenService = $tokenService ?? app(TokenService::class);
     }
 
@@ -298,7 +300,7 @@ class AIAnalysisService
             'Authorization' => 'Bearer ' . $this->apiKey,
             'Content-Type' => 'application/json',
         ])->post('https://api.openai.com/v1/chat/completions', [
-            'model' => config('ai.model', 'gpt-4o-mini'),
+            'model' => $this->model,
             'messages' => [
                 [
                     'role' => 'system',
@@ -332,7 +334,7 @@ class AIAnalysisService
                 [
                     'input_tokens' => $usage['prompt_tokens'] ?? 0,
                     'output_tokens' => $usage['completion_tokens'] ?? 0,
-                    'model' => config('ai.model', 'gpt-4o-mini'),
+                    'model' => $this->model,
                 ],
                 $jobApplicationId
             );
@@ -359,7 +361,7 @@ class AIAnalysisService
             'anthropic-version' => '2023-06-01',
             'Content-Type' => 'application/json',
         ])->post('https://api.anthropic.com/v1/messages', [
-            'model' => config('ai.model', 'claude-3-haiku-20240307'),
+            'model' => $this->model,
             'max_tokens' => 2000,
             'messages' => [
                 [
@@ -388,7 +390,7 @@ class AIAnalysisService
                 [
                     'input_tokens' => $usage['input_tokens'] ?? 0,
                     'output_tokens' => $usage['output_tokens'] ?? 0,
-                    'model' => config('ai.model', 'claude-3-haiku-20240307'),
+                    'model' => $this->model,
                 ],
                 $jobApplicationId
             );
@@ -405,7 +407,7 @@ class AIAnalysisService
         $url = $this->apiUrl ?: config('ai.local_api_url', 'http://localhost:11434/api/generate');
         
         $response = Http::post($url, [
-            'model' => config('ai.model', 'llama2'),
+            'model' => $this->model,
             'prompt' => $prompt,
             'stream' => false,
         ]);

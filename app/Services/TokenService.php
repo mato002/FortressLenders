@@ -9,6 +9,7 @@ use App\Models\TokenPurchase;
 use App\Models\TokenUsageLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Notifications\LowTokenAlert;
 
 class TokenService
 {
@@ -163,11 +164,26 @@ class TokenService
         $percentageRemaining = ($allocation->remaining_tokens / $allocation->allocated_tokens) * 100;
 
         if ($percentageRemaining <= $threshold) {
-            // TODO: Send notification (email, in-app, etc.)
             Log::warning("Company {$companyId} is low on tokens. {$allocation->remaining_tokens} remaining ({$percentageRemaining}%)");
-            
-            // You can dispatch a notification job here
-            // Notification::send($company, new LowTokenAlert($allocation));
+
+            // Notify primary admin user for the company (if available)
+            try {
+                $admin = $company->primaryAdmin();
+                if ($admin) {
+                    $admin->notify(new LowTokenAlert($company, $allocation, round($percentageRemaining, 1)));
+                } else {
+                    // Fallback: notify all company users
+                    foreach ($company->users as $user) {
+                        try {
+                            $user->notify(new LowTokenAlert($company, $allocation, round($percentageRemaining, 1)));
+                        } catch (\Throwable $e) {
+                            Log::error('Failed to notify user ' . ($user->id ?? 'unknown') . ': ' . $e->getMessage());
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::error('Failed to dispatch low token notification for company ' . $companyId . ': ' . $e->getMessage());
+            }
         }
     }
 
@@ -270,6 +286,7 @@ class TokenService
                 'used' => 0,
                 'remaining' => 0,
                 'percentage_used' => 0,
+                'percentage_remaining' => 0,
                 'status' => 'no_allocation',
             ];
         }

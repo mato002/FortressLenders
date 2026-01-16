@@ -14,6 +14,7 @@ class JobApplication extends Model
     protected $fillable = [
         'candidate_id',
         'job_post_id',
+        'company_id',
         'name',
         'phone',
         'email',
@@ -82,6 +83,11 @@ class JobApplication extends Model
         return $this->belongsTo(JobPost::class);
     }
 
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(JobApplicationReview::class);
@@ -130,6 +136,14 @@ class JobApplication extends Model
     public function scopeReviewed($query)
     {
         return $query->where('status', 'reviewed');
+    }
+
+    /**
+     * Scope to filter by company
+     */
+    public function scopeForCompany($query, $companyId)
+    {
+        return $query->where('company_id', $companyId);
     }
 }
 

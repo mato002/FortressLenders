@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Candidate extends Authenticatable
 {
@@ -20,6 +21,9 @@ class Candidate extends Authenticatable
         'name',
         'email',
         'password',
+        'bio_data',
+        'bio_data_completed',
+        'bio_data_completed_at',
     ];
 
     /**
@@ -42,6 +46,8 @@ class Candidate extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'bio_data_completed' => 'boolean',
+            'bio_data_completed_at' => 'datetime',
         ];
     }
 
@@ -51,6 +57,22 @@ class Candidate extends Authenticatable
     public function jobApplications(): HasMany
     {
         return $this->hasMany(JobApplication::class);
+    }
+
+    /**
+     * Get documents for this candidate.
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(CandidateDocument::class);
+    }
+
+    /**
+     * Get appraisals for this candidate.
+     */
+    public function appraisals(): HasMany
+    {
+        return $this->hasMany(CandidateAppraisal::class);
     }
 }
 
