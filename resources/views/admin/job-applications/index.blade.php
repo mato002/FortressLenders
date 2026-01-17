@@ -81,11 +81,19 @@
         </div>
     @endif
 
-    @if ($errors->any())
+    @if (is_object($errors) && $errors->any())
         <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
             <ul class="list-disc list-inside">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @elseif (isset($errors) && is_array($errors) && !empty($errors))
+        <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <ul class="list-disc list-inside">
+                @foreach ($errors as $error)
+                    <li>{{ is_array($error) ? implode(', ', $error) : $error }}</li>
                 @endforeach
             </ul>
         </div>

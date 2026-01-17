@@ -1045,7 +1045,7 @@ class JobApplicationController extends Controller
         }
 
         if (!empty($errors) && count($errors) <= 5) {
-            return back()->with('success', $message)->with('errors', $errors);
+            return back()->with('success', $message)->withErrors(['sieving' => $errors]);
         }
 
         return back()->with('success', $message);

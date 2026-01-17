@@ -277,8 +277,17 @@ class AIAnalysisService
      */
     private function getCompanyId(JobApplication $application): ?int
     {
-        // For now, get the first company (single tenant)
-        // Later: get from job post or user's company
+        // Get company ID from application
+        if ($application->company_id) {
+            return $application->company_id;
+        }
+        
+        // Fallback to job post company ID
+        if ($application->jobPost && $application->jobPost->company_id) {
+            return $application->jobPost->company_id;
+        }
+        
+        // Fallback to first company (for backward compatibility)
         $company = Company::first();
         return $company?->id;
     }
