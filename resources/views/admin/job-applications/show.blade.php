@@ -1010,9 +1010,17 @@
                 @endif
 
                 <!-- AI Sieving Decision -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide">AI Sieving Decision</h2>
+                        <form method="POST" action="{{ route('admin.job-applications.resieve', $application) }}" class="inline" onsubmit="return confirm('Re-run sieving evaluation for this application?');">
+                            @csrf
+                            <button type="submit" class="px-3 py-1.5 text-xs font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                                Re-Run Sieving
+                            </button>
+                        </form>
+                    </div>
                 @if($application->aiSievingDecision)
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
-                        <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">AI Sieving Decision</h2>
                         <div class="space-y-4">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -1077,8 +1085,12 @@
                                 </div>
                             @endif
                         </div>
+                @else
+                    <div class="bg-slate-50 rounded-lg p-4 text-center">
+                        <p class="text-sm text-slate-600 mb-3">No sieving decision yet. Click "Re-Run Sieving" to evaluate this application.</p>
                     </div>
                 @endif
+                </div>
 
                 <!-- Candidate Account Status -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">

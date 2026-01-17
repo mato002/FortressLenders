@@ -263,6 +263,7 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
                 // Bulk actions must come before resource routes to avoid route conflicts
                 Route::post('bulk-send-confirmation', [AdminJobApplicationController::class, 'sendBulkConfirmationEmails'])->name('bulk-send-confirmation');
                 Route::post('bulk-update-status', [AdminJobApplicationController::class, 'bulkUpdateStatus'])->name('bulk-update-status');
+                Route::post('bulk-receive', [AdminJobApplicationController::class, 'bulkReceive'])->name('bulk-receive');
                 Route::post('bulk-delete', [AdminJobApplicationController::class, 'bulkDelete'])->name('bulk-delete');
                 Route::post('bulk-sieving', [AdminJobApplicationController::class, 'bulkSieving'])->name('bulk-sieving');
                 Route::get('export', [AdminJobApplicationController::class, 'export'])->name('export');
@@ -287,6 +288,7 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             Route::post('interviews/{interview}/update-result', [AdminJobApplicationController::class, 'updateInterviewResult'])->name('interviews.update-result');
             Route::post('job-applications/{application}/parse-cv', [AdminJobApplicationController::class, 'parseCv'])->name('job-applications.parse-cv');
             Route::post('job-applications/{application}/analyze-with-ai', [AdminJobApplicationController::class, 'analyzeWithAI'])->name('job-applications.analyze-with-ai');
+            Route::post('job-applications/{application}/resieve', [AdminJobApplicationController::class, 'resieve'])->name('job-applications.resieve');
             Route::post('job-applications/{application}/process-cv-and-ai', [AdminJobApplicationController::class, 'processCvAndAI'])->name('job-applications.process-cv-and-ai');
         });
         

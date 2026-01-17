@@ -14,15 +14,15 @@ use Illuminate\Support\Facades\Config;
 class AIAnalysisService
 {
     protected string $apiProvider;
-    protected string $apiKey;
-    protected string $apiUrl;
+    protected ?string $apiKey;
+    protected ?string $apiUrl;
     protected string $model;
     protected TokenService $tokenService;
 
     public function __construct(TokenService $tokenService = null)
     {
         $this->apiProvider = config('ai.provider', 'openai'); // openai, anthropic, local
-        $this->apiKey = config('ai.api_key');
+        $this->apiKey = config('ai.api_key') ?: null;
         $this->apiUrl = config('ai.api_url');
         $this->model = config('ai.model', 'gpt-4o-mini');
         $this->tokenService = $tokenService ?? app(TokenService::class);

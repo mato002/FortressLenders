@@ -1275,6 +1275,50 @@ class JobApplicationController extends Controller
     }
 
     /**
+     * Re-run sieving for an application
+     */
+    public function resieve(JobApplication $application): RedirectResponse
+    {
+        $this->checkApplicationAccess($application);
+        
+        try {
+            // Check token availability before processing
+            $user = auth()->user();
+            $company = $user && $user->isClient() && $user->company_id 
+                ? $user->company 
+                : \App\Models\Company::first();
+            if ($company) {
+                $tokenService = app(\App\Services\TokenService::class);
+                $estimatedTokens = $tokenService->estimateTokens('scoring', 5000);
+                
+                if (!$tokenService->hasEnoughTokens($company->id, $estimatedTokens)) {
+                    return back()->withErrors([
+                        'error' => 'Insufficient tokens available. Please purchase more tokens to use AI features.'
+                    ]);
+                }
+            }
+            
+            // Re-run sieving evaluation
+            $sievingService = new \App\Services\AISievingService();
+            $sievingService->evaluate($application);
+            
+            return back()->with('success', 'Sieving re-evaluated successfully!');
+        } catch (\Exception $e) {
+            \Log::error('Re-sieving failed', [
+                'application_id' => $application->id,
+                'error' => $e->getMessage()
+            ]);
+            
+            $errorMessage = $e->getMessage();
+            if (str_contains($errorMessage, 'Insufficient tokens')) {
+                return back()->withErrors(['error' => $errorMessage]);
+            }
+            
+            return back()->withErrors(['error' => 'Re-sieving failed: ' . $errorMessage]);
+        }
+    }
+
+    /**
      * Process CV and AI analysis (full processing)
      */
     public function processCvAndAI(JobApplication $application): RedirectResponse
