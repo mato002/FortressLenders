@@ -44,45 +44,70 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Answer Options (Optional)</label>
-                    <p class="text-xs text-gray-500 mb-2">If you provide options, the question will be auto‑marked like the aptitude test. Leave all blank to treat this as an open‑ended question.</p>
-                    <div class="space-y-3">
-                        @php
-                            $oldOptions = old('options', []);
-                            $questionOptions = $question->options ?? [];
-                        @endphp
-                        @for($i = 0; $i < 4; $i++)
-                            @php
-                                $letter = chr(97 + $i); // a,b,c,d
-                                if (!empty($oldOptions)) {
-                                    $value = $oldOptions[$i] ?? '';
-                                } else {
-                                    $value = $questionOptions[$letter] ?? '';
-                                }
-                            @endphp
-                            <div class="flex items-center gap-3">
-                                <span class="w-8 text-sm font-semibold text-gray-600">{{ strtoupper($letter) }}.</span>
-                                <input type="text" name="options[]" value="{{ $value }}"
-                                       class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600"
-                                       placeholder="Option {{ strtoupper($letter) }}">
-                            </div>
-                        @endfor
-                    </div>
-                    @error('options')<p class="text-sm text-red-500 mt-1">{{ $message }}</p>@enderror
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Question Type *</label>
+                    <select name="question_type" id="question_type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600">
+                        <option value="multiple_choice" @selected(old('question_type', $question->question_type ?? 'multiple_choice') === 'multiple_choice')>Multiple Choice (A, B, C, D)</option>
+                        <option value="text" @selected(old('question_type', $question->question_type ?? '') === 'text')>Text Answer (Open-ended)</option>
+                        <option value="calculation" @selected(old('question_type', $question->question_type ?? '') === 'calculation')>Calculation (Requires working/answer)</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Multiple choice questions are auto-marked. Text and calculation questions require manual review.</p>
+                    @error('question_type')<p class="text-sm text-red-500 mt-1">{{ $message }}</p>@enderror
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Correct Answer (Optional)</label>
-                    <p class="text-xs text-gray-500 mb-1">Only needed when you provide multiple‑choice options and want auto‑marking.</p>
-                    <select name="correct_answer" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600">
-                        <option value="">No automatic marking</option>
-                        <option value="a" @selected(old('correct_answer', $question->correct_answer) === 'a')>A</option>
-                        <option value="b" @selected(old('correct_answer', $question->correct_answer) === 'b')>B</option>
-                        <option value="c" @selected(old('correct_answer', $question->correct_answer) === 'c')>C</option>
-                        <option value="d" @selected(old('correct_answer', $question->correct_answer) === 'd')>D</option>
-                        <option value="e" @selected(old('correct_answer', $question->correct_answer) === 'e')>E</option>
-                    </select>
-                    @error('correct_answer')<p class="text-sm text-red-500 mt-1">{{ $message }}</p>@enderror
+                <!-- Multiple Choice Options (shown only for multiple_choice) -->
+                <div id="multiple_choice_options">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Answer Options *</label>
+                        <p class="text-xs text-gray-500 mb-2">Provide multiple choice options for auto-marking.</p>
+                        <div class="space-y-3">
+                            @php
+                                $oldOptions = old('options', []);
+                                $questionOptions = $question->options ?? [];
+                                $letters = ['a', 'b', 'c', 'd'];
+                            @endphp
+                            @foreach($letters as $index => $letter)
+                                @php
+                                    // Handle both old() array format [0,1,2,3] and question options format ['a' => 'val', 'b' => 'val']
+                                    $value = '';
+                                    if (!empty($oldOptions)) {
+                                        // After validation error, old('options') is in array format [0 => 'val1', 1 => 'val2']
+                                        $value = $oldOptions[$index] ?? '';
+                                    } else {
+                                        // Initial load, use question options which are in ['a' => 'val', 'b' => 'val'] format
+                                        $value = $questionOptions[$letter] ?? '';
+                                    }
+                                @endphp
+                                <div class="flex items-center gap-3">
+                                    <span class="w-8 text-sm font-semibold text-gray-600">{{ strtoupper($letter) }}.</span>
+                                    <input type="text" name="options[]" value="{{ $value }}" required
+                                           class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600"
+                                           placeholder="Option {{ strtoupper($letter) }}">
+                                </div>
+                            @endforeach
+                        </div>
+                        @error('options')<p class="text-sm text-red-500 mt-1">{{ $message }}</p>@enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Correct Answer *</label>
+                        <select name="correct_answer" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600">
+                            <option value="">Select Correct Answer</option>
+                            <option value="a" @selected(old('correct_answer', $question->correct_answer) === 'a')>A</option>
+                            <option value="b" @selected(old('correct_answer', $question->correct_answer) === 'b')>B</option>
+                            <option value="c" @selected(old('correct_answer', $question->correct_answer) === 'c')>C</option>
+                            <option value="d" @selected(old('correct_answer', $question->correct_answer) === 'd')>D</option>
+                            <option value="e" @selected(old('correct_answer', $question->correct_answer) === 'e')>E</option>
+                        </select>
+                        @error('correct_answer')<p class="text-sm text-red-500 mt-1">{{ $message }}</p>@enderror
+                    </div>
+                </div>
+
+                <!-- Text/Calculation Info (shown only for text/calculation) -->
+                <div id="text_calculation_info" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p class="text-sm text-blue-800">
+                        <strong>Note:</strong> For text and calculation questions, candidates will provide written answers. 
+                        These will require manual review and scoring by HR.
+                    </p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -125,6 +150,46 @@
         </form>
     </div>
     @endif
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const questionType = document.getElementById('question_type');
+            const multipleChoiceOptions = document.getElementById('multiple_choice_options');
+            const textCalculationInfo = document.getElementById('text_calculation_info');
+
+            function toggleFields() {
+                const type = questionType.value;
+                if (type === 'multiple_choice') {
+                    multipleChoiceOptions.style.display = 'block';
+                    textCalculationInfo.classList.add('hidden');
+                    // Make options required
+                    multipleChoiceOptions.querySelectorAll('input[name="options[]"]').forEach(input => {
+                        input.setAttribute('required', 'required');
+                        input.closest('div').style.display = 'flex';
+                    });
+                    const correctAnswerSelect = multipleChoiceOptions.querySelector('select[name="correct_answer"]');
+                    if (correctAnswerSelect) {
+                        correctAnswerSelect.setAttribute('required', 'required');
+                        correctAnswerSelect.closest('div').style.display = 'block';
+                    }
+                } else {
+                    multipleChoiceOptions.style.display = 'none';
+                    textCalculationInfo.classList.remove('hidden');
+                    // Remove required from options
+                    multipleChoiceOptions.querySelectorAll('input[name="options[]"]').forEach(input => {
+                        input.removeAttribute('required');
+                    });
+                    const correctAnswerSelect = multipleChoiceOptions.querySelector('select[name="correct_answer"]');
+                    if (correctAnswerSelect) {
+                        correctAnswerSelect.removeAttribute('required');
+                    }
+                }
+            }
+
+            questionType.addEventListener('change', toggleFields);
+            toggleFields(); // Initial call
+        });
+    </script>
 @endsection
 
 

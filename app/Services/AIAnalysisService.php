@@ -6,6 +6,7 @@ use App\Models\JobApplication;
 use App\Models\CvParsedData;
 use App\Models\JobPost;
 use App\Models\Company;
+use App\Models\AIPrompt;
 use App\Services\TokenService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -143,24 +144,37 @@ class AIAnalysisService
     {
         $jobPost = $application->jobPost;
         
-        $prompt = "Analyze the following CV/resume and provide a comprehensive summary.\n\n";
+        // Try to get custom prompt from database
+        $storedPrompt = AIPrompt::getPrompt('cv_analysis', $this->getUserRole());
+        $template = $storedPrompt ? $storedPrompt->content : $this->getDefaultCvAnalysisPrompt();
         
+        // Replace placeholders
+        $prompt = $template;
         if ($jobPost) {
-            $prompt .= "Job Position: {$jobPost->title}\n";
-            $prompt .= "Job Requirements: {$jobPost->requirements}\n\n";
+            $prompt = str_replace('{job_post->title}', $jobPost->title ?? '', $prompt);
+            $prompt = str_replace('{job_post->requirements}', $jobPost->requirements ?? '', $prompt);
         }
-        
-        $prompt .= "CV Content:\n{$cvParsedData->raw_text}\n\n";
-        
-        $prompt .= "Please provide:\n";
-        $prompt .= "1. A concise summary of the candidate's background (2-3 sentences)\n";
-        $prompt .= "2. Key strengths and relevant experience\n";
-        $prompt .= "3. Education highlights\n";
-        $prompt .= "4. Notable skills and certifications\n";
-        $prompt .= "5. Overall assessment for the position\n\n";
-        $prompt .= "Format your response as JSON with keys: summary, strengths, education_highlights, skills, assessment.";
+        $prompt = str_replace('{cv_parsed_data->raw_text}', $cvParsedData->raw_text ?? '', $prompt);
 
         return $prompt;
+    }
+    
+    /**
+     * Get default CV analysis prompt
+     */
+    private function getDefaultCvAnalysisPrompt(): string
+    {
+        return "Analyze the following CV/resume and provide a comprehensive summary.\n\n" .
+               "Job Position: {job_post->title}\n" .
+               "Job Requirements: {job_post->requirements}\n\n" .
+               "CV Content:\n{cv_parsed_data->raw_text}\n\n" .
+               "Please provide:\n" .
+               "1. A concise summary of the candidate's background (2-3 sentences)\n" .
+               "2. Key strengths and relevant experience\n" .
+               "3. Education highlights\n" .
+               "4. Notable skills and certifications\n" .
+               "5. Overall assessment for the position\n\n" .
+               "Format your response as JSON with keys: summary, strengths, education_highlights, skills, assessment.";
     }
 
     /**
@@ -168,33 +182,58 @@ class AIAnalysisService
      */
     private function buildApplicationAnalysisPrompt(JobApplication $application, JobPost $jobPost): string
     {
-        $prompt = "Analyze this job application and match it to the job requirements.\n\n";
+        // Try to get custom prompt from database
+        $storedPrompt = AIPrompt::getPrompt('application_analysis', $this->getUserRole());
+        $template = $storedPrompt ? $storedPrompt->content : $this->getDefaultApplicationAnalysisPrompt();
         
-        $prompt .= "Job Position: {$jobPost->title}\n";
-        $prompt .= "Job Description: {$jobPost->description}\n";
-        $prompt .= "Job Requirements: {$jobPost->requirements}\n\n";
-        
-        $prompt .= "Application Details:\n";
-        $prompt .= "Name: {$application->name}\n";
-        $prompt .= "Education: {$application->education_level} in {$application->area_of_study}\n";
-        $prompt .= "Current Position: {$application->current_job_title} at {$application->current_company}\n";
-        $prompt .= "Skills: {$application->relevant_skills}\n";
-        $prompt .= "Why Interested: {$application->why_interested}\n";
-        $prompt .= "Why Good Fit: {$application->why_good_fit}\n";
+        // Replace placeholders
+        $prompt = $template;
+        $prompt = str_replace('{job_post->title}', $jobPost->title ?? '', $prompt);
+        $prompt = str_replace('{job_post->description}', $jobPost->description ?? '', $prompt);
+        $prompt = str_replace('{job_post->requirements}', $jobPost->requirements ?? '', $prompt);
+        $prompt = str_replace('{application->name}', $application->name ?? '', $prompt);
+        $prompt = str_replace('{application->email}', $application->email ?? '', $prompt);
+        $prompt = str_replace('{application->education_level}', $application->education_level ?? '', $prompt);
+        $prompt = str_replace('{application->area_of_study}', $application->area_of_study ?? '', $prompt);
+        $prompt = str_replace('{application->current_job_title}', $application->current_job_title ?? '', $prompt);
+        $prompt = str_replace('{application->current_company}', $application->current_company ?? '', $prompt);
+        $prompt = str_replace('{application->relevant_skills}', $application->relevant_skills ?? '', $prompt);
+        $prompt = str_replace('{application->why_interested}', $application->why_interested ?? '', $prompt);
+        $prompt = str_replace('{application->why_good_fit}', $application->why_good_fit ?? '', $prompt);
+        $prompt = str_replace('{application->career_goals}', $application->career_goals ?? '', $prompt);
         
         if ($application->cvParsedData) {
-            $prompt .= "\nCV Parsed Data Available\n";
+            $prompt = str_replace('CV Parsed Data Available', 'CV Parsed Data Available', $prompt);
         }
-        
-        $prompt .= "\nPlease provide:\n";
-        $prompt .= "1. Match score (0-100) indicating how well the candidate matches the job\n";
-        $prompt .= "2. Key matching points\n";
-        $prompt .= "3. Missing requirements or gaps\n";
-        $prompt .= "4. Recommendation (pass/reject/manual_review)\n";
-        $prompt .= "5. Confidence level (0-1)\n\n";
-        $prompt .= "Format your response as JSON with keys: match_score, matching_points, missing_requirements, recommendation, confidence.";
 
         return $prompt;
+    }
+    
+    /**
+     * Get default application analysis prompt
+     */
+    private function getDefaultApplicationAnalysisPrompt(): string
+    {
+        return "Analyze this job application and match it to the job requirements.\n\n" .
+               "Job Position: {job_post->title}\n" .
+               "Job Description: {job_post->description}\n" .
+               "Job Requirements: {job_post->requirements}\n\n" .
+               "Application Details:\n" .
+               "Name: {application->name}\n" .
+               "Education: {application->education_level} in {application->area_of_study}\n" .
+               "Current Position: {application->current_job_title} at {application->current_company}\n" .
+               "Skills: {application->relevant_skills}\n" .
+               "Why Interested: {application->why_interested}\n" .
+               "Why Good Fit: {application->why_good_fit}\n" .
+               "Career Goals: {application->career_goals}\n\n" .
+               "CV Parsed Data Available\n\n" .
+               "Please provide:\n" .
+               "1. Match score (0-100) indicating how well the candidate matches the job\n" .
+               "2. Key matching points\n" .
+               "3. Missing requirements or gaps\n" .
+               "4. Recommendation (pass/reject/manual_review)\n" .
+               "5. Confidence level (0-1)\n\n" .
+               "Format your response as JSON with keys: match_score, matching_points, missing_requirements, recommendation, confidence.";
     }
 
     /**
@@ -202,25 +241,40 @@ class AIAnalysisService
      */
     private function buildProfileSummaryPrompt(JobApplication $application, CvParsedData $cvParsedData, ?JobPost $jobPost): string
     {
-        $prompt = "Generate a professional candidate profile summary based on the following information:\n\n";
+        // Try to get custom prompt from database
+        $storedPrompt = AIPrompt::getPrompt('profile_summary', $this->getUserRole());
+        $template = $storedPrompt ? $storedPrompt->content : $this->getDefaultProfileSummaryPrompt();
         
-        $prompt .= "Candidate: {$application->name}\n";
-        $prompt .= "Email: {$application->email}\n\n";
-        
+        // Replace placeholders
+        $prompt = $template;
+        $prompt = str_replace('{application->name}', $application->name ?? '', $prompt);
+        $prompt = str_replace('{application->email}', $application->email ?? '', $prompt);
         if ($jobPost) {
-            $prompt .= "Applied for: {$jobPost->title}\n\n";
+            $prompt = str_replace('{job_post->title}', $jobPost->title ?? '', $prompt);
+        } else {
+            $prompt = str_replace('Applied for: {job_post->title}', '', $prompt);
         }
-        
-        $prompt .= "CV Content:\n{$cvParsedData->raw_text}\n\n";
-        
-        $prompt .= "Create a 3-4 sentence professional summary highlighting:\n";
-        $prompt .= "- Professional background and experience\n";
-        $prompt .= "- Key skills and qualifications\n";
-        $prompt .= "- Notable achievements or strengths\n";
-        $prompt .= "- Relevance to the position (if job post provided)\n";
-        $prompt .= "\nWrite in third person, professional tone.";
+        $prompt = str_replace('{cv_parsed_data->raw_text}', $cvParsedData->raw_text ?? '', $prompt);
 
         return $prompt;
+    }
+    
+    /**
+     * Get default profile summary prompt
+     */
+    private function getDefaultProfileSummaryPrompt(): string
+    {
+        return "Generate a professional candidate profile summary based on the following information:\n\n" .
+               "Candidate: {application->name}\n" .
+               "Email: {application->email}\n\n" .
+               "Applied for: {job_post->title}\n\n" .
+               "CV Content:\n{cv_parsed_data->raw_text}\n\n" .
+               "Create a 3-4 sentence professional summary highlighting:\n" .
+               "- Professional background and experience\n" .
+               "- Key skills and qualifications\n" .
+               "- Notable achievements or strengths\n" .
+               "- Relevance to the position (if job post provided)\n\n" .
+               "Write in third person, professional tone.";
     }
 
     /**
@@ -237,20 +291,61 @@ class AIAnalysisService
             $skillsText .= "Soft: " . implode(', ', $skills['soft']) . "\n";
         }
         
-        $prompt = "Match the candidate's skills to the job requirements.\n\n";
-        $prompt .= "Job Position: {$jobPost->title}\n";
-        $prompt .= "Job Requirements: {$jobPost->requirements}\n\n";
-        $prompt .= "Candidate Skills:\n{$skillsText}\n";
-        $prompt .= "Additional Skills from Application: {$application->relevant_skills}\n\n";
+        // Try to get custom prompt from database
+        $storedPrompt = AIPrompt::getPrompt('skill_matching', $this->getUserRole());
+        $template = $storedPrompt ? $storedPrompt->content : $this->getDefaultSkillMatchingPrompt();
         
-        $prompt .= "Provide:\n";
-        $prompt .= "1. Matching skills (skills that match job requirements)\n";
-        $prompt .= "2. Missing skills (required skills not found)\n";
-        $prompt .= "3. Bonus skills (additional valuable skills)\n";
-        $prompt .= "4. Match percentage\n\n";
-        $prompt .= "Format as JSON with keys: matching_skills, missing_skills, bonus_skills, match_percentage.";
+        // Replace placeholders
+        $prompt = $template;
+        $prompt = str_replace('{job_post->title}', $jobPost->title ?? '', $prompt);
+        $prompt = str_replace('{job_post->requirements}', $jobPost->requirements ?? '', $prompt);
+        $prompt = str_replace('{technical_skills}', !empty($skills['technical']) ? implode(', ', $skills['technical']) : 'None', $prompt);
+        $prompt = str_replace('{soft_skills}', !empty($skills['soft']) ? implode(', ', $skills['soft']) : 'None', $prompt);
+        $prompt = str_replace('{application->relevant_skills}', $application->relevant_skills ?? '', $prompt);
 
         return $prompt;
+    }
+    
+    /**
+     * Get default skill matching prompt
+     */
+    private function getDefaultSkillMatchingPrompt(): string
+    {
+        return "Match the candidate's skills to the job requirements.\n\n" .
+               "Job Position: {job_post->title}\n" .
+               "Job Requirements: {job_post->requirements}\n\n" .
+               "Candidate Skills:\n" .
+               "Technical: {technical_skills}\n" .
+               "Soft: {soft_skills}\n" .
+               "Additional Skills from Application: {application->relevant_skills}\n\n" .
+               "Provide:\n" .
+               "1. Matching skills (skills that match job requirements)\n" .
+               "2. Missing skills (required skills not found)\n" .
+               "3. Bonus skills (additional valuable skills)\n" .
+               "4. Match percentage\n\n" .
+               "Format as JSON with keys: matching_skills, missing_skills, bonus_skills, match_percentage.";
+    }
+    
+    /**
+     * Get user role for prompt selection
+     */
+    private function getUserRole(): ?string
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return null;
+        }
+        
+        // Map user roles to prompt roles
+        if ($user->role === 'admin') {
+            return 'admin';
+        } elseif ($user->role === 'hr_manager') {
+            return 'hr_manager';
+        } elseif ($user->isClient()) {
+            return 'client';
+        }
+        
+        return null; // Default prompts
     }
 
     /**
@@ -300,11 +395,18 @@ class AIAnalysisService
         // Estimate tokens before call
         $estimatedTokens = $this->tokenService->estimateTokens($operationType, strlen($prompt));
         
-        // Check token availability if company ID provided
-        if ($companyId && !$this->tokenService->hasEnoughTokens($companyId, $estimatedTokens)) {
+        // Check token availability if company ID provided and user is a client
+        $user = auth()->user();
+        $isClient = $user && $user->isClient();
+        
+        if ($companyId && $isClient && !$this->tokenService->hasEnoughTokens($companyId, $estimatedTokens)) {
             throw new \Exception('Insufficient tokens available. Please purchase more tokens.');
         }
 
+        // Get system prompt from database or use default
+        $systemPrompt = AIPrompt::getPrompt('system', $this->getUserRole());
+        $systemContent = $systemPrompt ? $systemPrompt->content : 'You are an expert HR analyst specializing in candidate evaluation and CV analysis. Provide accurate, professional, and structured responses.';
+        
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->apiKey,
             'Content-Type' => 'application/json',
@@ -313,7 +415,7 @@ class AIAnalysisService
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => 'You are an expert HR analyst specializing in candidate evaluation and CV analysis. Provide accurate, professional, and structured responses.',
+                    'content' => $systemContent,
                 ],
                 [
                     'role' => 'user',
@@ -331,8 +433,8 @@ class AIAnalysisService
         $data = $response->json();
         $content = $data['choices'][0]['message']['content'] ?? '';
         
-        // Track token usage
-        if ($companyId && isset($data['usage'])) {
+        // Track token usage (only for client users)
+        if ($companyId && $isClient && isset($data['usage'])) {
             $usage = $data['usage'];
             $tokensUsed = $usage['total_tokens'] ?? ($usage['prompt_tokens'] + $usage['completion_tokens']);
             
@@ -360,8 +462,11 @@ class AIAnalysisService
         // Estimate tokens before call
         $estimatedTokens = $this->tokenService->estimateTokens($operationType, strlen($prompt));
         
-        // Check token availability if company ID provided
-        if ($companyId && !$this->tokenService->hasEnoughTokens($companyId, $estimatedTokens)) {
+        // Check token availability if company ID provided and user is a client
+        $user = auth()->user();
+        $isClient = $user && $user->isClient();
+        
+        if ($companyId && $isClient && !$this->tokenService->hasEnoughTokens($companyId, $estimatedTokens)) {
             throw new \Exception('Insufficient tokens available. Please purchase more tokens.');
         }
 
@@ -387,8 +492,8 @@ class AIAnalysisService
         $data = $response->json();
         $content = $data['content'][0]['text'] ?? '';
         
-        // Track token usage (Anthropic returns usage in headers or response)
-        if ($companyId && isset($data['usage'])) {
+        // Track token usage (Anthropic returns usage in headers or response) - only for client users
+        if ($companyId && $isClient && isset($data['usage'])) {
             $usage = $data['usage'];
             $tokensUsed = $usage['input_tokens'] + $usage['output_tokens'];
             

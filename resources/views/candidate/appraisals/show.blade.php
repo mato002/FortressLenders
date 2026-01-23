@@ -96,7 +96,7 @@
                 <!-- Acknowledge Button -->
                 @if(!$appraisal->is_acknowledged)
                     <div class="pt-4 border-t border-gray-200">
-                        <form method="POST" action="{{ route('candidate.appraisals.acknowledge', $appraisal) }}" onsubmit="return confirm('Are you sure you want to acknowledge this appraisal?');">
+                        <form method="POST" action="{{ route('candidate.appraisals.acknowledge', $appraisal) }}" id="acknowledge-appraisal-form">
                             @csrf
                             <button type="submit" class="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-semibold">
                                 Acknowledge
@@ -108,3 +108,39 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle acknowledge appraisal form with SweetAlert
+        const acknowledgeForm = document.getElementById('acknowledge-appraisal-form');
+        if (acknowledgeForm) {
+            acknowledgeForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formElement = this;
+                
+                Swal.fire({
+                    title: 'Acknowledge Appraisal?',
+                    text: 'Are you sure you want to acknowledge this appraisal?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#14b8a6',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, acknowledge',
+                    cancelButtonText: 'Cancel',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Processing...',
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            didOpen: () => Swal.showLoading()
+                        });
+                        formElement.submit();
+                    }
+                });
+            });
+        }
+    });
+</script>
+@endpush

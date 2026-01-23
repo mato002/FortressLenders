@@ -41,36 +41,58 @@
                 </div>
 
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Question Type *</label>
+                    <select name="question_type" id="question_type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600">
+                        <option value="multiple_choice" @selected(old('question_type', 'multiple_choice') === 'multiple_choice')>Multiple Choice (A, B, C, D)</option>
+                        <option value="text" @selected(old('question_type') === 'text')>Text Answer (Open-ended)</option>
+                        <option value="calculation" @selected(old('question_type') === 'calculation')>Calculation (Requires working/answer)</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Multiple choice questions are auto-marked. Text and calculation questions require manual review.</p>
+                    @error('question_type')<p class="text-sm text-red-500 mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Question *</label>
                     <textarea name="question" rows="4" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600">{{ old('question') }}</textarea>
                     @error('question')<p class="text-sm text-red-500 mt-1">{{ $message }}</p>@enderror
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Answer Options *</label>
-                    <div class="space-y-3">
-                        @foreach(['a', 'b', 'c', 'd'] as $letter)
-                            <div class="flex items-center gap-3">
-                                <span class="w-8 text-sm font-semibold text-gray-600">{{ strtoupper($letter) }}.</span>
-                                <input type="text" name="options[]" value="{{ old("options.{$loop->index}") }}" required
-                                       class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600"
-                                       placeholder="Option {{ strtoupper($letter) }}">
-                            </div>
-                        @endforeach
+                <!-- Multiple Choice Options (shown only for multiple_choice) -->
+                <div id="multiple_choice_options">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Answer Options *</label>
+                        <div class="space-y-3">
+                            @foreach(['a', 'b', 'c', 'd'] as $letter)
+                                <div class="flex items-center gap-3">
+                                    <span class="w-8 text-sm font-semibold text-gray-600">{{ strtoupper($letter) }}.</span>
+                                    <input type="text" name="options[]" value="{{ old("options.{$loop->index}") }}"
+                                           class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600"
+                                           placeholder="Option {{ strtoupper($letter) }}">
+                                </div>
+                            @endforeach
+                        </div>
+                        @error('options')<p class="text-sm text-red-500 mt-1">{{ $message }}</p>@enderror
                     </div>
-                    @error('options')<p class="text-sm text-red-500 mt-1">{{ $message }}</p>@enderror
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Correct Answer *</label>
+                        <select name="correct_answer" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600">
+                            <option value="">Select Correct Answer</option>
+                            <option value="a" @selected(old('correct_answer') === 'a')>A</option>
+                            <option value="b" @selected(old('correct_answer') === 'b')>B</option>
+                            <option value="c" @selected(old('correct_answer') === 'c')>C</option>
+                            <option value="d" @selected(old('correct_answer') === 'd')>D</option>
+                        </select>
+                        @error('correct_answer')<p class="text-sm text-red-500 mt-1">{{ $message }}</p>@enderror
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Correct Answer *</label>
-                    <select name="correct_answer" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-600">
-                        <option value="">Select Correct Answer</option>
-                        <option value="a" @selected(old('correct_answer') === 'a')>A</option>
-                        <option value="b" @selected(old('correct_answer') === 'b')>B</option>
-                        <option value="c" @selected(old('correct_answer') === 'c')>C</option>
-                        <option value="d" @selected(old('correct_answer') === 'd')>D</option>
-                    </select>
-                    @error('correct_answer')<p class="text-sm text-red-500 mt-1">{{ $message }}</p>@enderror
+                <!-- Text/Calculation Info (shown only for text/calculation) -->
+                <div id="text_calculation_info" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p class="text-sm text-blue-800">
+                        <strong>Note:</strong> For text and calculation questions, candidates will provide written answers. 
+                        These will require manual review and scoring by HR.
+                    </p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -112,5 +134,37 @@
             </div>
         </form>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const questionType = document.getElementById('question_type');
+            const multipleChoiceOptions = document.getElementById('multiple_choice_options');
+            const textCalculationInfo = document.getElementById('text_calculation_info');
+
+            function toggleFields() {
+                const type = questionType.value;
+                if (type === 'multiple_choice') {
+                    multipleChoiceOptions.style.display = 'block';
+                    textCalculationInfo.classList.add('hidden');
+                    // Make options required
+                    multipleChoiceOptions.querySelectorAll('input[name="options[]"]').forEach(input => {
+                        input.setAttribute('required', 'required');
+                    });
+                    multipleChoiceOptions.querySelector('select[name="correct_answer"]').setAttribute('required', 'required');
+                } else {
+                    multipleChoiceOptions.style.display = 'none';
+                    textCalculationInfo.classList.remove('hidden');
+                    // Remove required from options
+                    multipleChoiceOptions.querySelectorAll('input[name="options[]"]').forEach(input => {
+                        input.removeAttribute('required');
+                    });
+                    multipleChoiceOptions.querySelector('select[name="correct_answer"]').removeAttribute('required');
+                }
+            }
+
+            questionType.addEventListener('change', toggleFields);
+            toggleFields(); // Initial call
+        });
+    </script>
 @endsection
 

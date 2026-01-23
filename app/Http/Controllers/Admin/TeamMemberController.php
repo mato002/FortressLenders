@@ -94,6 +94,20 @@ class TeamMemberController extends Controller
         return back()->with('status', 'Team member removed.');
     }
 
+    /**
+     * Toggle team member active status
+     */
+    public function toggleStatus(TeamMember $teamMember): RedirectResponse
+    {
+        $teamMember->update([
+            'is_active' => !$teamMember->is_active
+        ]);
+
+        $status = $teamMember->is_active ? 'activated' : 'deactivated';
+        // Redirect to index without filters so the member is still visible
+        return redirect()->route('admin.team-members.index')->with('status', "Team member {$status} successfully.");
+    }
+
     protected function validatedData(Request $request, ?TeamMember $teamMember = null): array
     {
         $validated = $request->validate([

@@ -60,6 +60,9 @@ class JobApplication extends Model
         'self_interview_score',
         'self_interview_passed',
         'self_interview_completed_at',
+        'confirmation_email_sent_at',
+        'sieving_passed_email_sent_at',
+        'candidate_credentials_sent_at',
     ];
 
     protected $casts = [
@@ -71,6 +74,9 @@ class JobApplication extends Model
         'aptitude_test_completed_at' => 'datetime',
         'self_interview_passed' => 'boolean',
         'self_interview_completed_at' => 'datetime',
+        'confirmation_email_sent_at' => 'datetime',
+        'sieving_passed_email_sent_at' => 'datetime',
+        'candidate_credentials_sent_at' => 'datetime',
     ];
 
     public function candidate(): BelongsTo

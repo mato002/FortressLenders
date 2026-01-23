@@ -1,9 +1,27 @@
 @component('emails.components.message')
 <h1>Congratulations! You've Passed Initial Screening</h1>
 
-<p>Dear {{ $application->first_name ?? 'Candidate' }},</p>
+<p>Dear {{ $application->name ?? 'Candidate' }},</p>
 
 <p>We are pleased to inform you that your application for the <strong>{{ $application->jobPost->title ?? 'position' }}</strong> position has successfully passed our initial AI screening process.</p>
+
+@if($candidate && $temporaryPassword)
+<div class="message-box" style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 16px; margin: 20px 0;">
+    <p style="margin: 0; font-size: 16px; color: #065f46; font-weight: 600;">🔐 Your Login Credentials</p>
+    <p style="margin: 12px 0 0 0; color: #374151;">
+        <strong>Email:</strong> {{ $candidate->email }}<br>
+        <strong>Temporary Password:</strong> <code style="background-color: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace;">{{ $temporaryPassword }}</code>
+    </p>
+    <p style="margin: 12px 0 0 0; color: #6b7280; font-size: 14px;">
+        <strong>⚠️ Important:</strong> Please change your password after your first login for security.
+    </p>
+    <p style="margin: 15px 0 0 0; text-align: center;">
+        @component('emails.components.button', ['url' => $loginUrl])
+        Login to Dashboard
+        @endcomponent
+    </p>
+</div>
+@endif
 
 <div class="message-box">
     <p style="margin: 0; font-size: 16px; color: #0f766e; font-weight: 600;">🎉 Next Step: Aptitude Test</p>

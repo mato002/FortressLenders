@@ -9,15 +9,12 @@
     $jobDescription = strip_tags($job->description ?? '');
     $jobDescription = Str::limit($jobDescription, 200);
     
-    // Get logo URL for sharing (must be absolute URL)
-    $logoUrl = null;
-    if ($generalSettings->logo_path ?? null) {
-        $logoUrl = url('storage/' . $generalSettings->logo_path);
-    } else {
-        // Fallback: use a default image or create a simple logo
-        // For now, we'll use the site URL as fallback
-        $logoUrl = url('/images/fortress-logo.png');
-    }
+    // Use the hiring poster as the share image for all job posts
+    // This provides a consistent, branded look when sharing job posts on social media
+    // url() generates absolute URL with full domain (uses APP_URL from .env)
+    // Force HTTPS for social media platforms
+    // Add cache-busting parameter to force refresh on social platforms
+    $shareImageUrl = str_replace('http://', 'https://', url('/share/hire.jpg')) . '?v=2';
     
     // Get the full absolute URL for this job post
     $jobUrl = url(route('careers.show', $job->slug));
@@ -45,20 +42,24 @@
     $jobSummary = Str::limit($jobSummary, 300);
 @endphp
 
+{{-- Meta Description --}}
+@section('meta_description', $jobSummary)
+
 {{-- Open Graph Meta Tags --}}
 @section('og_type', 'article')
 @section('og_url', $jobUrl)
 @section('og_title', $job->title . ' - Fortress Lenders Ltd')
 @section('og_description', $jobSummary)
-@section('og_image', $logoUrl)
+@section('og_image', $shareImageUrl)
 @section('og_image_width', '1200')
 @section('og_image_height', '630')
+@section('og_image_alt', $job->title . ' - ' . ($generalSettings->company_name ?? 'Fortress Lenders Ltd'))
 
 {{-- Twitter Card Meta Tags --}}
 @section('twitter_card', 'summary_large_image')
 @section('twitter_title', $job->title . ' - Fortress Lenders Ltd')
 @section('twitter_description', $jobSummary)
-@section('twitter_image', $logoUrl)
+@section('twitter_image', $shareImageUrl)
 
 @section('content')
     <!-- Hero Section -->

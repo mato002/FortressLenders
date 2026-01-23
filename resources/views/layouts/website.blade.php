@@ -33,19 +33,28 @@
         <meta property="og:description" content="@yield('og_description')">
         @hasSection('og_image')
             <meta property="og:image" content="@yield('og_image')">
+            <meta property="og:image:secure_url" content="@yield('og_image')">
             <meta property="og:image:width" content="@yield('og_image_width', '1200')">
             <meta property="og:image:height" content="@yield('og_image_height', '630')">
             <meta property="og:image:alt" content="@yield('og_image_alt', $generalSettings->company_name ?? 'Fortress Lenders Ltd')">
+            <meta property="og:image:type" content="image/jpeg">
         @else
             {{-- Fallback: Use logo if available --}}
             @if($generalSettings->logo_path ?? null)
-                <meta property="og:image" content="{{ url('storage/' . $generalSettings->logo_path) }}">
+                @php
+                    $logoPath = 'storage/' . ltrim($generalSettings->logo_path, '/');
+                    $logoUrl = url($logoPath);
+                @endphp
+                <meta property="og:image" content="{{ $logoUrl }}">
+                <meta property="og:image:secure_url" content="{{ $logoUrl }}">
                 <meta property="og:image:width" content="1200">
                 <meta property="og:image:height" content="630">
                 <meta property="og:image:alt" content="{{ $generalSettings->company_name ?? 'Fortress Lenders Ltd' }}">
+                <meta property="og:image:type" content="image/jpeg">
             @endif
         @endif
         <meta property="og:site_name" content="{{ $generalSettings->company_name ?? 'Fortress Lenders Ltd' }}">
+        <meta property="og:locale" content="en_US">
     @endif
 
     {{-- Twitter Card Meta Tags --}}
@@ -59,10 +68,16 @@
         @endif
         @hasSection('twitter_image')
             <meta name="twitter:image" content="@yield('twitter_image')">
+            <meta name="twitter:image:alt" content="@yield('og_image_alt', $generalSettings->company_name ?? 'Fortress Lenders Ltd')">
         @else
             {{-- Fallback: Use logo if available --}}
             @if($generalSettings->logo_path ?? null)
-                <meta name="twitter:image" content="{{ url('storage/' . $generalSettings->logo_path) }}">
+                @php
+                    $logoPath = 'storage/' . ltrim($generalSettings->logo_path, '/');
+                    $logoUrl = url($logoPath);
+                @endphp
+                <meta name="twitter:image" content="{{ $logoUrl }}">
+                <meta name="twitter:image:alt" content="{{ $generalSettings->company_name ?? 'Fortress Lenders Ltd' }}">
             @endif
         @endif
     @endif
@@ -303,9 +318,9 @@
 
             <div class="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
                 @if($generalSettings->copyright_text ?? null)
-                    <p>{{ $generalSettings->copyright_text }}</p>
+                    <p><a href="https://mathiasodhiambo.netlify.app/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">{{ $generalSettings->copyright_text }}</a></p>
                 @else
-                    <p>&copy; {{ date('Y') }} Fortress Lenders Ltd. All rights reserved.</p>
+                    <p><a href="https://mathiasodhiambo.netlify.app/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">&copy; {{ date('Y') }} Fortress Lenders Ltd. All rights reserved.</a></p>
                 @endif
                 @if($generalSettings->privacy_policy_url || $generalSettings->terms_of_service_url)
                     <div class="mt-2 space-x-4">

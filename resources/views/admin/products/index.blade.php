@@ -106,6 +106,13 @@
                         <td class="px-3 sm:px-6 py-4 text-right space-x-2 sm:space-x-3">
                             <a href="{{ route('admin.products.show', $product) }}" class="text-blue-600 font-semibold text-xs sm:text-sm">View</a>
                             <a href="{{ route('admin.products.edit', $product) }}" class="text-teal-700 font-semibold text-xs sm:text-sm">Edit</a>
+                            <form action="{{ route('admin.products.toggle-status', $product) }}" method="POST" class="inline-block">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="font-semibold text-xs sm:text-sm {{ $product->is_active ? 'text-amber-600' : 'text-emerald-600' }}">
+                                    {{ $product->is_active ? 'Deactivate' : 'Activate' }}
+                                </button>
+                            </form>
                             <form action="{{ route('admin.products.destroy', $product) }}" method="POST" class="inline-block delete-form" data-id="{{ $product->id }}" data-name="{{ $product->title }}">
                                 @csrf
                                 @method('DELETE')

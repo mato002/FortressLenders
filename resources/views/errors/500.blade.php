@@ -20,6 +20,32 @@
             <p class="text-lg text-gray-600 mb-6">
                 We're sorry, but something went wrong on our end. Our team has been notified and is working to fix the issue.
             </p>
+            
+            @if(isset($message) && $message)
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 text-left max-w-3xl mx-auto">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <h3 class="text-sm font-medium text-red-800 mb-2">
+                            Error Details:
+                        </h3>
+                        <div class="text-sm text-red-700">
+                            <p class="font-semibold mb-2">{{ $message }}</p>
+                            @if(isset($file) && isset($line))
+                            <p class="text-xs text-red-600 mt-2">
+                                <strong>File:</strong> {{ $file }}<br>
+                                <strong>Line:</strong> {{ $line }}
+                            </p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
 
         <!-- Illustration or Icon -->

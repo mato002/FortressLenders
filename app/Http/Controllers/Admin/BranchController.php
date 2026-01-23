@@ -88,5 +88,22 @@ class BranchController extends Controller
             ->route('admin.branches.index')
             ->with('status', 'Branch removed.');
     }
+
+    /**
+     * Toggle branch visible/hidden status.
+     */
+    public function toggleStatus(Branch $branch): RedirectResponse
+    {
+        $branch->is_active = ! $branch->is_active;
+        $branch->save();
+
+        $message = $branch->is_active
+            ? 'Branch activated and now visible.'
+            : 'Branch hidden from the site.';
+
+        return redirect()
+            ->route('admin.branches.index')
+            ->with('status', $message);
+    }
 }
 

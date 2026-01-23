@@ -17,76 +17,116 @@
 
     <!-- Form Section -->
     <div class="px-6 py-8">
-        <p class="mb-6 text-sm text-gray-600">
-            Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.
-        </p>
-
         <!-- Session Status -->
         @if (session('status'))
             <div class="mb-6 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-teal-900 text-sm">
-                {{ session('status') }}
-            </div>
-        @endif
-
-        @if ($errors->any())
-            <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm">
-                <p class="font-semibold mb-1">Please correct the following errors:</p>
-                <ul class="list-disc list-inside space-y-1">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <form method="POST" action="{{ route('password.email') }}" class="space-y-6">
-            @csrf
-
-            <!-- Email Address -->
-            <div>
-                <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
-                    Email Address
-                </label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                        </svg>
+                <div class="flex items-start gap-3">
+                    <svg class="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div class="flex-1">
+                        <p class="font-semibold mb-1">{{ session('status') }}</p>
+                        <p class="text-sm text-teal-700 mt-2">Please check your email inbox and follow the instructions to reset your password.</p>
+                        @if(session('reset_email'))
+                            <p class="text-xs text-teal-600 mt-2">Email sent to: <strong>{{ session('reset_email') }}</strong></p>
+                        @endif
                     </div>
-                    <input 
-                        id="email" 
-                        type="email" 
-                        name="email" 
-                        value="{{ old('email') }}" 
-                        required 
-                        autofocus
-                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent transition-all placeholder-gray-400"
-                        placeholder="Enter your email address"
-                    />
                 </div>
-                @error('email')
-                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                @enderror
             </div>
+            
+            <!-- Resend and Back to Login buttons (shown when email is sent) -->
+            <div class="space-y-3">
+                @if(session('reset_email'))
+                    <form method="POST" action="{{ route('password.email') }}" class="w-full">
+                        @csrf
+                        <input type="hidden" name="email" value="{{ session('reset_email') }}">
+                        <button 
+                            type="submit" 
+                            class="w-full px-6 py-3 bg-white border-2 border-teal-700 text-teal-700 rounded-lg font-semibold hover:bg-teal-50 transition-all transform hover:scale-[1.02] shadow-md focus:outline-none focus:ring-2 focus:ring-teal-800 focus:ring-offset-2"
+                        >
+                            <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Resend Reset Link
+                        </button>
+                    </form>
+                @endif
+                
+                <div class="text-center">
+                    <a href="{{ route('login') }}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-teal-800 to-teal-700 text-white rounded-lg font-semibold hover:from-teal-900 hover:to-teal-800 transition-all transform hover:scale-[1.02] shadow-lg focus:outline-none focus:ring-2 focus:ring-teal-800 focus:ring-offset-2">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Login
+                    </a>
+                </div>
+            </div>
+        @else
+            <!-- Show form only if email hasn't been sent -->
+            <p class="mb-6 text-sm text-gray-600">
+                Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.
+            </p>
 
-            <!-- Submit Button -->
-            <button 
-                type="submit" 
-                class="w-full px-6 py-3 bg-gradient-to-r from-teal-800 to-teal-700 text-white rounded-lg font-semibold hover:from-teal-900 hover:to-teal-800 transition-all transform hover:scale-[1.02] shadow-lg focus:outline-none focus:ring-2 focus:ring-teal-800 focus:ring-offset-2"
-            >
-                Email Password Reset Link
-            </button>
-        </form>
+            @if ($errors->any())
+                <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm">
+                    <p class="font-semibold mb-1">Please correct the following errors:</p>
+                    <ul class="list-disc list-inside space-y-1">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-        <!-- Back to Login -->
-        <div class="mt-6 text-center">
-            <a href="{{ route('login') }}" class="text-sm text-gray-600 hover:text-teal-800 transition-colors inline-flex items-center">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Login
-            </a>
-        </div>
+            <form method="POST" action="{{ route('password.email') }}" class="space-y-6">
+                @csrf
+
+                <!-- Email Address -->
+                <div>
+                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Email Address
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                            </svg>
+                        </div>
+                        <input 
+                            id="email" 
+                            type="email" 
+                            name="email" 
+                            value="{{ old('email') }}" 
+                            required 
+                            autofocus
+                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent transition-all placeholder-gray-400"
+                            placeholder="Enter your email address"
+                        />
+                    </div>
+                    @error('email')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Submit Button -->
+                <button 
+                    type="submit" 
+                    class="w-full px-6 py-3 bg-gradient-to-r from-teal-800 to-teal-700 text-white rounded-lg font-semibold hover:from-teal-900 hover:to-teal-800 transition-all transform hover:scale-[1.02] shadow-lg focus:outline-none focus:ring-2 focus:ring-teal-800 focus:ring-offset-2"
+                >
+                    Email Password Reset Link
+                </button>
+            </form>
+
+            <!-- Back to Login -->
+            <div class="mt-6 text-center">
+                <a href="{{ route('login') }}" class="text-sm text-gray-600 hover:text-teal-800 transition-colors inline-flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Login
+                </a>
+            </div>
+        @endif
     </div>
 </div>
 @endsection

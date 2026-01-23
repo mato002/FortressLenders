@@ -182,6 +182,14 @@
                                     </svg>
                                     <span class="hidden sm:inline">Edit</span>
                                 </a>
+                                <form action="{{ route('admin.branches.toggle-status', $branch) }}" method="POST" class="inline-block">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold {{ $branch->is_active ? 'text-amber-600 hover:bg-amber-50' : 'text-emerald-600 hover:bg-emerald-50' }} transition-colors">
+                                        <span class="hidden sm:inline">{{ $branch->is_active ? 'Deactivate' : 'Activate' }}</span>
+                                        <span class="sm:hidden">{{ $branch->is_active ? 'Hide' : 'Show' }}</span>
+                                    </button>
+                                </form>
                                 <form action="{{ route('admin.branches.destroy', $branch) }}" method="POST" class="inline-block delete-form" data-id="{{ $branch->id }}" data-name="{{ $branch->name }}">
                                     @csrf
                                     @method('DELETE')

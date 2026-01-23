@@ -6,9 +6,14 @@ use App\Models\JobApplication;
 use App\Models\JobPost;
 use App\Models\JobSievingCriteria;
 use App\Models\AISievingDecision;
+use App\Models\Candidate;
 use App\Mail\AptitudeTestInvitation;
+use App\Mail\CandidateAccountCreated;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class AISievingService
 {
@@ -25,6 +30,10 @@ class AISievingService
     public function evaluate(JobApplication $application): AISievingDecision
     {
         $jobPost = $application->jobPost;
+        
+        if (!$jobPost) {
+            throw new \Exception("Job post not found for application #{$application->id}");
+        }
         
         // Get or create default criteria
         $criteria = $jobPost->sievingCriteria ?? $this->getDefaultCriteria($jobPost);
@@ -63,8 +72,13 @@ class AISievingService
         // Calculate confidence
         $confidence = $this->calculateConfidence($application, $ruleScore, $aiConfidence);
         
-        // Determine decision
-        $decision = $this->makeDecision($ruleScore, $confidence, $criteria, $aiAnalysis);
+        // CRITICAL: If CV is missing, force high confidence for rejection to ensure status update
+        if (empty($application->cv_path)) {
+            $confidence = max($confidence, 0.95); // Force high confidence when CV is missing
+        }
+        
+        // Determine decision (pass application for CV check)
+        $decision = $this->makeDecision($ruleScore, $confidence, $criteria, $aiAnalysis, $application);
         
         // Extract strengths and weaknesses (enhanced with AI if available)
         $strengths = $this->extractStrengths($application, $criteria, $aiAnalysis);
@@ -99,10 +113,13 @@ class AISievingService
     {
         $defaultCriteria = JobSievingCriteria::getDefaultCriteria();
         
+        // Get user ID if available, otherwise use null
+        $createdBy = auth()->check() ? auth()->id() : null;
+        
         return JobSievingCriteria::create([
             'job_post_id' => $jobPost->id,
             'criteria_json' => $defaultCriteria,
-            'created_by' => auth()->id(),
+            'created_by' => $createdBy,
         ]);
     }
 
@@ -282,6 +299,11 @@ class AISievingService
     {
         $penalty = 0;
         
+        // Missing CV - CRITICAL: Should not pass without CV
+        if (empty($application->cv_path)) {
+            $penalty += $redFlags['missing_cv'] ?? -50; // Heavy penalty for missing CV
+        }
+        
         // Incomplete application
         if (empty($application->education_level) || empty($application->why_interested)) {
             $penalty += $redFlags['incomplete_application'] ?? -20;
@@ -331,8 +353,13 @@ class AISievingService
     /**
      * Make decision based on score and confidence
      */
-    private function makeDecision(int $score, float $confidence, JobSievingCriteria $criteria, ?array $aiAnalysis = null): string
+    private function makeDecision(int $score, float $confidence, JobSievingCriteria $criteria, ?array $aiAnalysis = null, ?JobApplication $application = null): string
     {
+        // CRITICAL: Auto-reject if CV is missing (regardless of other scores)
+        if ($application && empty($application->cv_path)) {
+            return 'reject';
+        }
+        
         // If AI analysis recommends a decision, consider it
         if ($aiAnalysis && isset($aiAnalysis['recommendation'])) {
             $aiRecommendation = $aiAnalysis['recommendation'];
@@ -404,6 +431,10 @@ class AISievingService
         }
         
         // Add rule-based weaknesses
+        if (empty($application->cv_path)) {
+            $weaknesses[] = "CV/Resume not uploaded - REQUIRED";
+        }
+        
         if (empty($application->education_level)) {
             $weaknesses[] = "Education level not specified";
         }
@@ -458,39 +489,185 @@ class AISievingService
         $previousStatus = $application->status;
         $newStatus = $previousStatus;
         
-        // Only auto-update if high confidence
-        if ($aiDecision->ai_decision === 'pass' && 
-            $aiDecision->ai_confidence >= $criteria->auto_pass_confidence) {
-            $newStatus = 'sieving_passed';
-        } elseif ($aiDecision->ai_decision === 'reject' && 
-                  $aiDecision->ai_confidence >= $criteria->auto_reject_confidence) {
+        // CRITICAL: Force reject if CV is missing (regardless of confidence or previous status)
+        if (empty($application->cv_path) && $aiDecision->ai_decision === 'reject') {
             $newStatus = 'sieving_rejected';
-        } elseif ($aiDecision->ai_decision === 'manual_review') {
-            $newStatus = 'pending_manual_review';
+        }
+        // Force reject if decision is reject and confidence meets threshold
+        elseif ($aiDecision->ai_decision === 'reject' && 
+                $aiDecision->ai_confidence >= $criteria->auto_reject_confidence) {
+            $newStatus = 'sieving_rejected';
+        }
+        // For all other cases (pass, manual_review, or low confidence), set to sieving_passed
+        // This ensures we only have two states: passed or rejected
+        else {
+            $newStatus = 'sieving_passed';
         }
         
-        // Update status if it changed
+        // Update status if it changed (allow downgrade from sieving_passed to sieving_rejected)
+        // This ensures re-sieving can change status even if it was previously passed
         if ($newStatus !== $previousStatus) {
             $application->update(['status' => $newStatus]);
             
             // Record status change in history
+            $notes = "AI sieving decision: {$aiDecision->ai_decision} (Score: {$aiDecision->ai_score}/100, Confidence: " . number_format($aiDecision->ai_confidence * 100, 1) . "%)";
+            if (empty($application->cv_path) && $aiDecision->ai_decision === 'reject') {
+                $notes .= " - CV missing (forced rejection)";
+            }
+            
             \App\Models\JobApplicationStatusHistory::create([
                 'job_application_id' => $application->id,
                 'previous_status' => $previousStatus,
                 'new_status' => $newStatus,
                 'changed_by' => null, // System/AI change
                 'source' => 'ai_sieving',
-                'notes' => "AI sieving decision: {$aiDecision->ai_decision} (Score: {$aiDecision->ai_score}/100, Confidence: " . number_format($aiDecision->ai_confidence * 100, 1) . "%)",
+                'notes' => $notes,
             ]);
             
             // Send email notification if status changed to sieving_passed
+            // Only send if email hasn't been sent before (or if it was sent more than 24 hours ago)
             if ($newStatus === 'sieving_passed') {
-                try {
-                    Mail::to($application->email)->send(new AptitudeTestInvitation($application));
-                } catch (\Exception $e) {
-                    Log::error('Failed to send aptitude test invitation email', [
+                // Check if email was already sent recently (within last 24 hours)
+                $emailSentAt = $application->sieving_passed_email_sent_at;
+                $shouldSendEmail = !$emailSentAt || $emailSentAt->diffInHours(now()) >= 24;
+                
+                if ($shouldSendEmail) {
+                    try {
+                        // Track if this is a new account or existing one
+                        $isNewAccount = false;
+                        
+                        // Ensure candidate account exists and send login credentials
+                        $candidate = $application->candidate;
+                        
+                        // If no candidate account exists, create one
+                        if (!$candidate) {
+                            $candidate = $this->createCandidateAccount($application);
+                            $isNewAccount = true;
+                        } else {
+                            // For existing candidates, ensure they have a temporary password
+                            // This will generate a new password if needed
+                            $candidate = $this->ensureCandidateHasTemporaryPassword($candidate, $application);
+                        }
+                        
+                        // Send emails if account exists
+                        if ($candidate) {
+                            $temporaryPassword = $candidate->temporary_password ?? null;
+                            
+                            if ($temporaryPassword) {
+                                // Send account credentials email (for both new and existing candidates with new password)
+                                try {
+                                    Log::info('Sending candidate account credentials email', [
+                                        'application_id' => $application->id,
+                                        'candidate_id' => $candidate->id,
+                                        'email' => $application->email,
+                                        'is_new_account' => $isNewAccount,
+                                    ]);
+                                    
+                                    Mail::to($application->email)->send(new CandidateAccountCreated($candidate, $temporaryPassword));
+
+                                    // Track credentials email and surface in Admin -> History tab
+                                    $application->update(['candidate_credentials_sent_at' => now()]);
+                                    \App\Models\JobApplicationStatusHistory::create([
+                                        'job_application_id' => $application->id,
+                                        'previous_status' => $application->status,
+                                        'new_status' => $application->status,
+                                        'changed_by' => null,
+                                        'source' => 'system_email',
+                                        'notes' => 'Candidate account login credentials sent to applicant.',
+                                    ]);
+                                    
+                                    Log::info('Candidate account credentials email sent successfully', [
+                                        'application_id' => $application->id,
+                                        'candidate_id' => $candidate->id,
+                                        'email' => $application->email,
+                                    ]);
+                                } catch (\Exception $e) {
+                                    Log::error('Failed to send candidate account credentials email', [
+                                        'application_id' => $application->id,
+                                        'candidate_id' => $candidate->id,
+                                        'email' => $application->email,
+                                        'error' => $e->getMessage(),
+                                    ]);
+                                }
+                            }
+                            
+                            // Send aptitude test invitation email
+                            try {
+                                Log::info('Sending aptitude test invitation email', [
+                                    'application_id' => $application->id,
+                                    'candidate_id' => $candidate->id,
+                                    'email' => $application->email,
+                                    'has_password' => !empty($temporaryPassword),
+                                ]);
+                                
+                                Mail::to($application->email)->send(new AptitudeTestInvitation($application, $candidate, $temporaryPassword));
+                                
+                                // Mark email as sent
+                                $application->update(['sieving_passed_email_sent_at' => now()]);
+                                \App\Models\JobApplicationStatusHistory::create([
+                                    'job_application_id' => $application->id,
+                                    'previous_status' => $application->status,
+                                    'new_status' => $application->status,
+                                    'changed_by' => null,
+                                    'source' => 'system_email',
+                                    'notes' => 'Aptitude test invitation email sent to applicant.',
+                                ]);
+                                
+                                Log::info('Aptitude test invitation email sent successfully', [
+                                    'application_id' => $application->id,
+                                    'candidate_id' => $candidate->id,
+                                    'email' => $application->email,
+                                ]);
+                            } catch (\Exception $e) {
+                                Log::error('Failed to send aptitude test invitation email', [
+                                    'application_id' => $application->id,
+                                    'candidate_id' => $candidate->id,
+                                    'email' => $application->email,
+                                    'error' => $e->getMessage(),
+                                ]);
+                            }
+                        } else {
+                            // Fallback: send invitation without login credentials
+                            try {
+                                Log::warning('Sending aptitude test invitation without credentials (candidate account creation failed)', [
+                                    'application_id' => $application->id,
+                                    'email' => $application->email,
+                                ]);
+                                
+                                Mail::to($application->email)->send(new AptitudeTestInvitation($application));
+                                
+                                // Mark email as sent even if credentials weren't included
+                                $application->update(['sieving_passed_email_sent_at' => now()]);
+                                \App\Models\JobApplicationStatusHistory::create([
+                                    'job_application_id' => $application->id,
+                                    'previous_status' => $application->status,
+                                    'new_status' => $application->status,
+                                    'changed_by' => null,
+                                    'source' => 'system_email',
+                                    'notes' => 'Aptitude test invitation email sent to applicant (no credentials).',
+                                ]);
+                            } catch (\Exception $e) {
+                                Log::error('Failed to send aptitude test invitation email (fallback)', [
+                                    'application_id' => $application->id,
+                                    'email' => $application->email,
+                                    'error' => $e->getMessage(),
+                                ]);
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Failed to send emails after sieving passed', [
+                            'application_id' => $application->id,
+                            'email' => $application->email,
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString(),
+                        ]);
+                    }
+                } else {
+                    Log::info('Skipping sieving passed email - already sent recently', [
                         'application_id' => $application->id,
-                        'error' => $e->getMessage()
+                        'email' => $application->email,
+                        'sent_at' => $emailSentAt,
+                        'hours_ago' => $emailSentAt->diffInHours(now()),
                     ]);
                 }
             }
@@ -525,6 +702,109 @@ class AISievingService
         
         // Default assumption
         return 1;
+    }
+
+    /**
+     * Create candidate account if it doesn't exist
+     */
+    private function createCandidateAccount(JobApplication $application): ?Candidate
+    {
+        // Check if candidate already exists
+        $candidate = Candidate::where('email', $application->email)->first();
+        
+        if ($candidate) {
+            // Link application to existing candidate
+            if (!$application->candidate_id && \Schema::hasColumn('job_applications', 'candidate_id')) {
+                try {
+                    $application->update(['candidate_id' => $candidate->id]);
+                } catch (\Exception $e) {
+                    Log::warning('Failed to link application to existing candidate', [
+                        'application_id' => $application->id,
+                        'candidate_id' => $candidate->id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            // Return existing candidate - password will be handled by ensureCandidateHasTemporaryPassword
+            return $candidate;
+        }
+        
+        // Create new candidate account
+        $temporaryPassword = Str::random(12); // Generate secure random password
+        
+        try {
+            $candidate = Candidate::create([
+                'name' => $application->name,
+                'email' => $application->email,
+                'password' => Hash::make($temporaryPassword),
+                'email_verified_at' => now(), // Auto-verify since they applied
+            ]);
+            
+            // Link application to candidate
+            if (\Schema::hasColumn('job_applications', 'candidate_id')) {
+                try {
+                    $application->update(['candidate_id' => $candidate->id]);
+                } catch (\Exception $e) {
+                    Log::warning('Failed to link application to candidate after creation', [
+                        'application_id' => $application->id,
+                        'candidate_id' => $candidate->id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            // Store password temporarily in a property for email (not persisted)
+            $candidate->temporary_password = $temporaryPassword;
+            
+            Log::info('Created new candidate account during sieving', [
+                'candidate_id' => $candidate->id,
+                'application_id' => $application->id,
+                'email' => $candidate->email,
+            ]);
+            
+            return $candidate;
+        } catch (\Exception $e) {
+            Log::error('Failed to create candidate account during sieving', [
+                'application_id' => $application->id,
+                'email' => $application->email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Ensure existing candidate has a temporary password for email sending
+     */
+    private function ensureCandidateHasTemporaryPassword(Candidate $candidate, JobApplication $application): Candidate
+    {
+        // Generate a new temporary password for existing candidates
+        $temporaryPassword = Str::random(12);
+        
+        try {
+            $candidate->update([
+                'password' => Hash::make($temporaryPassword),
+            ]);
+            
+            // Store password temporarily in a property for email (not persisted)
+            $candidate->temporary_password = $temporaryPassword;
+            
+            Log::info('Generated new temporary password for existing candidate', [
+                'candidate_id' => $candidate->id,
+                'application_id' => $application->id,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to update password for existing candidate', [
+                'candidate_id' => $candidate->id,
+                'application_id' => $application->id,
+                'error' => $e->getMessage()
+            ]);
+            // Continue without temporary password - email will be sent without credentials
+        }
+        
+        return $candidate;
     }
 }
 

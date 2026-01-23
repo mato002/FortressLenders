@@ -14,6 +14,7 @@ class SelfInterviewQuestion extends Model
         'job_post_id',
         'company_id',
         'question',
+        'question_type',
         'options',
         'correct_answer',
         'points',
@@ -49,6 +50,30 @@ class SelfInterviewQuestion extends Model
     public function scopeForCompany($query, $companyId)
     {
         return $query->where('company_id', $companyId);
+    }
+
+    /**
+     * Check if question is multiple choice
+     */
+    public function isMultipleChoice(): bool
+    {
+        return $this->question_type === 'multiple_choice' || (!empty($this->options) && $this->question_type !== 'text' && $this->question_type !== 'calculation');
+    }
+
+    /**
+     * Check if question is text-based
+     */
+    public function isText(): bool
+    {
+        return $this->question_type === 'text' || (empty($this->options) && $this->question_type !== 'calculation');
+    }
+
+    /**
+     * Check if question requires calculation
+     */
+    public function isCalculation(): bool
+    {
+        return $this->question_type === 'calculation';
     }
 }
 

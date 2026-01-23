@@ -10,7 +10,7 @@
             <p class="text-sm text-gray-600 mt-1">Please fill in all required information</p>
         </div>
 
-        <form method="POST" action="{{ route('candidate.bio-data.update') }}" class="p-6">
+        <form method="POST" action="{{ route('candidate.bio-data.update') }}" class="p-6" id="bio-data-form">
             @csrf
 
             <!-- Personal Information -->
@@ -182,4 +182,37 @@
             </div>
         </form>
     </div>
+
+    @push('scripts')
+    <script>
+        document.getElementById('bio-data-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            Swal.fire({
+                title: 'Save Bio Data?',
+                text: 'Are you sure you want to save your bio data information?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#14b8a6',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, save it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Saving...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    // Submit the form
+                    this.submit();
+                }
+            });
+        });
+    </script>
+    @endpush
 @endsection

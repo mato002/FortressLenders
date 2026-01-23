@@ -153,7 +153,7 @@
 
                             <div>
                                 <label for="calculator_duration" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                                    Repayment Duration (Weeks) <span class="text-red-500">*</span>
+                                    <span id="duration-label">Repayment Duration (Weeks)</span> <span class="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="number"
@@ -161,7 +161,7 @@
                                     min="1"
                                     step="1"
                                     class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent text-sm"
-                                    placeholder="Enter number of weeks"
+                                    placeholder="Enter duration"
                                 >
                                 <p id="calculator-duration-max" class="text-xs text-gray-500 mt-1"></p>
                             </div>
@@ -187,7 +187,8 @@
                                         <p id="payment-amount" class="text-lg sm:text-xl font-bold text-teal-800">KES 0</p>
                                     </div>
                                     <div class="bg-white rounded-lg p-3">
-                                        <p class="text-xs text-gray-600 mb-1">Total Service Charge</p>
+                                        <p class="text-xs text-gray-600 mb-1">Total Service Charges</p>
+                                        <p class="text-[10px] text-gray-500 mb-0.5">(Fees over entire loan period)</p>
                                         <p id="total-service-charge" class="text-lg sm:text-xl font-bold text-blue-700">KES 0</p>
                                     </div>
                                 </div>
@@ -297,10 +298,15 @@
                             </div>
 
                             <div>
-                                <label for="town" class="block text-sm font-medium text-gray-700 mb-1">Town</label>
-                                <input type="text" id="town" name="town" value="{{ old('town') }}"
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent transition-all"
-                                       placeholder="e.g. Nakuru">
+                                <label for="town" class="block text-sm font-medium text-gray-700 mb-1">Service Region <span class="text-red-500">*</span></label>
+                                <select id="town" name="town" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent transition-all">
+                                    <option value="">-- Select your region --</option>
+                                    @foreach($regions as $region)
+                                        <option value="{{ $region }}" @selected(old('town') === $region)>{{ $region }}</option>
+                                    @endforeach
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">Select the region where you would like to access our services</p>
                                 @error('town')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                             </div>
 
@@ -466,26 +472,55 @@
             document.getElementById('calculator-amount-range').textContent = 
                 `Range: KES ${selectedProduct.minAmount.toLocaleString('en-KE')} - ${selectedProduct.maxAmount.toLocaleString('en-KE')}`;
 
-            document.getElementById('calculator_duration').value = selectedProduct.maxDuration;
-            document.getElementById('calculator_duration').max = selectedProduct.maxDuration;
-            document.getElementById('calculator-duration-max').textContent = 
-                `Maximum: ${selectedProduct.maxDuration} weeks`;
+            // Update duration field based on payment frequency
+            const durationLabel = document.getElementById('duration-label');
+            const durationInput = document.getElementById('calculator_duration');
+            const durationMaxText = document.getElementById('calculator-duration-max');
+            
+            if (selectedProduct.paymentFrequency === 'monthly') {
+                // For monthly payments, convert weeks to months (4 weeks = 1 month)
+                const maxMonths = Math.floor(selectedProduct.maxDuration / 4);
+                durationLabel.textContent = 'Repayment Duration (Months)';
+                durationInput.placeholder = 'Enter number of months';
+                durationInput.value = maxMonths || 1;
+                durationInput.max = maxMonths || 1;
+                durationInput.min = 1;
+                durationMaxText.textContent = `Maximum: ${maxMonths} month${maxMonths > 1 ? 's' : ''}`;
+            } else {
+                // For weekly payments, use weeks directly
+                durationLabel.textContent = 'Repayment Duration (Weeks)';
+                durationInput.placeholder = 'Enter number of weeks';
+                durationInput.value = selectedProduct.maxDuration;
+                durationInput.max = selectedProduct.maxDuration;
+                durationInput.min = 1;
+                durationMaxText.textContent = `Maximum: ${selectedProduct.maxDuration} weeks`;
+            }
 
             // Update service charge display
             let chargeDisplay = '';
             if (selectedProduct.serviceChargeType === 'fixed_amount') {
-                chargeDisplay = `KES ${selectedProduct.serviceChargeValue.toLocaleString('en-KE', {minimumFractionDigits: 2})}`;
+                chargeDisplay = `KES ${selectedProduct.serviceChargeValue.toLocaleString('en-KE', {minimumFractionDigits: 0})}`;
                 if (selectedProduct.serviceChargePeriod === 'per_month') {
                     chargeDisplay += ' per month';
                 } else if (selectedProduct.serviceChargePeriod === 'for_6weeks') {
                     chargeDisplay += ' for 6 weeks';
                 }
             } else {
-                chargeDisplay = `${selectedProduct.serviceChargeValue}% per month`;
+                // Percentage-based
+                if (selectedProduct.serviceChargePeriod === 'per_month') {
+                    chargeDisplay = `${selectedProduct.serviceChargeValue}% per month`;
+                } else {
+                    // Flat percentage (like Kuza with 28%)
+                    chargeDisplay = `${selectedProduct.serviceChargeValue}%`;
+                }
             }
             document.getElementById('service-charge-display').textContent = chargeDisplay;
+            
+            // Update payment frequency display with target clients
+            const frequencyText = selectedProduct.paymentFrequency.charAt(0).toUpperCase() + selectedProduct.paymentFrequency.slice(1);
+            const clientsText = selectedProduct.targetClients ? ` (${selectedProduct.targetClients})` : '';
             document.getElementById('payment-frequency-display').textContent = 
-                `Payment Frequency: ${selectedProduct.paymentFrequency.charAt(0).toUpperCase() + selectedProduct.paymentFrequency.slice(1)}`;
+                `Payment Frequency: ${frequencyText}${clientsText}`;
 
             // Update payment label
             const paymentLabel = document.getElementById('payment-label');
@@ -497,45 +532,95 @@
 
         function calculateLoanPayment() {
             if (!selectedProduct) {
-                alert('Please select a loan product first.');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Product Selected',
+                    text: 'Please select a loan product first.'
+                });
                 return;
             }
 
             const loanAmount = parseFloat(document.getElementById('calculator_amount').value) || 0;
-            const durationWeeks = parseInt(document.getElementById('calculator_duration').value) || 0;
+            const durationInput = parseInt(document.getElementById('calculator_duration').value) || 0;
 
             if (loanAmount < selectedProduct.minAmount || loanAmount > selectedProduct.maxAmount) {
-                alert(`Loan amount must be between KES ${selectedProduct.minAmount.toLocaleString('en-KE')} and KES ${selectedProduct.maxAmount.toLocaleString('en-KE')}`);
-                return;
-            }
-
-            if (durationWeeks <= 0 || durationWeeks > selectedProduct.maxDuration) {
-                alert(`Duration must be between 1 and ${selectedProduct.maxDuration} weeks`);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Loan Amount',
+                    html: `Loan amount must be between <strong>KES ${selectedProduct.minAmount.toLocaleString('en-KE')}</strong> and <strong>KES ${selectedProduct.maxAmount.toLocaleString('en-KE')}</strong>`
+                });
                 return;
             }
 
             let totalServiceCharge = 0;
             let numberOfPayments = 0;
+            let durationWeeks = 0;
+            let durationMonths = 0;
 
-            // Calculate number of payments
-            if (selectedProduct.paymentFrequency === 'weekly') {
-                numberOfPayments = durationWeeks;
+            // Calculate based on payment frequency
+            if (selectedProduct.paymentFrequency === 'monthly') {
+                // For monthly payments, duration is in months
+                durationMonths = durationInput;
+                durationWeeks = durationMonths * 4; // Convert months to weeks (1 month = 4 weeks)
+                
+                if (durationMonths <= 0 || durationMonths > Math.floor(selectedProduct.maxDuration / 4)) {
+                    const maxMonths = Math.floor(selectedProduct.maxDuration / 4);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Duration',
+                        html: `Duration must be between <strong>1</strong> and <strong>${maxMonths}</strong> month${maxMonths > 1 ? 's' : ''}`
+                    });
+                    return;
+                }
+                
+                numberOfPayments = durationMonths;
             } else {
-                numberOfPayments = Math.ceil(durationWeeks / 4.33); // Approximate weeks to months
+                // For weekly payments, duration is in weeks
+                durationWeeks = durationInput;
+                
+                if (durationWeeks <= 0 || durationWeeks > selectedProduct.maxDuration) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Duration',
+                        html: `Duration must be between <strong>1</strong> and <strong>${selectedProduct.maxDuration}</strong> weeks`
+                    });
+                    return;
+                }
+                
+                numberOfPayments = durationWeeks;
             }
 
             // Calculate service charge
             if (selectedProduct.serviceChargeType === 'fixed_amount') {
                 if (selectedProduct.serviceChargePeriod === 'for_6weeks') {
+                    // Fixed amount for 6 weeks period
                     const sixWeekPeriods = Math.ceil(durationWeeks / 6);
                     totalServiceCharge = selectedProduct.serviceChargeValue * sixWeekPeriods;
-                } else {
-                    const months = durationWeeks / 4.33;
-                    totalServiceCharge = selectedProduct.serviceChargeValue * months;
+                } else if (selectedProduct.serviceChargePeriod === 'per_month') {
+                    // Fixed amount per month
+                    if (selectedProduct.paymentFrequency === 'monthly') {
+                        totalServiceCharge = selectedProduct.serviceChargeValue * durationMonths;
+                    } else {
+                        // For weekly payments, calculate months from weeks
+                        const months = durationWeeks / 4;
+                        totalServiceCharge = selectedProduct.serviceChargeValue * months;
+                    }
                 }
             } else {
-                const months = durationWeeks / 4.33;
-                totalServiceCharge = (loanAmount * selectedProduct.serviceChargeValue / 100) * months;
+                // Percentage-based service charge
+                if (selectedProduct.serviceChargePeriod === 'per_month') {
+                    if (selectedProduct.paymentFrequency === 'monthly') {
+                        // For monthly payments, calculate directly from months
+                        totalServiceCharge = (loanAmount * selectedProduct.serviceChargeValue / 100) * durationMonths;
+                    } else {
+                        // For weekly payments, calculate months from weeks
+                        const months = durationWeeks / 4;
+                        totalServiceCharge = (loanAmount * selectedProduct.serviceChargeValue / 100) * months;
+                    }
+                } else {
+                    // Flat percentage (for special cases like Kuza with 28%)
+                    totalServiceCharge = (loanAmount * selectedProduct.serviceChargeValue / 100);
+                }
             }
 
             const totalAmount = loanAmount + totalServiceCharge;

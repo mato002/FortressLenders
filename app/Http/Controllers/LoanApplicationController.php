@@ -6,6 +6,7 @@ use App\Mail\LoanApplicationConfirmation;
 use App\Mail\LoanApplicationReceived;
 use App\Models\LoanApplication;
 use App\Models\LoanProductType;
+use App\Models\Branch;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -42,7 +43,16 @@ class LoanApplicationController extends Controller
             return $a['min_amount'] <=> $b['min_amount'];
         });
         
-        return view('apply-loan', compact('loanRanges', 'loanProductTypes'));
+        // Get unique cities/regions from active branches
+        $regions = Branch::active()
+            ->whereNotNull('city')
+            ->orderBy('city')
+            ->distinct()
+            ->pluck('city')
+            ->sort()
+            ->values();
+        
+        return view('apply-loan', compact('loanRanges', 'loanProductTypes', 'regions'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -52,7 +62,7 @@ class LoanApplicationController extends Controller
             'phone' => ['required', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
             'date_of_birth' => ['nullable', 'date', 'before:today'],
-            'town' => ['nullable', 'string', 'max:255'],
+            'town' => ['required', 'string', 'max:255'],
             'residence' => ['nullable', 'string', 'max:255'],
             'client_type' => ['nullable', 'in:business,employed,casual,student'],
             'loan_type' => ['required', 'string', 'max:255'],

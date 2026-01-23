@@ -25,7 +25,7 @@ class AptitudeTestController extends Controller
         }
         
         // Verify the application has passed sieving
-        if (!in_array($application->status, ['sieving_passed', 'pending_manual_review'])) {
+        if ($application->status !== 'sieving_passed') {
             if ($isCandidateView) {
                 return redirect()->route('candidate.dashboard')
                     ->with('error', 'You are not eligible to take the aptitude test at this time.');

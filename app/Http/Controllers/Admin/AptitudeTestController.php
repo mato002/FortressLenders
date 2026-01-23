@@ -149,18 +149,31 @@ class AptitudeTestController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
+        $questionType = $request->input('question_type', 'multiple_choice');
+        
+        $rules = [
             'job_post_id' => 'nullable|exists:job_posts,id',
             'section' => 'required|in:numerical,logical,verbal,scenario',
+            'question_type' => 'required|in:multiple_choice,text,calculation',
             'question' => 'required|string',
-            'options' => 'required|array|min:2',
-            'options.*' => 'required|string',
-            'correct_answer' => 'required|string|in:a,b,c,d',
             'points' => 'required|integer|min:1|max:10',
             'explanation' => 'nullable|string',
             'display_order' => 'nullable|integer',
             'is_active' => 'boolean',
-        ]);
+        ];
+
+        // Only require options and correct_answer for multiple choice questions
+        if ($questionType === 'multiple_choice') {
+            $rules['options'] = 'required|array|min:2';
+            $rules['options.*'] = 'required|string';
+            $rules['correct_answer'] = 'required|string|in:a,b,c,d';
+        } else {
+            // For text and calculation questions, these are optional
+            $rules['options'] = 'nullable|array';
+            $rules['correct_answer'] = 'nullable|string';
+        }
+
+        $validated = $request->validate($rules);
 
         $validated['created_by'] = auth()->id();
         $validated['is_active'] = $request->has('is_active');
@@ -176,15 +189,21 @@ class AptitudeTestController extends Controller
             $validated['job_post_id'] = null;
         }
 
-        // Convert options array to JSON format
-        $optionsArray = [];
-        $letters = ['a', 'b', 'c', 'd', 'e'];
-        foreach ($validated['options'] as $index => $option) {
-            if (!empty($option)) {
-                $optionsArray[$letters[$index]] = $option;
+        // Convert options array to JSON format (only for multiple choice)
+        if ($questionType === 'multiple_choice' && isset($validated['options'])) {
+            $optionsArray = [];
+            $letters = ['a', 'b', 'c', 'd', 'e'];
+            foreach ($validated['options'] as $index => $option) {
+                if (!empty($option)) {
+                    $optionsArray[$letters[$index]] = $option;
+                }
             }
+            $validated['options'] = $optionsArray;
+        } else {
+            // Set to null for text/calculation questions
+            $validated['options'] = null;
+            $validated['correct_answer'] = null;
         }
-        $validated['options'] = $optionsArray;
 
         AptitudeTestQuestion::create($validated);
 
@@ -213,18 +232,31 @@ class AptitudeTestController extends Controller
      */
     public function update(Request $request, $id): RedirectResponse
     {
-        $validated = $request->validate([
+        $questionType = $request->input('question_type', 'multiple_choice');
+        
+        $rules = [
             'job_post_id' => 'nullable|exists:job_posts,id',
             'section' => 'required|in:numerical,logical,verbal,scenario',
+            'question_type' => 'required|in:multiple_choice,text,calculation',
             'question' => 'required|string',
-            'options' => 'required|array|min:2',
-            'options.*' => 'required|string',
-            'correct_answer' => 'required|string|in:a,b,c,d',
             'points' => 'required|integer|min:1|max:10',
             'explanation' => 'nullable|string',
             'display_order' => 'nullable|integer',
             'is_active' => 'boolean',
-        ]);
+        ];
+
+        // Only require options and correct_answer for multiple choice questions
+        if ($questionType === 'multiple_choice') {
+            $rules['options'] = 'required|array|min:2';
+            $rules['options.*'] = 'required|string';
+            $rules['correct_answer'] = 'required|string|in:a,b,c,d';
+        } else {
+            // For text and calculation questions, these are optional
+            $rules['options'] = 'nullable|array';
+            $rules['correct_answer'] = 'nullable|string';
+        }
+
+        $validated = $request->validate($rules);
 
         $validated['is_active'] = $request->has('is_active');
         
@@ -233,15 +265,21 @@ class AptitudeTestController extends Controller
             $validated['job_post_id'] = null;
         }
 
-        // Convert options array to JSON format
-        $optionsArray = [];
-        $letters = ['a', 'b', 'c', 'd', 'e'];
-        foreach ($validated['options'] as $index => $option) {
-            if (!empty($option)) {
-                $optionsArray[$letters[$index]] = $option;
+        // Convert options array to JSON format (only for multiple choice)
+        if ($questionType === 'multiple_choice' && isset($validated['options'])) {
+            $optionsArray = [];
+            $letters = ['a', 'b', 'c', 'd', 'e'];
+            foreach ($validated['options'] as $index => $option) {
+                if (!empty($option)) {
+                    $optionsArray[$letters[$index]] = $option;
+                }
             }
+            $validated['options'] = $optionsArray;
+        } else {
+            // Set to null for text/calculation questions
+            $validated['options'] = null;
+            $validated['correct_answer'] = null;
         }
-        $validated['options'] = $optionsArray;
 
         $question = AptitudeTestQuestion::findOrFail($id);
         

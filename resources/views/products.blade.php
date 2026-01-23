@@ -429,7 +429,11 @@
         const interestRateType = document.getElementById('calculator-interest-rate').getAttribute('data-rate-type') || 'per_year';
 
         if (loanAmount <= 0 || repaymentPeriod <= 0) {
-            alert('Please enter valid loan amount and repayment period.');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Invalid Input',
+                text: 'Please enter valid loan amount and repayment period.'
+            });
             return;
         }
 

@@ -12,18 +12,21 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <span class="hidden sm:inline">Activate (<span id="selected-count-activate">0</span>)</span>
+                <span class="sm:hidden">Activate</span>
             </button>
             <button type="button" id="bulk-deactivate-btn" class="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold text-white bg-slate-600 hover:bg-slate-700 whitespace-nowrap">
                 <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <span class="hidden sm:inline">Deactivate (<span id="selected-count-deactivate">0</span>)</span>
+                <span class="sm:hidden">Deactivate</span>
             </button>
             <button type="button" id="bulk-delete-btn" class="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold text-white bg-red-600 hover:bg-red-700 whitespace-nowrap">
                 <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>
                 <span class="hidden sm:inline">Delete (<span id="selected-count-delete">0</span>)</span>
+                <span class="sm:hidden">Delete</span>
             </button>
         </div>
     </div>
@@ -266,81 +269,98 @@
 
     <!-- Questions Table -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        <table class="min-w-full divide-y divide-slate-200">
-            <thead class="bg-slate-50">
-                <tr>
-                    <th class="px-6 py-3 text-left">
-                        <input type="checkbox" id="select-all" class="w-4 h-4 text-teal-600 border-slate-300 rounded focus:ring-teal-500">
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wide">Section</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wide">Question</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wide">Job Post</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wide">Points</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wide">Status</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-slate-700 uppercase tracking-wide">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-slate-200">
-                @forelse($questions as $question)
-                    <tr class="hover:bg-slate-50">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <input type="checkbox" name="question_ids[]" value="{{ $question->id }}" class="question-checkbox w-4 h-4 text-teal-600 border-slate-300 rounded focus:ring-teal-500">
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-teal-100 text-teal-800">
-                                {{ ucfirst($question->section) }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="text-sm text-slate-900 max-w-md truncate">
-                                {{ Str::limit($question->question, 80) }}
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            @if($question->jobPost)
-                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-800">
-                                    {{ $question->jobPost->title }}
-                                </span>
-                            @else
-                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-teal-50 text-teal-800 border border-teal-200">
-                                    Global
-                                </span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                            {{ $question->points }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs font-medium rounded-full {{ $question->is_active ? 'bg-teal-100 text-teal-800' : 'bg-slate-100 text-slate-600' }}">
-                                {{ $question->is_active ? 'Active' : 'Inactive' }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div class="flex items-center justify-end gap-2">
-                                <a href="{{ route('admin.aptitude-test.edit', ['aptitude_test' => $question]) }}" class="text-teal-600 hover:text-teal-800">Edit</a>
-                                <form action="{{ route('admin.aptitude-test.toggle-status', ['question' => $question]) }}" method="POST" class="inline">
-                                    @csrf
-                                    <button type="submit" class="text-slate-600 hover:text-slate-800">
-                                        {{ $question->is_active ? 'Deactivate' : 'Activate' }}
-                                    </button>
-                                </form>
-                                <form action="{{ route('admin.aptitude-test.destroy', ['aptitude_test' => $question]) }}" method="POST" class="inline delete-question-form" data-question-id="{{ $question->id }}">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                @empty
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-50">
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center text-slate-500">
-                            No questions found. <a href="{{ route('admin.aptitude-test.create') }}" class="text-teal-600 hover:text-teal-700">Create your first question</a>
-                        </td>
+                        <th class="px-3 sm:px-6 py-3 text-left">
+                            <input type="checkbox" id="select-all" class="w-4 h-4 text-teal-600 border-slate-300 rounded focus:ring-teal-500">
+                        </th>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wide">Section</th>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wide">Question</th>
+                        <th class="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wide">Job Post</th>
+                        <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wide">Points</th>
+                        <th class="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wide">Status</th>
+                        <th class="px-3 sm:px-6 py-3 text-right text-xs font-medium text-slate-700 uppercase tracking-wide">Actions</th>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="bg-white divide-y divide-slate-200">
+                    @forelse($questions as $question)
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-3 sm:px-6 py-4 whitespace-nowrap">
+                                <input type="checkbox" name="question_ids[]" value="{{ $question->id }}" class="question-checkbox w-4 h-4 text-teal-600 border-slate-300 rounded focus:ring-teal-500">
+                            </td>
+                            <td class="px-3 sm:px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-teal-100 text-teal-800">
+                                    {{ ucfirst($question->section) }}
+                                </span>
+                            </td>
+                            <td class="px-3 sm:px-6 py-4">
+                                <div class="text-xs sm:text-sm text-slate-900 max-w-xs sm:max-w-md truncate">
+                                    {{ Str::limit($question->question, 60) }}
+                                </div>
+                                <!-- Mobile: Show job post and status -->
+                                <div class="sm:hidden mt-2 flex flex-wrap gap-2">
+                                    @if($question->jobPost)
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-800 truncate max-w-[120px]">
+                                            {{ $question->jobPost->title }}
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-teal-50 text-teal-800 border border-teal-200">
+                                            Global
+                                        </span>
+                                    @endif
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full {{ $question->is_active ? 'bg-teal-100 text-teal-800' : 'bg-slate-100 text-slate-600' }}">
+                                        {{ $question->is_active ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
+                                @if($question->jobPost)
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-800">
+                                        {{ $question->jobPost->title }}
+                                    </span>
+                                @else
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-teal-50 text-teal-800 border border-teal-200">
+                                        Global
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm text-slate-600">
+                                {{ $question->points }}
+                            </td>
+                            <td class="hidden md:table-cell px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs font-medium rounded-full {{ $question->is_active ? 'bg-teal-100 text-teal-800' : 'bg-slate-100 text-slate-600' }}">
+                                    {{ $question->is_active ? 'Active' : 'Inactive' }}
+                                </span>
+                            </td>
+                            <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium">
+                                <div class="flex items-center justify-end gap-2 flex-wrap">
+                                    <a href="{{ route('admin.aptitude-test.edit', ['aptitude_test' => $question]) }}" class="text-teal-600 hover:text-teal-800 whitespace-nowrap">Edit</a>
+                                    <form action="{{ route('admin.aptitude-test.toggle-status', ['question' => $question]) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="text-slate-600 hover:text-slate-800 whitespace-nowrap">
+                                            {{ $question->is_active ? 'Deactivate' : 'Activate' }}
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('admin.aptitude-test.destroy', ['aptitude_test' => $question]) }}" method="POST" class="inline delete-question-form" data-question-id="{{ $question->id }}">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:text-red-800 whitespace-nowrap">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center text-slate-500 text-sm">
+                                No questions found. <a href="{{ route('admin.aptitude-test.create') }}" class="text-teal-600 hover:text-teal-700">Create your first question</a>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Pagination -->

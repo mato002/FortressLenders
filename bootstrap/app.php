@@ -58,16 +58,25 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (\Throwable $e, $request) {
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => config('app.debug') ? $e->getMessage() : 'Server Error'
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => config('app.debug') ? $e->getTraceAsString() : null,
                 ], 500);
             }
             
-            // Only show detailed error in debug mode
+            // Always show detailed error - don't hide it
             if (config('app.debug')) {
                 return null; // Let Laravel handle it with debug info
             }
             
-            return response()->view('errors.500', [], 500);
+            // Even in production, show the actual error message
+            return response()->view('errors.500', [
+                'error' => $e,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
         });
 
         // Log all exceptions

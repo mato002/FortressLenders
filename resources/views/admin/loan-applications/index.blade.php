@@ -175,6 +175,7 @@
                         <th class="py-2 px-3 sm:px-4 font-medium text-xs sm:text-sm hidden md:table-cell">Loan Details</th>
                         <th class="py-2 px-3 sm:px-4 font-medium text-xs sm:text-sm">Status</th>
                         <th class="py-2 px-3 sm:pl-4 font-medium text-xs sm:text-sm text-right hidden sm:table-cell">Submitted</th>
+                        <th class="py-2 px-3 sm:pl-4 font-medium text-xs sm:text-sm text-right">Actions</th>
                     </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -223,10 +224,30 @@
                             <td class="py-3 px-3 sm:pl-4 align-top text-right text-xs text-slate-500 whitespace-nowrap hidden sm:table-cell">
                                 {{ $application->created_at->format('M d, Y H:i') }}
                             </td>
+                            <td class="py-3 px-3 sm:pl-4 align-top text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{{ route('admin.loan-applications.show', $application) }}" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-blue-600 hover:bg-blue-50 transition-colors" title="View Details">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                        <span class="hidden sm:inline">View</span>
+                                    </a>
+                                    <form action="{{ route('admin.loan-applications.destroy', $application) }}" method="POST" class="inline-block delete-application-form" data-id="{{ $application->id }}" data-name="{{ $application->full_name }}">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors" title="Delete">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
+                                            <span class="hidden sm:inline">Delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-8 text-center text-slate-500 text-sm">
+                            <td colspan="7" class="py-8 text-center text-slate-500 text-sm">
                                 No loan applications have been submitted yet.
                             </td>
                         </tr>
@@ -298,87 +319,220 @@
             document.getElementById('bulk-send-email-btn')?.addEventListener('click', function() {
                 const checkedBoxes = document.querySelectorAll('.application-checkbox:checked');
                 if (checkedBoxes.length === 0) {
-                    alert('Please select at least one application.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Selection',
+                        text: 'Please select at least one application.'
+                    });
                     return;
                 }
 
-                if (!confirm(`Send confirmation emails to ${checkedBoxes.length} selected application(s)?`)) {
-                    return;
-                }
+                Swal.fire({
+                    title: 'Send Confirmation Emails?',
+                    html: `Send confirmation emails to <strong>${checkedBoxes.length}</strong> selected application(s)?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#2563eb',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, send emails!',
+                    cancelButtonText: 'Cancel',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Sending...',
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            didOpen: () => Swal.showLoading()
+                        });
 
-                const form = document.getElementById('bulk-email-form');
-                const inputsContainer = document.getElementById('bulk-email-inputs');
-                inputsContainer.innerHTML = '';
+                        const form = document.getElementById('bulk-email-form');
+                        const inputsContainer = document.getElementById('bulk-email-inputs');
+                        inputsContainer.innerHTML = '';
 
-                checkedBoxes.forEach(checkbox => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'application_ids[]';
-                    input.value = checkbox.value;
-                    inputsContainer.appendChild(input);
+                        checkedBoxes.forEach(checkbox => {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = 'application_ids[]';
+                            input.value = checkbox.value;
+                            inputsContainer.appendChild(input);
+                        });
+
+                        form.submit();
+                    }
                 });
-
-                form.submit();
             });
 
             // Bulk update status
             document.getElementById('bulk-status-btn')?.addEventListener('click', function() {
                 const checkedBoxes = document.querySelectorAll('.application-checkbox:checked');
                 if (checkedBoxes.length === 0) {
-                    alert('Please select at least one application.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Selection',
+                        text: 'Please select at least one application.'
+                    });
                     return;
                 }
 
-                const status = prompt('Enter new status:\n- pending\n- in_review\n- approved\n- rejected');
-                if (!status || !['pending', 'in_review', 'approved', 'rejected'].includes(status)) {
-                    return;
-                }
+                Swal.fire({
+                    title: 'Change Status',
+                    html: `
+                        <p class="mb-4">Change status for <strong>${checkedBoxes.length}</strong> selected application(s) to:</p>
+                        <select id="status-select" class="swal2-input">
+                            <option value="pending">Pending</option>
+                            <option value="in_review">In Review</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonColor: '#14b8a6',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Update Status',
+                    cancelButtonText: 'Cancel',
+                    preConfirm: () => {
+                        const status = document.getElementById('status-select').value;
+                        if (!status || !['pending', 'in_review', 'approved', 'rejected'].includes(status)) {
+                            Swal.showValidationMessage('Please select a valid status');
+                            return false;
+                        }
+                        return status;
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed && result.value) {
+                        Swal.fire({
+                            title: 'Updating...',
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            didOpen: () => Swal.showLoading()
+                        });
 
-                if (!confirm(`Update status to "${status}" for ${checkedBoxes.length} selected application(s)?`)) {
-                    return;
-                }
+                        const form = document.getElementById('bulk-status-form');
+                        const inputsContainer = document.getElementById('bulk-status-inputs');
+                        document.getElementById('bulk-status-value').value = result.value;
+                        inputsContainer.innerHTML = '';
 
-                const form = document.getElementById('bulk-status-form');
-                const inputsContainer = document.getElementById('bulk-status-inputs');
-                document.getElementById('bulk-status-value').value = status;
-                inputsContainer.innerHTML = '';
+                        checkedBoxes.forEach(checkbox => {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = 'application_ids[]';
+                            input.value = checkbox.value;
+                            inputsContainer.appendChild(input);
+                        });
 
-                checkedBoxes.forEach(checkbox => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'application_ids[]';
-                    input.value = checkbox.value;
-                    inputsContainer.appendChild(input);
+                        form.submit();
+                    }
                 });
-
-                form.submit();
             });
 
             // Bulk delete
             document.getElementById('bulk-delete-btn')?.addEventListener('click', function() {
                 const checkedBoxes = document.querySelectorAll('.application-checkbox:checked');
                 if (checkedBoxes.length === 0) {
-                    alert('Please select at least one application.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Selection',
+                        text: 'Please select at least one application.'
+                    });
                     return;
                 }
 
-                if (!confirm(`Are you sure you want to delete ${checkedBoxes.length} selected application(s)? This action cannot be undone.`)) {
-                    return;
-                }
+                Swal.fire({
+                    title: 'Are you sure?',
+                    html: `Delete <strong>${checkedBoxes.length}</strong> selected application(s)?<br><br><span class="text-red-600">This action cannot be undone!</span>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, delete!',
+                    cancelButtonText: 'Cancel',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Deleting...',
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            didOpen: () => Swal.showLoading()
+                        });
 
-                const form = document.getElementById('bulk-delete-form');
-                const inputsContainer = document.getElementById('bulk-delete-inputs');
-                inputsContainer.innerHTML = '';
+                        const form = document.getElementById('bulk-delete-form');
+                        const inputsContainer = document.getElementById('bulk-delete-inputs');
+                        inputsContainer.innerHTML = '';
 
-                checkedBoxes.forEach(checkbox => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'application_ids[]';
-                    input.value = checkbox.value;
-                    inputsContainer.appendChild(input);
+                        checkedBoxes.forEach(checkbox => {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = 'application_ids[]';
+                            input.value = checkbox.value;
+                            inputsContainer.appendChild(input);
+                        });
+
+                        form.submit();
+                    }
                 });
+            });
 
-                form.submit();
+            // Individual delete confirmation
+            document.querySelectorAll('.delete-application-form').forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const formElement = this;
+                    const applicationName = formElement.getAttribute('data-name') || 'this application';
+                    
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Are you sure?',
+                            text: `You are about to delete the loan application from "${applicationName}". This action cannot be undone!`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#dc2626',
+                            cancelButtonColor: '#6b7280',
+                            confirmButtonText: 'Yes, delete it!',
+                            cancelButtonText: 'Cancel',
+                            reverseButtons: true
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                Swal.fire({
+                                    title: 'Deleting...',
+                                    text: 'Please wait while we delete the application.',
+                                    allowOutsideClick: false,
+                                    allowEscapeKey: false,
+                                    showConfirmButton: false,
+                                    didOpen: () => {
+                                        Swal.showLoading();
+                                    }
+                                });
+                                formElement.submit();
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Are you sure?',
+                            text: `You are about to delete the loan application from "${applicationName}". This action cannot be undone!`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#dc2626',
+                            cancelButtonColor: '#6b7280',
+                            confirmButtonText: 'Yes, delete it!',
+                            cancelButtonText: 'Cancel',
+                            reverseButtons: true
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                Swal.fire({
+                                    title: 'Deleting...',
+                                    text: 'Please wait while we delete the application.',
+                                    allowOutsideClick: false,
+                                    allowEscapeKey: false,
+                                    showConfirmButton: false,
+                                    didOpen: () => {
+                                        Swal.showLoading();
+                                    }
+                                });
+                                formElement.submit();
+                            }
+                        });
+                    }
+                });
             });
         });
     </script>

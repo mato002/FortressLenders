@@ -122,12 +122,23 @@
     </style>
 </head>
 <body>
+    @php
+        $generalSettings = \App\Models\GeneralSetting::latest()->first();
+        $logoPath = $generalSettings?->logo_path;
+        $hasLogo = $logoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($logoPath);
+        // Use full URL for emails (absolute path required for email clients)
+        $logoUrl = $hasLogo ? url('storage/' . $logoPath) : null;
+    @endphp
     <div class="email-wrapper">
         <div class="email-header">
             <div class="logo-container">
-                <div class="logo-box">
-                    <span class="logo-text">F</span>
-                </div>
+                @if($logoUrl)
+                    <img src="{{ $logoUrl }}" alt="Fortress Lenders" style="max-width: 120px; max-height: 60px; height: auto; width: auto; display: block; margin: 0 auto;">
+                @else
+                    <div class="logo-box">
+                        <span class="logo-text">F</span>
+                    </div>
+                @endif
             </div>
             <h1 class="company-name">Fortress Lenders</h1>
             <p class="tagline">The Force Of Possibilities</p>

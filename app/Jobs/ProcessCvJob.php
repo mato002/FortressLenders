@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\JobApplication;
 use App\Services\CvParserService;
 use App\Services\AIAnalysisService;
+use App\Services\AISievingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -54,6 +55,25 @@ class ProcessCvJob implements ShouldQueue
                 $profileSummary = $aiAnalysis->generateProfileSummary($this->application);
                 if ($profileSummary && empty($this->application->ai_summary)) {
                     $this->application->update(['ai_summary' => $profileSummary]);
+                }
+            }
+            
+            // Run AI sieving evaluation automatically after CV processing
+            // This ensures sieving has access to parsed CV data for better accuracy
+            if (config('ai.enable_auto_sieving', true)) {
+                try {
+                    $sievingService = new AISievingService();
+                    $sievingService->evaluate($this->application);
+                    
+                    Log::info('Auto-sieving completed after CV processing', [
+                        'application_id' => $this->application->id
+                    ]);
+                } catch (\Exception $e) {
+                    // Log error but don't fail CV processing
+                    Log::error('Auto-sieving failed after CV processing', [
+                        'application_id' => $this->application->id,
+                        'error' => $e->getMessage(),
+                    ]);
                 }
             }
         } catch (\Exception $e) {

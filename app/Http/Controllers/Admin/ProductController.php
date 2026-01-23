@@ -121,6 +121,23 @@ class ProductController extends Controller
             ->with('status', 'Product deleted.');
     }
 
+    /**
+     * Toggle product active/hidden status.
+     */
+    public function toggleStatus(Product $product): RedirectResponse
+    {
+        $product->is_active = ! $product->is_active;
+        $product->save();
+
+        $message = $product->is_active
+            ? 'Product activated and now visible.'
+            : 'Product hidden from the public site.';
+
+        return redirect()
+            ->route('admin.products.index')
+            ->with('status', $message);
+    }
+
     protected function validatedData(Request $request, ?Product $product = null): array
     {
         $validated = $request->validate([

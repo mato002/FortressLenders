@@ -45,13 +45,13 @@
             </nav>
             @if(!session('isAdminView') && !(isset($isAdminView) && $isAdminView))
                 <div class="px-6 py-6 border-t border-white/10 space-y-3 flex-shrink-0 sidebar-footer">
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition text-sm font-semibold sidebar-link">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                            <span class="sidebar-text">Logout</span>
-                        </button>
-                    </form>
+                        <form method="POST" action="{{ route('logout') }}" id="logout-form-sidebar">
+                            @csrf
+                            <button type="button" onclick="confirmLogout('logout-form-sidebar')" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition text-sm font-semibold sidebar-link">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                                <span class="sidebar-text">Logout</span>
+                            </button>
+                        </form>
                 </div>
             @else
                 <div class="px-6 py-6 border-t border-white/10 space-y-3 flex-shrink-0 sidebar-footer">
@@ -116,9 +116,9 @@
                             <span>Profile Settings</span>
                         </a>
                         <div class="border-t border-white/10 my-2"></div>
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form method="POST" action="{{ route('logout') }}" id="logout-form-mobile">
                             @csrf
-                            <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/80 hover:bg-white/10">
+                            <button type="button" onclick="confirmLogout('logout-form-mobile')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/80 hover:bg-white/10">
                                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                                 <span>Logout</span>
                             </button>
@@ -173,9 +173,9 @@
                                                 </svg>
                                                 Profile
                                             </a>
-                                            <form method="POST" action="{{ route('logout') }}" class="border-t border-teal-50">
+                                            <form method="POST" action="{{ route('logout') }}" id="logout-form-menu" class="border-t border-teal-50">
                                                 @csrf
-                                                <button type="submit" class="w-full flex items-center gap-2 px-4 py-3 text-sm text-rose-600 hover:bg-rose-50 transition">
+                                                <button type="button" onclick="confirmLogout('logout-form-menu')" class="w-full flex items-center gap-2 px-4 py-3 text-sm text-rose-600 hover:bg-rose-50 transition">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12H3m0 0 4-4m-4 4 4 4m8-10h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/>
                                                     </svg>
@@ -203,27 +203,12 @@
                 </header>
 
                 <main class="flex-1 px-3 sm:px-4 lg:px-10 py-4 sm:py-6 lg:py-8">
-                    @if (session('status'))
-                        <div class="mb-6 rounded-xl border border-teal-200 bg-white px-4 py-3 text-teal-900 shadow-sm">
-                            {{ session('status') }}
-                        </div>
-                    @endif
-                    @if (session('success'))
-                        <div class="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-green-700 shadow-sm">
-                            {{ session('success') }}
-                        </div>
-                    @endif
-                    @if (session('error'))
-                        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700 shadow-sm">
-                            {{ session('error') }}
-                        </div>
-                    @endif
                     @yield('content')
                 </main>
 
                 <footer class="bg-white/80 border-t border-teal-100 py-3 sm:py-4">
                     <div class="px-3 sm:px-4 lg:px-10 text-xs sm:text-sm text-teal-600 flex flex-col sm:flex-row justify-between items-center gap-2">
-                        <span>© {{ now()->year }} Fortress Lenders Ltd.</span>
+                        <span><a href="https://mathiasodhiambo.netlify.app/" target="_blank" rel="noopener noreferrer" class="hover:text-teal-800 transition-colors">© {{ now()->year }} Fortress Lenders Ltd.</a></span>
                         <span>Need help? <a href="{{ route('contact') }}" class="text-amber-600 font-semibold">Contact support</a></span>
                     </div>
                 </footer>
@@ -310,6 +295,67 @@
                 trigger.setAttribute('aria-expanded', 'false');
             }
         });
+
+        // SweetAlert for session messages
+        document.addEventListener('DOMContentLoaded', function() {
+            @if (session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: '{{ session('success') }}',
+                    confirmButtonColor: '#14b8a6',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            @endif
+
+            @if (session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: '{{ session('error') }}',
+                    confirmButtonColor: '#dc2626'
+                });
+            @endif
+
+            @if (session('status'))
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Notice',
+                    text: '{{ session('status') }}',
+                    confirmButtonColor: '#14b8a6',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            @endif
+
+            @if ($errors->any())
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    html: '<ul class="text-left list-disc list-inside">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>',
+                    confirmButtonColor: '#dc2626'
+                });
+            @endif
+        });
+
+        // Logout confirmation with SweetAlert
+        function confirmLogout(formId) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'You will be logged out of your account.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, logout',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(formId).submit();
+                }
+            });
+        }
     </script>
 
     @stack('scripts')

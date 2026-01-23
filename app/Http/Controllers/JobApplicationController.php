@@ -151,33 +151,30 @@ class JobApplicationController extends Controller
                 'notes' => 'Application submitted',
             ]);
             
-            // Auto-create candidate account if not exists and not already authenticated
-            if (!$candidate) {
-                $candidate = $this->createOrLinkCandidateAccount($application);
-                if ($candidate) {
-                    $application->update(['candidate_id' => $candidate->id]);
-                }
-            } elseif (!$application->candidate_id && $candidate->email === $application->email) {
+            // Link application to candidate only if they are already authenticated
+            // (Account creation + credentials email is triggered automatically after AI sieving passes.)
+            if ($candidate && !$application->candidate_id && $candidate->email === $application->email) {
                 // If candidate is authenticated, ensure the application is linked
                 $application->update(['candidate_id' => $candidate->id]);
             }
             
             // Dispatch CV processing job (async)
+            // Auto-sieving will run automatically after CV processing completes
             if ($application->cv_path) {
                 ProcessCvJob::dispatch($application);
-            }
-            
-            // Run AI sieving evaluation automatically if enabled
-            if (config('ai.enable_auto_sieving', true)) {
-                try {
-                    $sievingService = new AISievingService();
-                    $sievingService->evaluate($application);
-                } catch (\Exception $e) {
-                    // Log error but don't fail application submission
-                    \Log::error('AI Sieving evaluation failed', [
-                        'application_id' => $application->id,
-                        'error' => $e->getMessage(),
-                    ]);
+            } else {
+                // If no CV, run sieving immediately (it can work without CV)
+                if (config('ai.enable_auto_sieving', true)) {
+                    try {
+                        $sievingService = new AISievingService();
+                        $sievingService->evaluate($application);
+                    } catch (\Exception $e) {
+                        // Log error but don't fail application submission
+                        \Log::error('AI Sieving evaluation failed', [
+                            'application_id' => $application->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
                 }
             }
         } catch (\Illuminate\Database\QueryException $e) {
@@ -279,7 +276,28 @@ class JobApplicationController extends Controller
             return;
         }
 
-        Mail::to($application->email)->send(new JobApplicationConfirmation($application));
+        try {
+            Mail::to($application->email)->send(new JobApplicationConfirmation($application));
+
+            // Track delivery attempt time (useful for admin audit trail)
+            $application->update(['confirmation_email_sent_at' => now()]);
+
+            // Record in status history for visibility in Admin -> History tab
+            \App\Models\JobApplicationStatusHistory::create([
+                'job_application_id' => $application->id,
+                'previous_status' => $application->status,
+                'new_status' => $application->status,
+                'changed_by' => null,
+                'source' => 'system_email',
+                'notes' => 'Application confirmation email sent to applicant.',
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send application confirmation email', [
+                'application_id' => $application->id,
+                'email' => $application->email,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

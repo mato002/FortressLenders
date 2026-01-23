@@ -57,7 +57,7 @@
                                 <a href="{{ route('candidate.documents.download', $groupedDocuments['filled_offer_letter']) }}" class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-sm font-semibold">
                                     View
                                 </a>
-                                <form method="POST" action="{{ route('candidate.documents.destroy', $groupedDocuments['filled_offer_letter']) }}" onsubmit="return confirm('Are you sure you want to delete this document?');">
+                                <form method="POST" action="{{ route('candidate.documents.destroy', $groupedDocuments['filled_offer_letter']) }}" class="delete-document-form">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold">
@@ -133,7 +133,7 @@
                                 <a href="{{ route('candidate.documents.download', $groupedDocuments['filled_contract']) }}" class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-sm font-semibold">
                                     View
                                 </a>
-                                <form method="POST" action="{{ route('candidate.documents.destroy', $groupedDocuments['filled_contract']) }}" onsubmit="return confirm('Are you sure you want to delete this document?');">
+                                <form method="POST" action="{{ route('candidate.documents.destroy', $groupedDocuments['filled_contract']) }}" class="delete-document-form">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold">
@@ -182,7 +182,7 @@
                                 <a href="{{ route('candidate.documents.download', $groupedDocuments['id']) }}" class="px-3 py-1 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-sm font-semibold">
                                     View
                                 </a>
-                                <form method="POST" action="{{ route('candidate.documents.destroy', $groupedDocuments['id']) }}" onsubmit="return confirm('Are you sure you want to delete this document?');">
+                                <form method="POST" action="{{ route('candidate.documents.destroy', $groupedDocuments['id']) }}" class="delete-document-form">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold">
@@ -217,7 +217,7 @@
                                 <a href="{{ route('candidate.documents.download', $groupedDocuments['kra']) }}" class="px-3 py-1 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-sm font-semibold">
                                     View
                                 </a>
-                                <form method="POST" action="{{ route('candidate.documents.destroy', $groupedDocuments['kra']) }}" onsubmit="return confirm('Are you sure you want to delete this document?');">
+                                <form method="POST" action="{{ route('candidate.documents.destroy', $groupedDocuments['kra']) }}" class="delete-document-form">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold">
@@ -252,7 +252,7 @@
                                 <a href="{{ route('candidate.documents.download', $groupedDocuments['sha']) }}" class="px-3 py-1 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-sm font-semibold">
                                     View
                                 </a>
-                                <form method="POST" action="{{ route('candidate.documents.destroy', $groupedDocuments['sha']) }}" onsubmit="return confirm('Are you sure you want to delete this document?');">
+                                <form method="POST" action="{{ route('candidate.documents.destroy', $groupedDocuments['sha']) }}" class="delete-document-form">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold">
@@ -277,3 +277,39 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle delete document forms with SweetAlert
+        document.querySelectorAll('.delete-document-form').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formElement = this;
+                
+                Swal.fire({
+                    title: 'Delete Document?',
+                    text: 'Are you sure you want to delete this document? This action cannot be undone.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Deleting...',
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            didOpen: () => Swal.showLoading()
+                        });
+                        formElement.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
+@endpush

@@ -217,6 +217,14 @@
                             <td class="px-3 sm:px-6 py-4">
                                 <p class="font-semibold text-gray-900 text-sm sm:text-base">{{ $application->name }}</p>
                                 <p class="text-xs text-gray-400 truncate max-w-[150px] sm:max-w-none">{{ $application->email }}</p>
+                                @if($application->aiSievingDecision)
+                                    <div class="mt-1 flex items-center gap-2">
+                                        <svg class="w-3 h-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                        </svg>
+                                        <span class="text-xs font-semibold text-indigo-700">AI: {{ $application->aiSievingDecision->ai_score }}/100</span>
+                                    </div>
+                                @endif
                             </td>
                         <td class="px-3 sm:px-6 py-4 hidden sm:table-cell">
                             <p class="text-gray-900 text-xs sm:text-sm truncate max-w-[200px]">{{ optional($application->jobPost)->title ?? 'Unknown Position' }}</p>
@@ -248,13 +256,75 @@
                             </span>
                         </td>
                         <td class="px-3 sm:px-6 py-4 text-gray-600 text-xs sm:text-sm hidden sm:table-cell">{{ $application->created_at->diffForHumans() }}</td>
-                        <td class="px-3 sm:px-6 py-4 text-right space-x-2 sm:space-x-3">
-                            <a href="{{ route('admin.job-applications.show', $application) }}" class="text-blue-600 font-semibold text-xs sm:text-sm">View</a>
-                            <form action="{{ route('admin.job-applications.destroy', $application) }}" method="POST" class="inline-block delete-form" data-id="{{ $application->id }}" data-name="{{ $application->name }}">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 font-semibold text-xs sm:text-sm hover:text-red-700">Delete</button>
-                            </form>
+                        <td class="px-3 sm:px-6 py-4">
+                            <div class="flex items-center justify-end">
+                                <div class="relative inline-block text-left" x-data="{ open: false }">
+                                    <button @click="open = !open" @click.away="open = false" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                        <span>Actions</span>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                        </svg>
+                                    </button>
+                                    <div x-show="open" 
+                                         x-transition:enter="transition ease-out duration-100"
+                                         x-transition:enter-start="transform opacity-0 scale-95"
+                                         x-transition:enter-end="transform opacity-100 scale-100"
+                                         x-transition:leave="transition ease-in duration-75"
+                                         x-transition:leave-start="transform opacity-100 scale-100"
+                                         x-transition:leave-end="transform opacity-0 scale-95"
+                                         class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10"
+                                         style="display: none;">
+                                        <div class="py-1" role="menu">
+                                            <a href="{{ route('admin.job-applications.show', $application) }}" class="block px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                                                <div class="flex items-center gap-2">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                    </svg>
+                                                    View Details
+                                                </div>
+                                            </a>
+                                            <form action="{{ route('admin.job-applications.send-confirmation', $application) }}" method="POST" class="inline-block">
+                                                @csrf
+                                                <button type="submit" class="w-full text-left block px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                                                    <div class="flex items-center gap-2">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                                        </svg>
+                                                        Send Confirmation Email
+                                                    </div>
+                                                </button>
+                                            </form>
+                                            @if(!$application->candidate_id)
+                                                <form action="{{ route('admin.job-applications.create-candidate-account', $application) }}" method="POST" class="inline-block">
+                                                    @csrf
+                                                    <button type="submit" class="w-full text-left block px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                                                        <div class="flex items-center gap-2">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                                                            </svg>
+                                                            Create Candidate Account
+                                                        </div>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            <div class="border-t border-gray-100 my-1"></div>
+                                            <form action="{{ route('admin.job-applications.destroy', $application) }}" method="POST" class="inline-block delete-form" data-id="{{ $application->id }}" data-name="{{ $application->name }}">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="w-full text-left block px-4 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50" role="menuitem">
+                                                    <div class="flex items-center gap-2">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                        </svg>
+                                                        Delete
+                                                    </div>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 @empty

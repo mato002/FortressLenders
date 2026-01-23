@@ -693,9 +693,13 @@
 
             if (!isValid) {
                 const errorMsg = errorMessages.length > 0 
-                    ? errorMessages.join('\n') 
+                    ? errorMessages.join('<br>') 
                     : 'Please fill in all required fields correctly before proceeding.';
-                alert(errorMsg);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    html: errorMsg
+                });
             }
 
             return isValid;
@@ -989,7 +993,11 @@
                 
                 // Validate file size (5MB max)
                 if (file.size > 5 * 1024 * 1024) {
-                    alert('File size exceeds 5MB. Please upload a smaller file.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'File Too Large',
+                        text: 'File size exceeds 5MB. Please upload a smaller file.'
+                    });
                     input.value = '';
                     fileNameDiv.classList.add('hidden');
                     return;
@@ -998,7 +1006,11 @@
                 // Validate file type
                 const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
                 if (!allowedTypes.includes(file.type)) {
-                    alert('Invalid file type. Please upload a PDF, DOC, or DOCX file.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid File Type',
+                        text: 'Invalid file type. Please upload a PDF, DOC, or DOCX file.'
+                    });
                     input.value = '';
                     fileNameDiv.classList.add('hidden');
                     return;

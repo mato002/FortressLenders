@@ -134,14 +134,27 @@ function updateTimer() {
     
     if (timeLeft <= 0) {
         clearInterval(timerInterval);
-        alert('Time is up! Your test will be submitted automatically.');
-        form.submit();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Time is up!',
+            text: 'Your test will be submitted automatically.',
+            timer: 2000,
+            showConfirmButton: false
+        }).then(() => {
+            form.submit();
+        });
     }
     
     // Warning at 5 minutes
     if (timeLeft === 5 * 60) {
         timerElement.classList.add('text-red-600');
-        alert('5 minutes remaining!');
+        Swal.fire({
+            icon: 'warning',
+            title: '5 Minutes Remaining!',
+            text: 'Please complete your test soon.',
+            timer: 3000,
+            showConfirmButton: false
+        });
     }
     
     timeLeft--;
@@ -165,10 +178,23 @@ form.addEventListener('submit', function(e) {
     const totalQuestions = {{ $questions->count() }};
     
     if (unanswered < totalQuestions) {
-        if (!confirm(`You have answered ${unanswered} out of ${totalQuestions} questions. Are you sure you want to submit?`)) {
-            e.preventDefault();
-            return false;
-        }
+        e.preventDefault();
+        Swal.fire({
+            title: 'Incomplete Test',
+            html: `You have answered <strong>${unanswered}</strong> out of <strong>${totalQuestions}</strong> questions.<br><br>Are you sure you want to submit?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#14b8a6',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, submit',
+            cancelButtonText: 'Continue answering',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                clearInterval(timerInterval);
+                form.submit();
+            }
+        });
+        return false;
     }
     
     clearInterval(timerInterval);

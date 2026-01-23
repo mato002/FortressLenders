@@ -25,19 +25,29 @@ class AppServiceProvider extends ServiceProvider
     {
         // Share logo globally
         View::composer('*', function ($view): void {
-            $logoSetting = GeneralSetting::latest()->first();
-            $logoPath = $logoSetting?->logo_path;
-            $hasLogo = $logoPath && Storage::disk('public')->exists($logoPath);
-            
-            $view->with('logoPath', $hasLogo ? $logoPath : null);
+            try {
+                $logoSetting = GeneralSetting::latest()->first();
+                $logoPath = $logoSetting?->logo_path;
+                $hasLogo = $logoPath && Storage::disk('public')->exists($logoPath);
+                
+                $view->with('logoPath', $hasLogo ? $logoPath : null);
+            } catch (\Exception $e) {
+                // Handle database connection errors gracefully
+                $view->with('logoPath', null);
+            }
         });
 
         View::composer('layouts.admin', function ($view): void {
-            $unreadCount = ContactMessage::whereNull('handled_at')
-                ->orWhere('status', 'new')
-                ->count();
+            try {
+                $unreadCount = ContactMessage::whereNull('handled_at')
+                    ->orWhere('status', 'new')
+                    ->count();
 
-            $view->with('adminUnreadMessagesCount', $unreadCount);
+                $view->with('adminUnreadMessagesCount', $unreadCount);
+            } catch (\Exception $e) {
+                // Handle database connection errors gracefully
+                $view->with('adminUnreadMessagesCount', 0);
+            }
         });
     }
 }

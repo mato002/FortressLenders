@@ -14,6 +14,7 @@ class AptitudeTestQuestion extends Model
         'job_post_id',
         'company_id',
         'section',
+        'question_type',
         'question',
         'options',
         'correct_answer',
@@ -71,6 +72,30 @@ class AptitudeTestQuestion extends Model
     public function scopeForCompany($query, $companyId)
     {
         return $query->where('company_id', $companyId);
+    }
+
+    /**
+     * Check if question is multiple choice
+     */
+    public function isMultipleChoice(): bool
+    {
+        return $this->question_type === 'multiple_choice';
+    }
+
+    /**
+     * Check if question is text-based
+     */
+    public function isText(): bool
+    {
+        return $this->question_type === 'text';
+    }
+
+    /**
+     * Check if question requires calculation
+     */
+    public function isCalculation(): bool
+    {
+        return $this->question_type === 'calculation';
     }
 
     /**

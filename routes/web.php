@@ -32,6 +32,7 @@ use App\Http\Controllers\Admin\JobApplicationController as AdminJobApplicationCo
 use App\Http\Controllers\Admin\ActivityLogController as AdminActivityLogController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\TokenController as AdminTokenController;
+use App\Http\Controllers\Admin\AIPromptSettingsController;
 use App\Http\Controllers\CookieConsentController;
 use App\Http\Controllers\NewsletterController;
 use Illuminate\Support\Facades\Route;
@@ -135,6 +136,7 @@ Route::get('/dashboard', function () {
 // Candidate Routes (separate guard)
 Route::middleware(['auth:candidate'])->prefix('candidate')->name('candidate.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\CandidateDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/applications', [\App\Http\Controllers\CandidateDashboardController::class, 'applications'])->name('applications');
     Route::get('/application/{application}', [\App\Http\Controllers\CandidateDashboardController::class, 'show'])->name('application.show');
     
     // Bio Data
@@ -189,11 +191,18 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             Route::get('/general', [GeneralSettingsController::class, 'edit'])->name('general.edit');
             Route::post('/general', [GeneralSettingsController::class, 'update'])->name('general.update');
             
+            // AI Prompt Settings
+            Route::get('/ai-prompts', [AIPromptSettingsController::class, 'index'])->name('ai-prompts.index');
+            Route::post('/ai-prompts/update', [AIPromptSettingsController::class, 'update'])->name('ai-prompts.update');
+            Route::post('/ai-prompts/reset', [AIPromptSettingsController::class, 'reset'])->name('ai-prompts.reset');
+            
             // Team Members
             Route::resource('team-members', AdminTeamMemberController::class);
+            Route::post('team-members/{teamMember}/toggle-status', [AdminTeamMemberController::class, 'toggleStatus'])->name('team-members.toggle-status');
             
             // Branches
-            Route::resource('branches', AdminBranchController::class)->except(['show']);
+        Route::resource('branches', AdminBranchController::class)->except(['show']);
+        Route::patch('branches/{branch}/toggle-status', [AdminBranchController::class, 'toggleStatus'])->name('branches.toggle-status');
             
             // Activity Logs
             Route::resource('activity-logs', AdminActivityLogController::class)->only(['index', 'show']);
@@ -205,6 +214,7 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
         });
         
         Route::resource('products', AdminProductController::class);
+        Route::patch('products/{product}/toggle-status', [AdminProductController::class, 'toggleStatus'])->name('products.toggle-status');
         Route::post('contact-messages/bulk-update-status', [AdminContactMessageController::class, 'bulkUpdateStatus'])->name('contact-messages.bulk-update-status');
         Route::post('contact-messages/bulk-delete', [AdminContactMessageController::class, 'bulkDelete'])->name('contact-messages.bulk-delete');
         Route::get('contact-messages/export', [AdminContactMessageController::class, 'export'])->name('contact-messages.export');
@@ -242,6 +252,10 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
         
         // Careers Routes - Accessible by Admin, HR Manager, and Clients
         Route::middleware('role:admin,hr_manager,client')->group(function () {
+            // Candidates Management
+            Route::get('candidates', [\App\Http\Controllers\Admin\CandidateController::class, 'index'])->name('candidates.index');
+            Route::get('candidates/{candidate}', [\App\Http\Controllers\Admin\CandidateController::class, 'show'])->name('candidates.show');
+            
             Route::resource('jobs', JobPostController::class)->except(['destroy']);
             Route::post('jobs/{job}/toggle-status', [JobPostController::class, 'toggleStatus'])->name('jobs.toggle-status');
             Route::get('jobs/{job}/configure-sieving', [JobPostController::class, 'configureSieving'])->name('jobs.configure-sieving');
@@ -257,6 +271,9 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             // Self Interview Question Management
             Route::resource('self-interview', \App\Http\Controllers\Admin\SelfInterviewQuestionController::class)->except(['show']);
             Route::post('self-interview/{selfInterview}/toggle-status', [\App\Http\Controllers\Admin\SelfInterviewQuestionController::class, 'toggleStatus'])->name('self-interview.toggle-status');
+            Route::post('self-interview/bulk-activate', [\App\Http\Controllers\Admin\SelfInterviewQuestionController::class, 'bulkActivate'])->name('self-interview.bulk-activate');
+            Route::post('self-interview/bulk-deactivate', [\App\Http\Controllers\Admin\SelfInterviewQuestionController::class, 'bulkDeactivate'])->name('self-interview.bulk-deactivate');
+            Route::delete('self-interview/bulk-delete', [\App\Http\Controllers\Admin\SelfInterviewQuestionController::class, 'bulkDelete'])->name('self-interview.bulk-delete');
             
             // Job Applications Routes
             Route::prefix('job-applications')->name('job-applications.')->group(function () {

@@ -7,21 +7,25 @@ use App\Mail\ContactMessageReceived;
 use App\Models\Branch;
 use App\Models\ContactMessage;
 use App\Models\ContactSetting;
+use App\Models\GeneralSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class ContactController extends Controller
 {
     public function index()
     {
         $contactSettings = ContactSetting::query()->latest()->first();
+        $generalSettings = GeneralSetting::query()->latest()->first();
         $branches = Branch::active()
             ->orderBy('display_order')
             ->orderBy('name')
             ->get();
 
-        return view('contact', compact('contactSettings', 'branches'));
+        return view('contact', compact('contactSettings', 'generalSettings', 'branches'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -59,7 +63,14 @@ class ContactController extends Controller
             return;
         }
 
-        Mail::to($recipients)->send(new ContactMessageReceived($contactMessage));
+        try {
+            Mail::to($recipients)->send(new ContactMessageReceived($contactMessage));
+        } catch (TransportExceptionInterface $e) {
+            Log::error('Failed to send contact notification email', [
+                'error' => $e->getMessage(),
+                'recipients' => $recipients,
+            ]);
+        }
     }
 
     protected function acknowledgeSender(ContactMessage $contactMessage): void
@@ -68,6 +79,14 @@ class ContactController extends Controller
             return;
         }
 
-        Mail::to($contactMessage->email)->send(new ContactMessageConfirmation($contactMessage));
+        try {
+            Mail::to($contactMessage->email)->send(new ContactMessageConfirmation($contactMessage));
+        } catch (TransportExceptionInterface $e) {
+            Log::error('Failed to send contact confirmation email', [
+                'error' => $e->getMessage(),
+                'recipient' => $contactMessage->email,
+            ]);
+            // Don't throw - we still want to show success to the user
+        }
     }
 }
