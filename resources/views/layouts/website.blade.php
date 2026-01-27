@@ -99,9 +99,13 @@
                 <!-- Logo -->
                 <div class="flex-shrink-0">
                     <a href="{{ route('home') }}" class="flex items-center space-x-2">
-                        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-teal-700 to-teal-800 rounded-lg flex items-center justify-center shadow-lg">
-                            <span class="text-amber-400 font-bold text-lg sm:text-xl">F</span>
-                        </div>
+                        @if(isset($logoPath) && $logoPath)
+                            <img src="{{ asset('storage/'.$logoPath) }}" alt="Fortress Lenders" class="h-9 sm:h-10 w-auto object-contain">
+                        @else
+                            <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-teal-700 to-teal-800 rounded-lg flex items-center justify-center shadow-lg">
+                                <span class="text-amber-400 font-bold text-lg sm:text-xl">F</span>
+                            </div>
+                        @endif
                         <span class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 hidden sm:inline">Fortress Lenders</span>
                         <span class="text-base font-bold text-gray-900 sm:hidden">Fortress</span>
                     </a>
@@ -168,9 +172,13 @@
                 <!-- Company Info -->
                 <div class="col-span-1 md:col-span-2">
                     <div class="flex items-center space-x-2 mb-4">
-                        <div class="w-10 h-10 bg-gradient-to-br from-teal-700 to-teal-800 rounded-lg flex items-center justify-center">
-                            <span class="text-amber-400 font-bold text-xl">F</span>
-                        </div>
+                        @if(isset($logoPath) && $logoPath)
+                            <img src="{{ asset('storage/'.$logoPath) }}" alt="Fortress Lenders" class="h-10 w-auto object-contain">
+                        @else
+                            <div class="w-10 h-10 bg-gradient-to-br from-teal-700 to-teal-800 rounded-lg flex items-center justify-center">
+                                <span class="text-amber-400 font-bold text-xl">F</span>
+                            </div>
+                        @endif
                         <span class="text-xl font-bold text-white">{{ $generalSettings->company_name ?? 'Fortress Lenders' }}</span>
                     </div>
                     @if($generalSettings->company_description ?? null)

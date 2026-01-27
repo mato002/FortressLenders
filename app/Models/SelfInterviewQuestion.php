@@ -57,7 +57,7 @@ class SelfInterviewQuestion extends Model
      */
     public function isMultipleChoice(): bool
     {
-        return $this->question_type === 'multiple_choice' || (!empty($this->options) && $this->question_type !== 'text' && $this->question_type !== 'calculation');
+        return $this->question_type === 'multiple_choice';
     }
 
     /**
@@ -65,7 +65,7 @@ class SelfInterviewQuestion extends Model
      */
     public function isText(): bool
     {
-        return $this->question_type === 'text' || (empty($this->options) && $this->question_type !== 'calculation');
+        return $this->question_type === 'text';
     }
 
     /**

@@ -104,19 +104,19 @@
         <div class="flex items-center justify-between flex-wrap gap-4">
             <div>
                 <h2 class="text-2xl sm:text-3xl font-bold mb-1">
-                    @if(request()->hasAny(['status', 'search', 'job_post_id']))
+                    @if(request()->hasAny(['status', 'search', 'job_post_id', 'start_date', 'end_date']))
                         {{ $filteredCount }} Application{{ $filteredCount !== 1 ? 's' : '' }} Found
                     @else
                         {{ $totalApplications }} Total Application{{ $totalApplications !== 1 ? 's' : '' }}
                     @endif
                 </h2>
-                @if(request()->hasAny(['status', 'search', 'job_post_id']))
+                @if(request()->hasAny(['status', 'search', 'job_post_id', 'start_date', 'end_date']))
                     <p class="text-teal-100 text-sm">Filtered from {{ $totalApplications }} total applications</p>
                 @else
                     <p class="text-teal-100 text-sm">All job applications in the system</p>
                 @endif
             </div>
-            @if(request()->hasAny(['status', 'search', 'job_post_id']))
+            @if(request()->hasAny(['status', 'search', 'job_post_id', 'start_date', 'end_date']))
                 <a href="{{ route('admin.job-applications.index') }}" class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-semibold transition">
                     Clear Filters
                 </a>
@@ -127,7 +127,7 @@
     <!-- Filters -->
     <form method="GET" action="{{ route('admin.job-applications.index') }}" class="mb-6">
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name, email, phone, or job title..." 
@@ -155,12 +155,22 @@
                         @endforeach
                     </select>
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                    <input type="date" name="start_date" value="{{ request('start_date') }}" 
+                           class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                    <input type="date" name="end_date" value="{{ request('end_date') }}" 
+                           class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </div>
             </div>
             <div class="flex items-center gap-2 mt-4">
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm">
                     Apply Filters
                 </button>
-                @if(request()->hasAny(['status', 'search', 'job_post_id']))
+                @if(request()->hasAny(['status', 'search', 'job_post_id', 'start_date', 'end_date']))
                     <a href="{{ route('admin.job-applications.index') }}" class="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors font-semibold text-sm">
                         Clear
                     </a>

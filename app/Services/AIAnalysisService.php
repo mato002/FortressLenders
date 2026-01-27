@@ -138,6 +138,60 @@ class AIAnalysisService
     }
 
     /**
+     * Analyze aptitude test results
+     */
+    public function analyzeAptitudeTest(JobApplication $application): array
+    {
+        $session = $application->aptitudeTestSession;
+        $jobPost = $application->jobPost;
+        
+        if (!$session || !$session->completed_at || !$jobPost) {
+            return [];
+        }
+
+        try {
+            $companyId = $this->getCompanyId($application);
+            $prompt = $this->buildAptitudeTestAnalysisPrompt($application, $session, $jobPost);
+            $response = $this->callAI($prompt, $companyId, $application->id, 'aptitude_analysis');
+            
+            return $this->parseAptitudeTestAnalysisResponse($response);
+        } catch (\Exception $e) {
+            Log::error('AI aptitude test analysis failed', [
+                'application_id' => $application->id,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Analyze self interview results
+     */
+    public function analyzeSelfInterview(JobApplication $application): array
+    {
+        $session = $application->selfInterviewSession;
+        $jobPost = $application->jobPost;
+        
+        if (!$session || !$session->completed_at || !$jobPost) {
+            return [];
+        }
+
+        try {
+            $companyId = $this->getCompanyId($application);
+            $prompt = $this->buildSelfInterviewAnalysisPrompt($application, $session, $jobPost);
+            $response = $this->callAI($prompt, $companyId, $application->id, 'self_interview_analysis');
+            
+            return $this->parseSelfInterviewAnalysisResponse($response);
+        } catch (\Exception $e) {
+            Log::error('AI self interview analysis failed', [
+                'application_id' => $application->id,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
      * Build analysis prompt for CV
      */
     private function buildAnalysisPrompt(JobApplication $application, CvParsedData $cvParsedData): string
@@ -324,6 +378,158 @@ class AIAnalysisService
                "3. Bonus skills (additional valuable skills)\n" .
                "4. Match percentage\n\n" .
                "Format as JSON with keys: matching_skills, missing_skills, bonus_skills, match_percentage.";
+    }
+
+    /**
+     * Build aptitude test analysis prompt
+     */
+    private function buildAptitudeTestAnalysisPrompt(JobApplication $application, $session, JobPost $jobPost): string
+    {
+        // Try to get custom prompt from database
+        $storedPrompt = AIPrompt::getPrompt('aptitude_test_analysis', $this->getUserRole());
+        $template = $storedPrompt ? $storedPrompt->content : $this->getDefaultAptitudeTestAnalysisPrompt();
+        
+        // Get section performance
+        $sectionPerformance = $this->getSectionPerformance($session);
+        
+        // Get question details
+        $questionDetails = $this->getQuestionDetails($session);
+        
+        // Replace placeholders
+        $prompt = $template;
+        $prompt = str_replace('{job_post->title}', $jobPost->title ?? '', $prompt);
+        $prompt = str_replace('{job_post->requirements}', $jobPost->requirements ?? '', $prompt);
+        $prompt = str_replace('{application->name}', $application->name ?? '', $prompt);
+        $prompt = str_replace('{application->education_level}', $application->education_level ?? '', $prompt);
+        $prompt = str_replace('{application->area_of_study}', $application->area_of_study ?? '', $prompt);
+        $prompt = str_replace('{application->current_job_title}', $application->current_job_title ?? '', $prompt);
+        $prompt = str_replace('{application->current_company}', $application->current_company ?? '', $prompt);
+        $prompt = str_replace('{aptitude_test_score}', $application->aptitude_test_score ?? 0, $prompt);
+        $prompt = str_replace('{total_score}', $session->total_score ?? 0, $prompt);
+        $prompt = str_replace('{total_possible_score}', $session->total_possible_score ?? 0, $prompt);
+        $prompt = str_replace('{pass_threshold}', $session->pass_threshold ?? 70, $prompt);
+        $prompt = str_replace('{aptitude_test_passed}', $application->aptitude_test_passed ? 'Passed' : 'Failed', $prompt);
+        $prompt = str_replace('{time_taken_seconds}', $session->time_taken_seconds ?? 0, $prompt);
+        $prompt = str_replace('{aptitude_test_completed_at}', $session->completed_at ? $session->completed_at->format('Y-m-d H:i:s') : '', $prompt);
+        $prompt = str_replace('{section_performance}', $sectionPerformance, $prompt);
+        $prompt = str_replace('{question_details}', $questionDetails, $prompt);
+
+        return $prompt;
+    }
+
+    /**
+     * Get default aptitude test analysis prompt
+     */
+    private function getDefaultAptitudeTestAnalysisPrompt(): string
+    {
+        return "Analyze the candidate's aptitude test performance and provide insights.\n\n" .
+               "Job Position: {job_post->title}\n" .
+               "Job Requirements: {job_post->requirements}\n\n" .
+               "Candidate Information:\n" .
+               "Name: {application->name}\n" .
+               "Education: {application->education_level} in {application->area_of_study}\n" .
+               "Current Position: {application->current_job_title} at {application->current_company}\n\n" .
+               "Aptitude Test Results:\n" .
+               "Overall Score: {aptitude_test_score}% ({total_score}/{total_possible_score} points)\n" .
+               "Pass Threshold: {pass_threshold}%\n" .
+               "Status: {aptitude_test_passed}\n" .
+               "Time Taken: {time_taken_seconds} seconds\n" .
+               "Completed At: {aptitude_test_completed_at}\n\n" .
+               "Section Performance:\n" .
+               "{section_performance}\n\n" .
+               "Question Details:\n" .
+               "{question_details}\n\n" .
+               "Please provide:\n" .
+               "1. Overall performance assessment (strengths and weaknesses)\n" .
+               "2. Section-by-section analysis (numerical, logical, verbal, scenario)\n" .
+               "3. Areas of strength (which sections/questions they excelled in)\n" .
+               "4. Areas for improvement (which sections/questions need work)\n" .
+               "5. Analysis of calculation questions (if any) - evaluate their mathematical reasoning\n" .
+               "6. Analysis of text questions (if any) - provide insights on written responses\n" .
+               "7. Relevance to job requirements (how test performance relates to job needs)\n" .
+               "8. Recommendations for next steps (if passed, what to focus on; if failed, what to improve)\n" .
+               "9. Confidence assessment (how reliable is this test result)\n\n" .
+               "Note: Calculation questions are auto-graded based on numeric answers. Text questions require manual review.\n\n" .
+               "Format your response as JSON with keys: overall_assessment, section_analysis, strengths, areas_for_improvement, calculation_analysis, text_analysis, job_relevance, recommendations, confidence_level.";
+    }
+
+    /**
+     * Get section performance breakdown
+     */
+    private function getSectionPerformance($session): string
+    {
+        $questions = \App\Models\AptitudeTestQuestion::whereIn('id', array_keys($session->questions_answered ?? []))->get();
+        $sections = ['numerical' => [], 'logical' => [], 'verbal' => [], 'scenario' => []];
+        $sectionScores = ['numerical' => 0, 'logical' => 0, 'verbal' => 0, 'scenario' => 0];
+        $sectionPossible = ['numerical' => 0, 'logical' => 0, 'verbal' => 0, 'scenario' => 0];
+
+        foreach ($questions as $question) {
+            $section = $question->section;
+            if (isset($sections[$section])) {
+                $sections[$section][] = $question;
+                $sectionPossible[$section] += $question->points;
+                
+                $answer = $session->questions_answered[$question->id] ?? null;
+                if ($answer && strtolower(trim($answer)) === strtolower(trim($question->correct_answer))) {
+                    $sectionScores[$section] += $question->points;
+                }
+            }
+        }
+
+        $performance = [];
+        foreach ($sections as $section => $sectionQuestions) {
+            if (count($sectionQuestions) > 0) {
+                $score = $sectionScores[$section];
+                $possible = $sectionPossible[$section];
+                $percentage = $possible > 0 ? round(($score / $possible) * 100) : 0;
+                $performance[] = ucfirst($section) . ": {$score}/{$possible} points ({$percentage}%)";
+            }
+        }
+
+        return implode("\n", $performance) ?: 'No section data available';
+    }
+
+    /**
+     * Get question details
+     */
+    private function getQuestionDetails($session): string
+    {
+        $questions = \App\Models\AptitudeTestQuestion::whereIn('id', array_keys($session->questions_answered ?? []))->get();
+        $details = [];
+
+        foreach ($questions as $question) {
+            $answer = $session->questions_answered[$question->id] ?? null;
+            $questionType = $question->question_type ?? 'multiple_choice';
+            
+            // Determine if answer is correct based on question type
+            $isCorrect = false;
+            if ($question->isMultipleChoice()) {
+                $isCorrect = $answer && strtolower(trim($answer)) === strtolower(trim($question->correct_answer));
+            } elseif ($question->isCalculation()) {
+                // For calculation questions, use numeric comparison
+                if (!empty($answer) && !empty($question->correct_answer)) {
+                    if (is_numeric($answer) && is_numeric($question->correct_answer)) {
+                        $isCorrect = abs((float)$answer - (float)$question->correct_answer) < 0.01;
+                    }
+                }
+            } else {
+                // Text questions require manual review
+                $isCorrect = null; // null means needs review
+            }
+            
+            $status = $isCorrect === null ? 'Needs Manual Review' : ($isCorrect ? 'Correct' : 'Incorrect');
+            $typeLabel = ucfirst(str_replace('_', ' ', $questionType));
+            
+            if ($question->isMultipleChoice()) {
+                $details[] = "Type: {$typeLabel} | Section: {$question->section} | Question: " . substr($question->question, 0, 50) . "... | Candidate Answer: {$answer} | Correct Answer: {$question->correct_answer} | Status: {$status} | Points: {$question->points}";
+            } elseif ($question->isCalculation()) {
+                $details[] = "Type: {$typeLabel} | Section: {$question->section} | Question: " . substr($question->question, 0, 50) . "... | Candidate Answer: {$answer} | Correct Answer: {$question->correct_answer} | Status: {$status} | Points: {$question->points}";
+            } else {
+                $details[] = "Type: {$typeLabel} | Section: {$question->section} | Question: " . substr($question->question, 0, 50) . "... | Candidate Answer: " . substr($answer ?? 'No answer', 0, 100) . "... | Status: {$status} | Points: {$question->points}";
+            }
+        }
+
+        return implode("\n", $details) ?: 'No question details available';
     }
     
     /**
@@ -595,6 +801,195 @@ class AIAnalysisService
             'missing_skills' => [],
             'bonus_skills' => [],
             'match_percentage' => 0,
+        ];
+    }
+
+    /**
+     * Parse aptitude test analysis response
+     */
+    private function parseAptitudeTestAnalysisResponse(string $response): array
+    {
+        if (preg_match('/\{.*\}/s', $response, $matches)) {
+            $json = json_decode($matches[0], true);
+            if ($json) {
+                return $json;
+            }
+        }
+
+        return [
+            'overall_assessment' => $response,
+            'section_analysis' => [],
+            'strengths' => [],
+            'areas_for_improvement' => [],
+            'job_relevance' => '',
+            'recommendations' => '',
+            'confidence_level' => 0.5,
+        ];
+    }
+
+    /**
+     * Analyze self interview results
+     */
+    public function analyzeSelfInterview(JobApplication $application): array
+    {
+        $session = $application->selfInterviewSession;
+        $jobPost = $application->jobPost;
+        
+        if (!$session || !$session->completed_at || !$jobPost) {
+            return [];
+        }
+
+        try {
+            $companyId = $this->getCompanyId($application);
+            $prompt = $this->buildSelfInterviewAnalysisPrompt($application, $session, $jobPost);
+            $response = $this->callAI($prompt, $companyId, $application->id, 'self_interview_analysis');
+            
+            return $this->parseSelfInterviewAnalysisResponse($response);
+        } catch (\Exception $e) {
+            Log::error('AI self interview analysis failed', [
+                'application_id' => $application->id,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Build self interview analysis prompt
+     */
+    private function buildSelfInterviewAnalysisPrompt(JobApplication $application, $session, JobPost $jobPost): string
+    {
+        // Try to get custom prompt from database
+        $storedPrompt = AIPrompt::getPrompt('self_interview_analysis', $this->getUserRole());
+        $template = $storedPrompt ? $storedPrompt->content : $this->getDefaultSelfInterviewAnalysisPrompt();
+        
+        // Get question responses
+        $questionResponses = $this->getSelfInterviewQuestionResponses($session);
+        
+        // Replace placeholders
+        $prompt = $template;
+        $prompt = str_replace('{job_post->title}', $jobPost->title ?? '', $prompt);
+        $prompt = str_replace('{job_post->description}', $jobPost->description ?? '', $prompt);
+        $prompt = str_replace('{job_post->requirements}', $jobPost->requirements ?? '', $prompt);
+        $prompt = str_replace('{application->name}', $application->name ?? '', $prompt);
+        $prompt = str_replace('{application->education_level}', $application->education_level ?? '', $prompt);
+        $prompt = str_replace('{application->area_of_study}', $application->area_of_study ?? '', $prompt);
+        $prompt = str_replace('{application->current_job_title}', $application->current_job_title ?? '', $prompt);
+        $prompt = str_replace('{application->current_company}', $application->current_company ?? '', $prompt);
+        $prompt = str_replace('{self_interview_score}', $application->self_interview_score ?? 0, $prompt);
+        $prompt = str_replace('{total_score}', $session->total_score ?? 0, $prompt);
+        $prompt = str_replace('{total_possible_score}', $session->total_possible_score ?? 0, $prompt);
+        $prompt = str_replace('{pass_threshold}', $session->pass_threshold ?? 70, $prompt);
+        $prompt = str_replace('{self_interview_passed}', $application->self_interview_passed ? 'Passed' : 'Failed', $prompt);
+        $prompt = str_replace('{time_taken_seconds}', $session->time_taken_seconds ?? 0, $prompt);
+        $prompt = str_replace('{self_interview_completed_at}', $session->completed_at ? $session->completed_at->format('Y-m-d H:i:s') : '', $prompt);
+        $prompt = str_replace('{question_responses}', $questionResponses, $prompt);
+
+        return $prompt;
+    }
+
+    /**
+     * Get default self interview analysis prompt
+     */
+    private function getDefaultSelfInterviewAnalysisPrompt(): string
+    {
+        return "Analyze the candidate's self interview responses and provide comprehensive insights.\n\n" .
+               "Job Position: {job_post->title}\n" .
+               "Job Description: {job_post->description}\n" .
+               "Job Requirements: {job_post->requirements}\n\n" .
+               "Candidate Information:\n" .
+               "Name: {application->name}\n" .
+               "Education: {application->education_level} in {application->area_of_study}\n" .
+               "Current Position: {application->current_job_title} at {application->current_company}\n\n" .
+               "Self Interview Results:\n" .
+               "Overall Score: {self_interview_score}% ({total_score}/{total_possible_score} points)\n" .
+               "Pass Threshold: {pass_threshold}%\n" .
+               "Status: {self_interview_passed}\n" .
+               "Time Taken: {time_taken_seconds} seconds\n" .
+               "Completed At: {self_interview_completed_at}\n\n" .
+               "Question Responses:\n" .
+               "{question_responses}\n\n" .
+               "Please provide:\n" .
+               "1. Overall assessment of communication skills and self-awareness\n" .
+               "2. Analysis of each response (quality, depth, relevance)\n" .
+               "3. Cultural fit assessment (alignment with company values and role)\n" .
+               "4. Strengths demonstrated in responses\n" .
+               "5. Areas of concern or gaps in responses\n" .
+               "6. Analysis of calculation questions (if any) - evaluate their problem-solving approach\n" .
+               "7. Analysis of text responses - evaluate writing quality, clarity, and thoughtfulness\n" .
+               "8. Job relevance (how responses relate to job requirements)\n" .
+               "9. Recommendations for next steps (proceed to interview, request clarification, etc.)\n" .
+               "10. Confidence level in assessment\n\n" .
+               "Note: Multiple choice questions are auto-graded. Calculation questions are auto-graded based on numeric answer comparison. Text questions require manual review and should be evaluated for quality, depth, and relevance.\n\n" .
+               "Format your response as JSON with keys: overall_assessment, response_analysis, cultural_fit, strengths, concerns, calculation_analysis, text_analysis, job_relevance, recommendations, confidence_level.";
+    }
+
+    /**
+     * Get self interview question responses
+     */
+    private function getSelfInterviewQuestionResponses($session): string
+    {
+        $questions = \App\Models\SelfInterviewQuestion::whereIn('id', array_keys($session->answers ?? []))->get();
+        $responses = [];
+
+        foreach ($questions as $question) {
+            $answer = $session->answers[$question->id] ?? null;
+            $questionType = $question->question_type ?? 'multiple_choice';
+            
+            // Determine if answer is correct based on question type
+            $isCorrect = false;
+            if ($question->isMultipleChoice() && !empty($question->correct_answer)) {
+                $isCorrect = $answer && strtolower(trim($answer)) === strtolower(trim($question->correct_answer));
+            } elseif ($question->isCalculation() && !empty($question->correct_answer)) {
+                // For calculation questions, use numeric comparison
+                if (!empty($answer) && !empty($question->correct_answer)) {
+                    if (is_numeric($answer) && is_numeric($question->correct_answer)) {
+                        $isCorrect = abs((float)$answer - (float)$question->correct_answer) < 0.01;
+                    }
+                }
+            } else {
+                // Text questions require manual review
+                $isCorrect = null; // null means needs review
+            }
+            
+            $status = $isCorrect === null ? 'Needs Manual Review' : ($isCorrect ? 'Correct' : 'Incorrect');
+            $typeLabel = ucfirst(str_replace('_', ' ', $questionType));
+            
+            if ($question->isMultipleChoice()) {
+                $responses[] = "Q{$question->id} [{$typeLabel}]: " . substr($question->question, 0, 80) . "... | Answer: {$answer} | Correct: {$question->correct_answer} | Status: {$status}";
+            } elseif ($question->isCalculation()) {
+                $responses[] = "Q{$question->id} [{$typeLabel}]: " . substr($question->question, 0, 80) . "... | Answer: {$answer} | Correct: {$question->correct_answer} | Status: {$status}";
+            } else {
+                $responses[] = "Q{$question->id} [{$typeLabel}]: " . substr($question->question, 0, 80) . "... | Response: " . substr($answer ?? 'No answer', 0, 200) . "... | Status: {$status}";
+            }
+        }
+
+        return implode("\n", $responses) ?: 'No responses available';
+    }
+
+    /**
+     * Parse self interview analysis response
+     */
+    private function parseSelfInterviewAnalysisResponse(string $response): array
+    {
+        if (preg_match('/\{.*\}/s', $response, $matches)) {
+            $json = json_decode($matches[0], true);
+            if ($json) {
+                return $json;
+            }
+        }
+
+        return [
+            'overall_assessment' => $response,
+            'response_analysis' => [],
+            'cultural_fit' => '',
+            'strengths' => [],
+            'concerns' => [],
+            'calculation_analysis' => '',
+            'text_analysis' => '',
+            'job_relevance' => '',
+            'recommendations' => '',
+            'confidence_level' => 0.5,
         ];
     }
 

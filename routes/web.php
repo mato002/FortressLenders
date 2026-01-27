@@ -49,6 +49,9 @@ Route::get('/apply-loan', [LoanApplicationController::class, 'create'])->name('l
 Route::post('/apply-loan', [LoanApplicationController::class, 'store'])
     ->middleware('throttle:5,1')
     ->name('loan.apply.submit');
+Route::post('/apply-loan/whatsapp-lead', [LoanApplicationController::class, 'storeCalculatorLead'])
+    ->middleware('throttle:10,1')
+    ->name('loan.apply.whatsapp-lead');
 
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])

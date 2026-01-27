@@ -57,8 +57,8 @@
 
                             <p class="{{ $isCandidate ? 'text-gray-900' : 'text-slate-900' }} font-medium mb-4 leading-relaxed">{{ $question->question }}</p>
 
-                            @if(!empty($question->options))
-                                <!-- Multiple choice style (auto-marked like aptitude) -->
+                            @if($question->isMultipleChoice() && !empty($question->options))
+                                {{-- Multiple Choice Questions --}}
                                 <div class="space-y-3">
                                     @foreach($question->options as $key => $option)
                                         <label class="flex items-start p-3 rounded-lg border-2 {{ $isCandidate ? 'border-gray-200' : 'border-slate-200' }} hover:border-teal-400 cursor-pointer transition">
@@ -74,13 +74,38 @@
                                         </label>
                                     @endforeach
                                 </div>
+                            @elseif($question->isCalculation())
+                                {{-- Calculation Questions --}}
+                                <div class="space-y-3">
+                                    <label class="block text-sm font-medium {{ $isCandidate ? 'text-gray-700' : 'text-slate-700' }} mb-2">
+                                        Enter your answer (numeric value):
+                                    </label>
+                                    <input type="text" 
+                                           name="answers[{{ $question->id }}]" 
+                                           value="{{ old("answers.{$question->id}") }}"
+                                           placeholder="Enter your calculated answer"
+                                           class="w-full px-4 py-3 border-2 {{ $isCandidate ? 'border-gray-300' : 'border-slate-300' }} rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 {{ $isCandidate ? 'text-gray-900' : 'text-slate-900' }}"
+                                           inputmode="numeric"
+                                           pattern="[0-9]*\.?[0-9]*">
+                                    <p class="text-xs {{ $isCandidate ? 'text-gray-500' : 'text-slate-500' }} mt-1">
+                                        Enter the numeric result of your calculation
+                                    </p>
+                                </div>
                             @else
-                                <!-- Open-ended answer -->
-                                <textarea
-                                    name="answers[{{ $question->id }}]"
-                                    rows="4"
-                                    class="w-full text-sm rounded-lg border {{ $isCandidate ? 'border-gray-300' : 'border-slate-300' }} focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                                    placeholder="Type your response here...">{{ old("answers.{$question->id}") }}</textarea>
+                                {{-- Text/Open-ended Questions --}}
+                                <div class="space-y-3">
+                                    <label class="block text-sm font-medium {{ $isCandidate ? 'text-gray-700' : 'text-slate-700' }} mb-2">
+                                        Enter your answer:
+                                    </label>
+                                    <textarea
+                                        name="answers[{{ $question->id }}]"
+                                        rows="4"
+                                        class="w-full px-4 py-3 text-sm rounded-lg border-2 {{ $isCandidate ? 'border-gray-300' : 'border-slate-300' }} focus:ring-2 focus:ring-teal-500 focus:border-teal-500 {{ $isCandidate ? 'text-gray-900' : 'text-slate-900' }}"
+                                        placeholder="Type your response here...">{{ old("answers.{$question->id}") }}</textarea>
+                                    <p class="text-xs {{ $isCandidate ? 'text-gray-500' : 'text-slate-500' }} mt-1">
+                                        Provide a detailed answer. This will be reviewed manually.
+                                    </p>
+                                </div>
                             @endif
                         </div>
                     @endforeach

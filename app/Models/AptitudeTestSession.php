@@ -46,8 +46,21 @@ class AptitudeTestSession extends Model
             $question = AptitudeTestQuestion::find($questionId);
             if ($question) {
                 $totalPossible += $question->points;
-                if (strtolower(trim($answer)) === strtolower(trim($question->correct_answer))) {
-                    $score += $question->points;
+                
+                // Handle different question types
+                if ($question->isMultipleChoice()) {
+                    // Multiple choice: exact string match (case-insensitive)
+                    if (strtolower(trim($answer)) === strtolower(trim($question->correct_answer))) {
+                        $score += $question->points;
+                    }
+                } elseif ($question->isCalculation()) {
+                    // Calculation: numeric comparison (handles 42, 42.0, 42.00, etc.)
+                    if ($this->isNumericAnswerCorrect($answer, $question->correct_answer)) {
+                        $score += $question->points;
+                    }
+                } else {
+                    // Text questions: require manual review, don't auto-score
+                    // They will be marked as needing review
                 }
             }
         }
@@ -131,6 +144,33 @@ class AptitudeTestSession extends Model
                     : 'Aptitude test failed',
             ]);
         }
+    }
+
+    /**
+     * Check if numeric answer is correct (handles different formats)
+     */
+    private function isNumericAnswerCorrect(?string $candidateAnswer, ?string $correctAnswer): bool
+    {
+        if (empty($candidateAnswer) || empty($correctAnswer)) {
+            return false;
+        }
+
+        // Remove whitespace and convert to lowercase
+        $candidateAnswer = trim(strtolower($candidateAnswer));
+        $correctAnswer = trim(strtolower($correctAnswer));
+
+        // Try numeric comparison
+        if (is_numeric($candidateAnswer) && is_numeric($correctAnswer)) {
+            // Compare as floats to handle decimals
+            $candidateFloat = (float) $candidateAnswer;
+            $correctFloat = (float) $correctAnswer;
+            
+            // Allow small floating point differences (0.01 tolerance)
+            return abs($candidateFloat - $correctFloat) < 0.01;
+        }
+
+        // Fallback to string comparison if not numeric
+        return $candidateAnswer === $correctAnswer;
     }
 }
 

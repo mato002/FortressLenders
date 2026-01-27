@@ -101,121 +101,290 @@
                     <p class="text-xs sm:text-sm text-gray-600 mb-4">
                         Select the loan amount range you need, then enter your specific amount and duration.
                     </p>
-                    <div class="space-y-4">
-                        <div>
-                            <label for="calculator_range" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                                Loan Amount Range <span class="text-red-500">*</span>
-                            </label>
-                            <select
-                                id="calculator_range"
-                                class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent text-sm"
-                                onchange="updateCalculatorFields()"
-                            >
-                                <option value="">-- Select loan amount range --</option>
-                                @foreach($loanRanges as $range)
-                                    @php
-                                        // Use the first product in the range as default (or you could pick the most common one)
-                                        $defaultProduct = $range['products'][0];
-                                    @endphp
-                                    <option 
-                                        value="{{ $defaultProduct->id }}"
-                                        data-min-amount="{{ $defaultProduct->min_loan_amount }}"
-                                        data-max-amount="{{ $defaultProduct->max_loan_amount }}"
-                                        data-service-charge-type="{{ $defaultProduct->service_charge_type }}"
-                                        data-service-charge-value="{{ $defaultProduct->service_charge_value }}"
-                                        data-service-charge-period="{{ $defaultProduct->service_charge_period }}"
-                                        data-max-duration="{{ $defaultProduct->max_duration_weeks }}"
-                                        data-payment-frequency="{{ $defaultProduct->payment_frequency }}"
-                                        data-target-clients="{{ $defaultProduct->target_clients }}"
+                    <div class="grid md:grid-cols-[minmax(0,1.6fr)_minmax(0,1.1fr)] gap-4 md:gap-6 items-start">
+                        <!-- Calculator + WhatsApp (left) -->
+                        <div class="space-y-4">
+                            <div>
+                                <label for="calculator_range" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                                    Loan Amount Range <span class="text-red-500">*</span>
+                                </label>
+                                <select
+                                    id="calculator_range"
+                                    class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent text-sm"
+                                    onchange="updateCalculatorFields()"
+                                >
+                                    <option value="">-- Select loan amount range --</option>
+                                    @foreach($loanRanges as $range)
+                                        @php
+                                            // Use the first product in the range as default (or you could pick the most common one)
+                                            $defaultProduct = $range['products'][0];
+                                        @endphp
+                                        <option 
+                                            value="{{ $defaultProduct->id }}"
+                                            data-min-amount="{{ $defaultProduct->min_loan_amount }}"
+                                            data-max-amount="{{ $defaultProduct->max_loan_amount }}"
+                                            data-service-charge-type="{{ $defaultProduct->service_charge_type }}"
+                                            data-service-charge-value="{{ $defaultProduct->service_charge_value }}"
+                                            data-service-charge-period="{{ $defaultProduct->service_charge_period }}"
+                                            data-max-duration="{{ $defaultProduct->max_duration_weeks }}"
+                                            data-payment-frequency="{{ $defaultProduct->payment_frequency }}"
+                                            data-target-clients="{{ $defaultProduct->target_clients }}"
+                                        >
+                                            KES {{ number_format($defaultProduct->min_loan_amount) }} - {{ number_format($defaultProduct->max_loan_amount) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">Select the range that includes the amount you want to borrow</p>
+                            </div>
+
+                            <div id="calculator-fields" class="hidden space-y-4">
+                                <div>
+                                    <label for="calculator_amount" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                                        Enter Your Loan Amount (KES) <span class="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        id="calculator_amount"
+                                        min="0"
+                                        step="1000"
+                                        class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent text-sm"
+                                        placeholder="Enter amount within the selected range"
                                     >
-                                        KES {{ number_format($defaultProduct->min_loan_amount) }} - {{ number_format($defaultProduct->max_loan_amount) }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <p class="text-xs text-gray-500 mt-1">Select the range that includes the amount you want to borrow</p>
-                        </div>
+                                    <p id="calculator-amount-range" class="text-xs text-gray-500 mt-1"></p>
+                                </div>
 
-                        <div id="calculator-fields" class="hidden space-y-4">
-                            <div>
-                                <label for="calculator_amount" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                                    Enter Your Loan Amount (KES) <span class="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="number"
-                                    id="calculator_amount"
-                                    min="0"
-                                    step="1000"
-                                    class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent text-sm"
-                                    placeholder="Enter amount within the selected range"
+                                <div>
+                                    <label for="calculator_duration" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                                        <span id="duration-label">Repayment Duration (Weeks)</span> <span class="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        id="calculator_duration"
+                                        min="1"
+                                        step="1"
+                                        class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent text-sm"
+                                        placeholder="Enter duration"
+                                    >
+                                    <p id="calculator-duration-max" class="text-xs text-gray-500 mt-1"></p>
+                                </div>
+
+                                <div id="calculator-service-charge-info" class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs sm:text-sm">
+                                    <p class="font-semibold text-blue-900 mb-1">Service Charge:</p>
+                                    <p id="service-charge-display" class="text-blue-800"></p>
+                                    <p id="payment-frequency-display" class="text-blue-700 mt-1"></p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onclick="calculateLoanPayment()"
+                                    class="w-full px-4 py-3 bg-gradient-to-r from-teal-800 to-teal-700 text-white rounded-lg font-semibold hover:from-teal-900 hover:to-teal-800 transition-all shadow-md hover:shadow-lg text-sm sm:text-base"
                                 >
-                                <p id="calculator-amount-range" class="text-xs text-gray-500 mt-1"></p>
-                            </div>
+                                    Calculate Payment
+                                </button>
 
-                            <div>
-                                <label for="calculator_duration" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                                    <span id="duration-label">Repayment Duration (Weeks)</span> <span class="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="number"
-                                    id="calculator_duration"
-                                    min="1"
-                                    step="1"
-                                    class="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent text-sm"
-                                    placeholder="Enter duration"
-                                >
-                                <p id="calculator-duration-max" class="text-xs text-gray-500 mt-1"></p>
-                            </div>
-
-                            <div id="calculator-service-charge-info" class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs sm:text-sm">
-                                <p class="font-semibold text-blue-900 mb-1">Service Charge:</p>
-                                <p id="service-charge-display" class="text-blue-800"></p>
-                                <p id="payment-frequency-display" class="text-blue-700 mt-1"></p>
-                            </div>
-
-                            <button
-                                type="button"
-                                onclick="calculateLoanPayment()"
-                                class="w-full px-4 py-3 bg-gradient-to-r from-teal-800 to-teal-700 text-white rounded-lg font-semibold hover:from-teal-900 hover:to-teal-800 transition-all shadow-md hover:shadow-lg text-sm sm:text-base"
-                            >
-                                Calculate Payment
-                            </button>
-
-                            <div id="calculator-results" class="hidden bg-teal-50 border border-teal-200 rounded-xl p-4 space-y-3">
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div class="bg-white rounded-lg p-3">
-                                        <p class="text-xs text-gray-600 mb-1" id="payment-label">Payment</p>
-                                        <p id="payment-amount" class="text-lg sm:text-xl font-bold text-teal-800">KES 0</p>
+                                <div id="calculator-results" class="hidden bg-teal-50 border border-teal-200 rounded-xl p-4 space-y-3">
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="bg-white rounded-lg p-3">
+                                            <p class="text-xs text-gray-600 mb-1" id="payment-label">Payment</p>
+                                            <p id="payment-amount" class="text-lg sm:text-xl font-bold text-teal-800">KES 0</p>
+                                        </div>
+                                        <div class="bg-white rounded-lg p-3">
+                                            <p class="text-xs text-gray-600 mb-1">Total Service Charges</p>
+                                            <p class="text-[10px] text-gray-500 mb-0.5">(Fees over entire loan period)</p>
+                                            <p id="total-service-charge" class="text-lg sm:text-xl font-bold text-blue-700">KES 0</p>
+                                        </div>
                                     </div>
                                     <div class="bg-white rounded-lg p-3">
-                                        <p class="text-xs text-gray-600 mb-1">Total Service Charges</p>
-                                        <p class="text-[10px] text-gray-500 mb-0.5">(Fees over entire loan period)</p>
-                                        <p id="total-service-charge" class="text-lg sm:text-xl font-bold text-blue-700">KES 0</p>
+                                        <p class="text-xs text-gray-600 mb-1">Total Amount Payable</p>
+                                        <p id="total-amount" class="text-xl sm:text-2xl font-bold text-gray-900">KES 0</p>
+                                    </div>
+                                    <p class="text-[11px] sm:text-xs text-gray-500 text-center mb-3">
+                                        * Calculations are estimates. Actual terms will be discussed with you by our team.
+                                    </p>
+                                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-between">
+                                        <button
+                                            type="button"
+                                            id="proceed-to-application-btn"
+                                            class="w-full sm:w-auto px-4 py-2.5 bg-teal-800 text-white rounded-lg text-xs sm:text-sm font-semibold hover:bg-teal-900 transition-colors"
+                                        >
+                                            Proceed to Application Form
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="bg-white rounded-lg p-3">
-                                    <p class="text-xs text-gray-600 mb-1">Total Amount Payable</p>
-                                    <p id="total-amount" class="text-xl sm:text-2xl font-bold text-gray-900">KES 0</p>
+
+                                <!-- WhatsApp Lead Capture - shown only after calculation -->
+                                <div id="whatsapp-lead-section" class="hidden mt-4 bg-white border border-teal-200 rounded-xl p-4 sm:p-5 shadow-sm">
+                                    <h4 class="text-sm sm:text-base font-semibold text-gray-900 mb-2">
+                                        Want this loan breakdown sent to your WhatsApp?
+                                    </h4>
+                                    <p class="text-xs sm:text-sm text-gray-600 mb-3">
+                                        We can send you the loan amount, duration, service charge, and total repayment so you can review it later.
+                                    </p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-[2fr,1.2fr] gap-3 sm:gap-4 items-center">
+                                        <div>
+                                            <label for="whatsapp_number" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                                                WhatsApp Number
+                                            </label>
+                                            <div class="flex rounded-lg shadow-sm border border-gray-300 focus-within:ring-2 focus-within:ring-teal-800 focus-within:border-transparent transition-all">
+                                                <span class="inline-flex items-center px-3 bg-gray-50 border-r border-gray-300 text-xs sm:text-sm text-gray-700 select-none">
+                                                    +254
+                                                </span>
+                                                <input
+                                                    type="tel"
+                                                    id="whatsapp_number"
+                                                    inputmode="numeric"
+                                                    pattern="\d{9}"
+                                                    maxlength="9"
+                                                    class="w-full px-3 py-2 sm:px-4 sm:py-2.5 border-0 rounded-r-lg focus:outline-none text-sm"
+                                                    placeholder="7XX XXX XXX"
+                                                >
+                                            </div>
+                                            <p class="mt-1 text-[11px] sm:text-xs text-gray-500">
+                                                Kenyan WhatsApp numbers only. Enter the <strong>9 digits</strong> after +254 (no leading 0).
+                                            </p>
+                                        </div>
+                                        <div class="flex sm:block">
+                                            <button
+                                                type="button"
+                                                id="whatsapp-send-btn"
+                                                class="w-full mt-4 sm:mt-6 px-4 py-2.5 bg-emerald-600 text-white rounded-lg font-semibold text-sm shadow-md hover:bg-emerald-700 hover:shadow-lg transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 32 32" aria-hidden="true">
+                                                    <path d="M16 3C9.373 3 4 8.373 4 15c0 2.297.652 4.438 1.787 6.254L4 29l8.004-1.758C13.754 27.74 14.85 28 16 28c6.627 0 12-5.373 12-12S22.627 3 16 3zm0 22c-1.02 0-2.016-.203-2.957-.6l-.212-.09-4.754 1.044 1.015-4.64-.104-.239A8.96 8.96 0 0 1 7 15c0-4.962 4.038-9 9-9s9 4.038 9 9-4.038 9-9 9zm5.004-6.76c-.273-.136-1.62-.8-1.872-.89-.252-.094-.435-.136-.619.136-.185.273-.71.89-.87 1.073-.16.184-.321.205-.594.068-.273-.136-1.154-.424-2.197-1.352-.812-.723-1.36-1.616-1.52-1.89-.16-.273-.017-.42.12-.557.124-.123.273-.319.41-.478.137-.159.183-.273.273-.456.09-.182.046-.34-.023-.478-.068-.136-.619-1.49-.848-2.04-.223-.536-.45-.464-.619-.473l-.528-.009c-.183 0-.48.068-.731.34-.252.273-.96.938-.96 2.287s.983 2.652 1.12 2.836c.137.182 1.935 2.956 4.69 4.143.655.283 1.166.452 1.563.579.657.209 1.255.18 1.728.109.527-.079 1.62-.662 1.85-1.301.228-.64.228-1.188.159-1.301-.068-.114-.25-.182-.523-.318z"/>
+                                                </svg>
+                                                <span>Send My Loan Details on WhatsApp</span>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <p class="text-[11px] sm:text-xs text-gray-500 text-center">
-                                    * Calculations are estimates. Actual terms will be discussed with you by our team.
-                                </p>
                             </div>
                         </div>
+
+                        <!-- Product & Fees Note (right on desktop) -->
+                        <aside class="hidden md:block">
+                            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 sm:p-5 text-xs sm:text-sm text-gray-800">
+                                <h4 class="font-semibold text-amber-900 mb-2">Note</h4>
+                                <ul class="list-disc pl-4 space-y-1">
+                                    <li>
+                                        The graduation levels are from one loan amount range to the next. New clients
+                                        typically start with loans between
+                                        <span class="font-semibold">Ksh. 3,000 – 10,000</span> before progressing to
+                                        higher limits.
+                                    </li>
+                                    <li>
+                                        Registration fee for all new clients is
+                                        <span class="font-semibold">Ksh. 200</span>.
+                                        Loan processing fees are
+                                        <span class="font-semibold">Ksh. 450</span> for loans up to
+                                        <span class="font-semibold">Ksh. 15,000</span> and
+                                        <span class="font-semibold">4% of the loan amount</span> for amounts above
+                                        <span class="font-semibold">Ksh. 15,000</span>.
+                                    </li>
+                                    <li>
+                                        All loans include a risk insurance fee of
+                                        <span class="font-semibold">Ksh. 50</span>.
+                                    </li>
+                                    <li>
+                                        <span class="font-semibold">Dhahabu</span> loan processing fees are
+                                        <span class="font-semibold">5%</span> of the loan amount and the insurance fee
+                                        is <span class="font-semibold">Ksh. 500</span>.
+                                    </li>
+                                    <li>
+                                        <span class="font-semibold">Kilimo Product</span>
+                                        <ul class="list-disc pl-5 mt-1 space-y-1">
+                                            <li>Registration fee: <span class="font-semibold">Ksh. 300</span></li>
+                                            <li>Insurance: <span class="font-semibold">Ksh. 100</span></li>
+                                            <li>
+                                                Processing fees:
+                                                <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                                                    <li>5,000 – 15,000: <span class="font-semibold">Ksh. 700</span></li>
+                                                    <li>16,000 – 20,000: <span class="font-semibold">Ksh. 1,000</span></li>
+                                                    <li>21,000 – 30,000: <span class="font-semibold">Ksh. 1,500</span></li>
+                                                    <li>31,000 – 50,000: <span class="font-semibold">Ksh. 1,900</span></li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                        </aside>
+                    </div>
+
+                    <!-- Mobile-only collapsible note -->
+                    <div class="mt-4 md:hidden">
+                        <details class="bg-amber-50 border border-amber-200 rounded-xl">
+                            <summary class="px-4 py-3 text-xs sm:text-sm font-semibold text-amber-900 cursor-pointer select-none">
+                                Fees & Loan Notes
+                            </summary>
+                            <div class="px-4 pb-4 pt-1 text-xs sm:text-sm text-gray-800">
+                                <ul class="list-disc pl-4 space-y-1">
+                                    <li>
+                                        The graduation levels are from one loan amount range to the next. New clients
+                                        typically start with loans between
+                                        <span class="font-semibold">Ksh. 3,000 – 10,000</span> before progressing to
+                                        higher limits.
+                                    </li>
+                                    <li>
+                                        Registration fee for all new clients is
+                                        <span class="font-semibold">Ksh. 200</span>.
+                                        Loan processing fees are
+                                        <span class="font-semibold">Ksh. 450</span> for loans up to
+                                        <span class="font-semibold">Ksh. 15,000</span> and
+                                        <span class="font-semibold">4% of the loan amount</span> for amounts above
+                                        <span class="font-semibold">Ksh. 15,000</span>.
+                                    </li>
+                                    <li>
+                                        All loans include a risk insurance fee of
+                                        <span class="font-semibold">Ksh. 50</span>.
+                                    </li>
+                                    <li>
+                                        <span class="font-semibold">Dhahabu</span> loan processing fees are
+                                        <span class="font-semibold">5%</span> of the loan amount and the insurance fee
+                                        is <span class="font-semibold">Ksh. 500</span>.
+                                    </li>
+                                    <li>
+                                        <span class="font-semibold">Kilimo Product</span>
+                                        <ul class="list-disc pl-5 mt-1 space-y-1">
+                                            <li>Registration fee: <span class="font-semibold">Ksh. 300</span></li>
+                                            <li>Insurance: <span class="font-semibold">Ksh. 100</span></li>
+                                            <li>
+                                                Processing fees:
+                                                <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                                                    <li>5,000 – 15,000: <span class="font-semibold">Ksh. 700</span></li>
+                                                    <li>16,000 – 20,000: <span class="font-semibold">Ksh. 1,000</span></li>
+                                                    <li>21,000 – 30,000: <span class="font-semibold">Ksh. 1,500</span></li>
+                                                    <li>31,000 – 50,000: <span class="font-semibold">Ksh. 1,900</span></li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                        </details>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Loan Application Form -->
-    <section class="py-12 sm:py-16 md:py-20 lg:py-24 relative" id="apply-loan" style="background-image: url('https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'); background-size: cover; background-position: center; background-attachment: fixed;">
+    <!-- Loan Application Form (revealed after calculator is completed) -->
+    <section
+        class="py-12 sm:py-16 md:py-20 lg:py-24 relative @if(!$errors->any() && !session('status')) hidden @endif"
+        id="apply-loan"
+        style="background-image: url('https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'); background-size: cover; background-position: center; background-attachment: fixed;"
+    >
         <div class="absolute inset-0 bg-gradient-to-br from-teal-900/90 via-teal-800/85 to-teal-900/90 backdrop-blur-md"></div>
         <div class="relative w-full px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32 max-w-6xl mx-auto">
             <div class="bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 sm:p-8 md:p-10">
                 <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Loan Application Form</h2>
-                <p class="text-sm text-gray-600 mb-6">
+                <p class="text-sm text-gray-600 mb-4">
                     Complete the form in a few quick steps. We’ll only show you the most important fields one step at a time.
                 </p>
+                <div id="loan-summary-banner" class="hidden mb-6 rounded-xl border border-teal-100 bg-teal-50 px-4 py-3 text-sm text-teal-900">
+                    <p class="font-semibold mb-1">Loan details from the calculator</p>
+                    <p id="loan-summary-text"></p>
+                    <p class="text-xs text-teal-800 mt-1">If you need to change these, adjust the loan calculator above and recalculate.</p>
+                </div>
 
                 <!-- Step indicator -->
                 <div class="mb-6">
@@ -261,6 +430,9 @@
 
                 <form action="{{ route('loan.apply.submit') }}" method="POST" class="space-y-8" id="loan-application-form">
                     @csrf
+                    <!-- Hidden fields populated from the loan calculator -->
+                    <input type="hidden" id="amount_requested" name="amount_requested" value="{{ old('amount_requested') }}">
+                    <input type="hidden" id="repayment_period" name="repayment_period" value="{{ old('repayment_period') }}">
 
                     <!-- Personal Information -->
                     <div class="space-y-4" data-form-step="0">
@@ -276,25 +448,27 @@
 
                             <div>
                                 <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number <span class="text-red-500">*</span></label>
-                                <input type="tel" id="phone" name="phone" value="{{ old('phone') }}" required
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent transition-all"
-                                       placeholder="e.g. 07XX XXX XXX">
+                                <div class="flex rounded-lg shadow-sm border border-gray-300 focus-within:ring-2 focus-within:ring-teal-800 focus-within:border-transparent transition-all">
+                                    <span class="inline-flex items-center px-3 bg-gray-50 border-r border-gray-300 text-sm text-gray-700 select-none">
+                                        +254
+                                    </span>
+                                    <input
+                                        type="tel"
+                                        id="phone"
+                                        name="phone"
+                                        value="{{ old('phone') }}"
+                                        required
+                                        inputmode="numeric"
+                                        pattern="\d{9}"
+                                        maxlength="9"
+                                        class="w-full px-3 py-3 border-0 rounded-r-lg focus:outline-none text-sm sm:text-base"
+                                        placeholder="7XX XXX XXX"
+                                    >
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Kenyan numbers only. Enter the <strong>9 digits</strong> after +254 (no leading 0), e.g. 712345678.
+                                </p>
                                 @error('phone')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                            </div>
-
-                            <div>
-                                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email (optional)</label>
-                                <input type="email" id="email" name="email" value="{{ old('email') }}"
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent transition-all"
-                                       placeholder="example@email.com">
-                                @error('email')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                            </div>
-
-                            <div>
-                                <label for="date_of_birth" class="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
-                                <input type="date" id="date_of_birth" name="date_of_birth" value="{{ old('date_of_birth') }}"
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent transition-all">
-                                @error('date_of_birth')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                             </div>
 
                             <div>
@@ -319,66 +493,17 @@
                             </div>
                         </div>
 
-                        <div>
-                            <label for="client_type" class="block text-sm font-medium text-gray-700 mb-1">Client Type</label>
-                            <select id="client_type" name="client_type"
-                                    class="w-full md:w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent transition-all">
-                                <option value="">Select type</option>
-                                <option value="business" @selected(old('client_type') === 'business')>Business</option>
-                                <option value="employed" @selected(old('client_type') === 'employed')>Employed</option>
-                                <option value="casual" @selected(old('client_type') === 'casual')>Casual</option>
-                                <option value="student" @selected(old('client_type') === 'student')>Student</option>
-                            </select>
-                            @error('client_type')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                        </div>
+                        <!-- Client type removed: no longer required in application -->
                     </div>
 
-                    <!-- Loan Information -->
+                    <!-- Loan Information (amount & repayment period come from calculator) -->
                     <div class="space-y-4 hidden" data-form-step="1">
                         <h3 class="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-2">Loan Information</h3>
+                        <p class="text-xs text-gray-500">
+                            The amount and repayment period you selected in the calculator above will be attached to this application.
+                        </p>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="loan_type" class="block text-sm font-medium text-gray-700 mb-1">Loan Type <span class="text-red-500">*</span></label>
-                                <select id="loan_type" name="loan_type" required
-                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent transition-all">
-                                    <option value="">Select loan type</option>
-                                    <option value="Business Loan" @selected(old('loan_type') === 'Business Loan')>Business Loan</option>
-                                    <option value="Personal Loan" @selected(old('loan_type') === 'Personal Loan')>Personal Loan</option>
-                                    <option value="Asset Finance" @selected(old('loan_type') === 'Asset Finance')>Asset Finance</option>
-                                    <option value="Emergency Loan" @selected(old('loan_type') === 'Emergency Loan')>Emergency Loan</option>
-                                    <option value="Group Loan" @selected(old('loan_type') === 'Group Loan')>Group Loan</option>
-                                    <option value="Agricultural Loan" @selected(old('loan_type') === 'Agricultural Loan')>Agricultural Loan</option>
-                                    <option value="Education Loan" @selected(old('loan_type') === 'Education Loan')>Education Loan</option>
-                                    <option value="Other" @selected(old('loan_type') === 'Other')>Other</option>
-                                </select>
-                                @error('loan_type')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                            </div>
-
-                            <div>
-                                <label for="amount_requested" class="block text-sm font-medium text-gray-700 mb-1">Amount Requested (KES) <span class="text-red-500">*</span></label>
-                                <input type="number" id="amount_requested" name="amount_requested" value="{{ old('amount_requested') }}"
-                                       min="0" step="100"
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent transition-all"
-                                       placeholder="e.g. 50000" required>
-                                @error('amount_requested')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                            </div>
-
-                            <div>
-                                <label for="repayment_period" class="block text-sm font-medium text-gray-700 mb-1">Repayment Period <span class="text-red-500">*</span></label>
-                                <select id="repayment_period" name="repayment_period" required
-                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent transition-all">
-                                    <option value="">Select repayment period</option>
-                                    <option value="1 month" @selected(old('repayment_period') === '1 month')>1 month</option>
-                                    <option value="2 months" @selected(old('repayment_period') === '2 months')>2 months</option>
-                                    <option value="3 months" @selected(old('repayment_period') === '3 months')>3 months</option>
-                                    <option value="6 months" @selected(old('repayment_period') === '6 months')>6 months</option>
-                                    <option value="9 months" @selected(old('repayment_period') === '9 months')>9 months</option>
-                                    <option value="12 months" @selected(old('repayment_period') === '12 months')>12 months</option>
-                                </select>
-                                @error('repayment_period')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
-                            </div>
-                        </div>
+                        <!-- Loan type removed: loan amount & period now come purely from calculator -->
 
                         <div>
                             <label for="purpose" class="block text-sm font-medium text-gray-700 mb-1">Purpose of Loan</label>
@@ -530,6 +655,43 @@
             resultsDiv.classList.add('hidden');
         }
 
+        // Keep track of last calculation for WhatsApp lead capture
+        let lastLoanCalculation = null;
+
+        function showLoanApplicationFormFromCalculator() {
+            if (!lastLoanCalculation) {
+                return;
+            }
+
+            const section = document.getElementById('apply-loan');
+            const amountField = document.getElementById('amount_requested');
+            const repaymentField = document.getElementById('repayment_period');
+            const summaryBanner = document.getElementById('loan-summary-banner');
+            const summaryText = document.getElementById('loan-summary-text');
+
+            // Build a human readable repayment period string, e.g. "12 weeks" or "6 months"
+            const periodString = `${lastLoanCalculation.durationValue} ${lastLoanCalculation.durationUnit}`;
+
+            if (amountField) {
+                amountField.value = lastLoanCalculation.loanAmount;
+            }
+            if (repaymentField) {
+                repaymentField.value = periodString;
+            }
+
+            if (summaryBanner && summaryText) {
+                summaryText.textContent =
+                    `Approximate request of KES ${lastLoanCalculation.loanAmount.toLocaleString('en-KE', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ` +
+                    `to be repaid over ${periodString} (${lastLoanCalculation.paymentFrequency === 'weekly' ? 'weekly' : 'monthly'} payments).`;
+                summaryBanner.classList.remove('hidden');
+            }
+
+            if (section) {
+                section.classList.remove('hidden');
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
         function calculateLoanPayment() {
             if (!selectedProduct) {
                 Swal.fire({
@@ -634,9 +796,174 @@
             document.getElementById('total-amount').textContent = 
                 'KES ' + totalAmount.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+            // Save details for WhatsApp section and loan application form
+            lastLoanCalculation = {
+                loanAmount,
+                durationValue: selectedProduct.paymentFrequency === 'monthly' ? durationMonths : durationWeeks,
+                durationUnit: selectedProduct.paymentFrequency === 'monthly' ? 'months' : 'weeks',
+                serviceCharge: totalServiceCharge,
+                totalRepayment: totalAmount,
+                paymentAmount,
+                paymentFrequency: selectedProduct.paymentFrequency,
+            };
+
             document.getElementById('calculator-results').classList.remove('hidden');
+            const whatsappSection = document.getElementById('whatsapp-lead-section');
+            if (whatsappSection) {
+                whatsappSection.classList.remove('hidden');
+            }
             document.getElementById('calculator-results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
+
+        // WhatsApp lead capture
+        (function () {
+            const btn = document.getElementById('whatsapp-send-btn');
+            const input = document.getElementById('whatsapp_number');
+            if (!btn || !input) return;
+
+            btn.addEventListener('click', async function () {
+                if (!lastLoanCalculation) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Calculate First',
+                        text: 'Please calculate your loan first so we can send accurate details.',
+                    });
+                    return;
+                }
+
+                const localDigits = (input.value || '').trim();
+                if (!localDigits) {
+                    input.focus();
+                    input.classList.add('border-red-400');
+                    setTimeout(() => input.classList.remove('border-red-400'), 1500);
+                    return;
+                }
+
+                // Expect 9 Kenyan digits, no leading zero
+                const localRegex = /^\d{9}$/;
+                if (!localRegex.test(localDigits)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid WhatsApp Number',
+                        text: 'Please enter 9 digits after +254 (no leading 0), e.g. 712345678.',
+                    });
+                    return;
+                }
+
+                // Build full international number with +254 prefix for backend and wa.me
+                const rawNumber = '+254' + localDigits;
+
+                // Basic E.164 style validation on full number
+                const intlRegex = /^\+[1-9]\d{6,14}$/;
+                if (!intlRegex.test(rawNumber)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid WhatsApp Number',
+                        text: 'Please enter a valid Kenyan WhatsApp number.',
+                    });
+                    return;
+                }
+
+                // Prepare payload for backend
+                const payload = {
+                    name: document.getElementById('full_name')?.value || null,
+                    whatsapp_number: rawNumber,
+                    loan_amount: lastLoanCalculation.loanAmount,
+                    loan_duration_value: lastLoanCalculation.durationValue,
+                    loan_duration_unit: lastLoanCalculation.durationUnit,
+                    service_charge: lastLoanCalculation.serviceCharge,
+                    total_repayment: lastLoanCalculation.totalRepayment,
+                    payment_frequency: lastLoanCalculation.paymentFrequency,
+                };
+
+                try {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-80', 'cursor-not-allowed');
+
+                    const response = await fetch("{{ route('loan.apply.whatsapp-lead') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    if (!response.ok) {
+                        const data = await response.json().catch(() => ({}));
+                        const message = data.message || 'Failed to save your details. Please try again.';
+                        throw new Error(message);
+                    }
+
+                    // Build WhatsApp message
+                    const intro = 'Hello Fortress Lenders, I would like to get more details about this loan estimate:';
+                    const lines = [
+                        intro,
+                        '',
+                        `Loan amount: KES ${lastLoanCalculation.loanAmount.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                        `Loan duration: ${lastLoanCalculation.durationValue} ${lastLoanCalculation.durationUnit}`,
+                        `Service charge: KES ${lastLoanCalculation.serviceCharge.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                        `Total repayment: KES ${lastLoanCalculation.totalRepayment.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                        `Repayment frequency: ${lastLoanCalculation.paymentFrequency === 'weekly' ? 'Weekly' : 'Monthly'}`,
+                    ];
+                    const msg = encodeURIComponent(lines.join('\n'));
+
+                    // wa.me expects number without +
+                    const waNumber = rawNumber.replace('+', '');
+                    const waUrl = `https://wa.me/${waNumber}?text=${msg}`;
+
+                    // Try to open WhatsApp
+                    const waWindow = window.open(waUrl, '_blank');
+                    const popupBlocked = !waWindow || waWindow.closed || typeof waWindow.closed === 'undefined';
+
+                    if (popupBlocked) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Almost there',
+                            html: `We saved your loan estimate. Your browser blocked the WhatsApp window.<br><br>
+                                   <a href="${waUrl}" target="_blank" class="text-teal-700 underline font-semibold">Tap here to open WhatsApp and send the message.</a>`,
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'WhatsApp Ready',
+                            text: 'We saved your loan estimate and opened WhatsApp with your loan details. Please tap Send in WhatsApp to complete.',
+                            timer: 5000,
+                            showConfirmButton: false,
+                        });
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Something went wrong',
+                        text: error.message || 'Unable to send to WhatsApp. Please try again.',
+                    });
+                } finally {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-80', 'cursor-not-allowed');
+                }
+            });
+        })();
+
+        // Handle "Proceed to Application Form" button
+        (function () {
+            const proceedBtn = document.getElementById('proceed-to-application-btn');
+            if (!proceedBtn) return;
+
+            proceedBtn.addEventListener('click', function () {
+                if (!lastLoanCalculation) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Calculate First',
+                        text: 'Please calculate your loan first so we can attach the correct details to your application.',
+                    });
+                    return;
+                }
+
+                showLoanApplicationFormFromCalculator();
+            });
+        })();
 
         // Multi-step loan application form
         (function () {

@@ -77,10 +77,25 @@
                             @error('email')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                         </div>
                         <div>
-                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                            <input type="tel" id="phone" name="phone" value="{{ old('phone') }}"
-                                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300 hover:border-teal-400"
-                                placeholder="Enter your phone number">
+                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number (Kenya)</label>
+                            <div class="flex rounded-lg shadow-sm border-2 border-gray-300 focus-within:ring-2 focus-within:ring-teal-500 focus-within:border-teal-500 transition-all duration-300 hover:border-teal-400">
+                                <span class="inline-flex items-center px-3 bg-gray-50 border-r border-gray-300 text-sm text-gray-700 select-none">
+                                    +254
+                                </span>
+                                <input
+                                    type="tel"
+                                    id="phone"
+                                    name="phone"
+                                    value="{{ old('phone') }}"
+                                    inputmode="numeric"
+                                    maxlength="9"
+                                    class="w-full px-3 py-3 border-0 rounded-r-lg focus:outline-none text-sm sm:text-base"
+                                    placeholder="7XX XXX XXX"
+                                >
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Enter the <strong>9 digits</strong> after +254 (no leading 0), e.g. 712345678. Leave blank if you prefer email only.
+                            </p>
                             @error('phone')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                         </div>
                         <div>

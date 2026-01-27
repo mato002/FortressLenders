@@ -7,9 +7,11 @@ use App\Mail\LoanApplicationReceived;
 use App\Models\LoanApplication;
 use App\Models\LoanProductType;
 use App\Models\Branch;
+use App\Models\LoanCalculatorLead;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 
 class LoanApplicationController extends Controller
@@ -59,28 +61,39 @@ class LoanApplicationController extends Controller
     {
         $data = $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:50'],
+            // Expect 9 Kenyan digits (without +254) from the form
+            'phone' => ['required', 'regex:/^\d{9}$/'],
             'email' => ['nullable', 'email', 'max:255'],
             'date_of_birth' => ['nullable', 'date', 'before:today'],
             'town' => ['required', 'string', 'max:255'],
             'residence' => ['nullable', 'string', 'max:255'],
+            // client_type and loan_type removed from front-end; keep optional here if ever sent
             'client_type' => ['nullable', 'in:business,employed,casual,student'],
-            'loan_type' => ['required', 'string', 'max:255'],
+            'loan_type' => ['nullable', 'string', 'max:255'],
             'amount_requested' => ['required', 'numeric', 'min:0'],
             'repayment_period' => ['required', 'string', 'max:255'],
             'purpose' => ['nullable', 'string'],
             'agree_to_terms' => ['accepted'],
         ]);
 
+        // Normalize phone to full E.164 format with +254 prefix
+        $phoneDigits = preg_replace('/\D/', '', $data['phone']);
+        if (strlen($phoneDigits) === 9) {
+            $normalizedPhone = '+254' . $phoneDigits;
+        } else {
+            // Fallback: store as submitted if it doesn't match expected length
+            $normalizedPhone = $data['phone'];
+        }
+
         $application = LoanApplication::create([
             'full_name' => $data['full_name'],
-            'phone' => $data['phone'],
+            'phone' => $normalizedPhone,
             'email' => $data['email'] ?? null,
             'date_of_birth' => $data['date_of_birth'] ?? null,
             'town' => $data['town'] ?? null,
             'residence' => $data['residence'] ?? null,
             'client_type' => $data['client_type'] ?? null,
-            'loan_type' => $data['loan_type'],
+            'loan_type' => $data['loan_type'] ?? null,
             'amount_requested' => $data['amount_requested'],
             'repayment_period' => $data['repayment_period'],
             'purpose' => $data['purpose'] ?? null,
@@ -114,6 +127,35 @@ class LoanApplicationController extends Controller
         }
 
         Mail::to($application->email)->send(new LoanApplicationConfirmation($application));
+    }
+
+    /**
+     * Store a loan calculator WhatsApp lead.
+     */
+    public function storeCalculatorLead(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['nullable', 'string', 'max:255'],
+            'whatsapp_number' => [
+                'required',
+                'string',
+                'max:30',
+                // Basic international format validation e.g. +2547...
+                'regex:/^\+[1-9]\d{6,14}$/',
+            ],
+            'loan_amount' => ['required', 'numeric', 'min:1'],
+            'loan_duration_value' => ['required', 'integer', 'min:1'],
+            'loan_duration_unit' => ['required', 'in:weeks,months'],
+            'service_charge' => ['required', 'numeric', 'min:0'],
+            'total_repayment' => ['required', 'numeric', 'min:1'],
+            'payment_frequency' => ['nullable', 'in:weekly,monthly'],
+        ]);
+
+        LoanCalculatorLead::create($data);
+
+        return response()->json([
+            'success' => true,
+        ]);
     }
 }
 

@@ -100,7 +100,7 @@ class AptitudeTestQuestion extends Model
 
     /**
      * Get questions for a test (randomized, limited per section)
-     * If job_post_id is provided, gets job-specific questions + global questions
+     * If job_post_id is provided, gets ONLY job-specific questions for that job post
      * If null, gets only global questions
      * Now also filters by company_id
      */
@@ -114,8 +114,8 @@ class AptitudeTestQuestion extends Model
         }
         
         if ($jobPostId) {
-            // Get job-specific questions + global questions (where job_post_id is null)
-            $query->forJobPost($jobPostId);
+            // Get ONLY job-specific questions for this job post (exclude global questions)
+            $query->where('job_post_id', $jobPostId);
         } else {
             // Only global questions
             $query->whereNull('job_post_id');

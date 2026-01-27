@@ -80,13 +80,13 @@ class JobApplicationController extends Controller
         $query = $this->applyCompanyFilter($query);
 
         // Filter by status
-        if ($request->filled('status')) {
-            $query->where('status', $request->string('status'));
+        if ($request->filled('status') && $request->status !== '') {
+            $query->where('status', $request->status);
         }
 
         // Search functionality
-        if ($request->filled('search')) {
-            $search = $request->string('search');
+        if ($request->filled('search') && trim($request->search) !== '') {
+            $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
@@ -98,8 +98,18 @@ class JobApplicationController extends Controller
         }
 
         // Filter by job post
-        if ($request->filled('job_post_id')) {
+        if ($request->filled('job_post_id') && $request->job_post_id !== '') {
             $query->where('job_post_id', $request->integer('job_post_id'));
+        }
+
+        // Date range filter - start date
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->date('start_date'));
+        }
+
+        // Date range filter - end date
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->date('end_date'));
         }
 
         $applications = $query->orderBy('created_at', 'desc')
@@ -108,7 +118,7 @@ class JobApplicationController extends Controller
 
         // Get total counts for banner (with company filter)
         $totalApplications = $this->applyCompanyFilter(JobApplication::query())->count();
-        $filteredCount = $applications->total();
+        $filteredCount = $query->count();
 
         // Get status counts for filters - include all possible statuses (with company filter)
         $allStatuses = [
@@ -1425,13 +1435,16 @@ class JobApplicationController extends Controller
     {
         $query = JobApplication::with(['jobPost']);
 
+        // Apply company filter for clients
+        $query = $this->applyCompanyFilter($query);
+
         // Apply same filters as index
-        if ($request->filled('status')) {
-            $query->where('status', $request->string('status'));
+        if ($request->filled('status') && $request->status !== '') {
+            $query->where('status', $request->status);
         }
 
-        if ($request->filled('search')) {
-            $search = $request->string('search');
+        if ($request->filled('search') && trim($request->search) !== '') {
+            $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
@@ -1442,8 +1455,18 @@ class JobApplicationController extends Controller
             });
         }
 
-        if ($request->filled('job_post_id')) {
+        if ($request->filled('job_post_id') && $request->job_post_id !== '') {
             $query->where('job_post_id', $request->integer('job_post_id'));
+        }
+
+        // Date range filter - start date
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->date('start_date'));
+        }
+
+        // Date range filter - end date
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->date('end_date'));
         }
 
         $applications = $query->orderBy('created_at', 'desc')->get();

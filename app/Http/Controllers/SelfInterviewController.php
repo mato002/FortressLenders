@@ -47,12 +47,7 @@ class SelfInterviewController extends Controller
             $jobPostId = $application->job_post_id;
 
             $questions = SelfInterviewQuestion::query()
-                ->where(function ($q) use ($jobPostId) {
-                    $q->whereNull('job_post_id');
-                    if ($jobPostId) {
-                        $q->orWhere('job_post_id', $jobPostId);
-                    }
-                })
+                ->where('job_post_id', $jobPostId)
                 ->where('is_active', true)
                 ->orderBy('display_order')
                 ->get();
@@ -78,12 +73,7 @@ class SelfInterviewController extends Controller
                 $jobPostId = $application->job_post_id;
 
                 $questions = SelfInterviewQuestion::query()
-                    ->where(function ($q) use ($jobPostId) {
-                        $q->whereNull('job_post_id');
-                        if ($jobPostId) {
-                            $q->orWhere('job_post_id', $jobPostId);
-                        }
-                    })
+                    ->where('job_post_id', $jobPostId)
                     ->where('is_active', true)
                     ->orderBy('display_order')
                     ->get();
@@ -136,7 +126,7 @@ class SelfInterviewController extends Controller
 
         $validated = $request->validate([
             'answers' => 'required|array',
-            'answers.*' => 'nullable|string|max:255',
+            'answers.*' => 'nullable|string|max:500', // Allow longer answers for calculation and text questions
         ]);
 
         $timeTaken = $session->started_at ? now()->diffInSeconds($session->started_at) : null;

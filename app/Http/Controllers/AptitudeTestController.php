@@ -135,7 +135,7 @@ class AptitudeTestController extends Controller
 
         $validated = $request->validate([
             'answers' => 'required|array',
-            'answers.*' => 'nullable|string|max:1',
+            'answers.*' => 'nullable|string|max:500', // Allow longer answers for calculation and text questions
         ]);
 
         // Calculate time taken

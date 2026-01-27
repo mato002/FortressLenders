@@ -81,21 +81,55 @@
                             
                             <p class="{{ $isCandidate ? 'text-gray-900' : 'text-slate-900' }} font-medium mb-4 leading-relaxed">{{ $question->question }}</p>
                             
-                            <div class="space-y-3">
-                                @foreach($question->options as $key => $option)
-                                    <label class="flex items-start p-3 rounded-lg border-2 {{ $isCandidate ? 'border-gray-200' : 'border-slate-200' }} hover:border-teal-400 cursor-pointer transition">
-                                        <input type="radio" 
-                                               name="answers[{{ $question->id }}]" 
-                                               value="{{ $key }}"
-                                               class="mt-1 mr-3 w-4 h-4 text-teal-600 focus:ring-teal-500"
-                                               @if(old("answers.{$question->id}") === $key) checked @endif>
-                                        <span class="flex-1 {{ $isCandidate ? 'text-gray-700' : 'text-slate-700' }}">
-                                            <span class="font-semibold mr-2">{{ strtoupper($key) }}.</span>
-                                            {{ $option }}
-                                        </span>
+                            @if($question->isMultipleChoice() && !empty($question->options))
+                                {{-- Multiple Choice Questions --}}
+                                <div class="space-y-3">
+                                    @foreach($question->options as $key => $option)
+                                        <label class="flex items-start p-3 rounded-lg border-2 {{ $isCandidate ? 'border-gray-200' : 'border-slate-200' }} hover:border-teal-400 cursor-pointer transition">
+                                            <input type="radio" 
+                                                   name="answers[{{ $question->id }}]" 
+                                                   value="{{ $key }}"
+                                                   class="mt-1 mr-3 w-4 h-4 text-teal-600 focus:ring-teal-500"
+                                                   @if(old("answers.{$question->id}") === $key) checked @endif>
+                                            <span class="flex-1 {{ $isCandidate ? 'text-gray-700' : 'text-slate-700' }}">
+                                                <span class="font-semibold mr-2">{{ strtoupper($key) }}.</span>
+                                                {{ $option }}
+                                            </span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            @elseif($question->isCalculation())
+                                {{-- Calculation Questions --}}
+                                <div class="space-y-3">
+                                    <label class="block text-sm font-medium {{ $isCandidate ? 'text-gray-700' : 'text-slate-700' }} mb-2">
+                                        Enter your answer (numeric value):
                                     </label>
-                                @endforeach
-                            </div>
+                                    <input type="text" 
+                                           name="answers[{{ $question->id }}]" 
+                                           value="{{ old("answers.{$question->id}") }}"
+                                           placeholder="Enter your calculated answer"
+                                           class="w-full px-4 py-3 border-2 {{ $isCandidate ? 'border-gray-300' : 'border-slate-300' }} rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 {{ $isCandidate ? 'text-gray-900' : 'text-slate-900' }}"
+                                           inputmode="numeric"
+                                           pattern="[0-9]*\.?[0-9]*">
+                                    <p class="text-xs {{ $isCandidate ? 'text-gray-500' : 'text-slate-500' }} mt-1">
+                                        Enter the numeric result of your calculation
+                                    </p>
+                                </div>
+                            @else
+                                {{-- Text/Open-ended Questions --}}
+                                <div class="space-y-3">
+                                    <label class="block text-sm font-medium {{ $isCandidate ? 'text-gray-700' : 'text-slate-700' }} mb-2">
+                                        Enter your answer:
+                                    </label>
+                                    <textarea name="answers[{{ $question->id }}]" 
+                                              rows="4"
+                                              placeholder="Type your answer here..."
+                                              class="w-full px-4 py-3 border-2 {{ $isCandidate ? 'border-gray-300' : 'border-slate-300' }} rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 {{ $isCandidate ? 'text-gray-900' : 'text-slate-900' }}">{{ old("answers.{$question->id}") }}</textarea>
+                                    <p class="text-xs {{ $isCandidate ? 'text-gray-500' : 'text-slate-500' }} mt-1">
+                                        Provide a detailed answer. This will be reviewed manually.
+                                    </p>
+                                </div>
+                            @endif
                         </div>
                     @endforeach
                     </div>

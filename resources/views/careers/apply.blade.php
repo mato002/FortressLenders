@@ -13,52 +13,55 @@
 
     <!-- Application Form -->
     <section class="py-12 sm:py-16 md:py-20 bg-gray-50 overflow-x-hidden">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8 md:p-10">
-                <!-- Progress Indicator -->
-                <div class="mb-8 overflow-x-auto">
-                    <div class="flex items-center justify-between mb-4 min-w-max sm:min-w-0">
-                        <div class="flex items-center flex-shrink-0">
-                            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-teal-800 text-white flex items-center justify-center font-semibold text-xs sm:text-sm" id="step-1-indicator">1</div>
-                            <span class="ml-2 sm:ml-3 text-xs sm:text-sm font-medium text-gray-900 whitespace-nowrap">Personal & Education</span>
-                        </div>
-                        <div class="flex-1 mx-1 sm:mx-2 h-1 bg-gray-200 min-w-[20px] sm:min-w-[40px]">
-                            <div class="h-1 bg-teal-800 transition-all duration-300" id="progress-bar-1" style="width: 0%"></div>
-                        </div>
-                        <div class="flex items-center flex-shrink-0">
-                            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-semibold text-xs sm:text-sm" id="step-2-indicator">2</div>
-                            <span class="ml-2 sm:ml-3 text-xs sm:text-sm font-medium text-gray-600 whitespace-nowrap">Job Questions</span>
-                        </div>
-                        <div class="flex-1 mx-1 sm:mx-2 h-1 bg-gray-200 min-w-[20px] sm:min-w-[40px]">
-                            <div class="h-1 bg-gray-200 transition-all duration-300" id="progress-bar-2" style="width: 0%"></div>
-                        </div>
-                        <div class="flex items-center flex-shrink-0">
-                            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-semibold text-xs sm:text-sm" id="step-3-indicator">3</div>
-                            <span class="ml-2 sm:ml-3 text-xs sm:text-sm font-medium text-gray-600 whitespace-nowrap">Support Details</span>
-                        </div>
-                        <div class="flex-1 mx-1 sm:mx-2 h-1 bg-gray-200 min-w-[20px] sm:min-w-[40px]">
-                            <div class="h-1 bg-gray-200 transition-all duration-300" id="progress-bar-3" style="width: 0%"></div>
-                        </div>
-                        <div class="flex items-center flex-shrink-0">
-                            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-semibold text-xs sm:text-sm" id="step-4-indicator">4</div>
-                            <span class="ml-2 sm:ml-3 text-xs sm:text-sm font-medium text-gray-600 whitespace-nowrap">References & Agreement</span>
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Use standard Tailwind grid so sidebar sits beside the form on desktop -->
+            <div class="grid gap-8 items-start lg:grid-cols-3">
+                <!-- Main Form Card -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8 md:p-10 lg:col-span-2">
+                    <!-- Progress Indicator -->
+                    <div class="mb-8 overflow-x-auto">
+                        <div class="flex items-center justify-between mb-4 min-w-max sm:min-w-0">
+                            <div class="flex items-center flex-shrink-0">
+                                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-teal-800 text-white flex items-center justify-center font-semibold text-xs sm:text-sm" id="step-1-indicator">1</div>
+                                <span class="ml-2 sm:ml-3 text-xs sm:text-sm font-medium text-gray-900 whitespace-nowrap">Personal & Education</span>
+                            </div>
+                            <div class="flex-1 mx-1 sm:mx-2 h-1 bg-gray-200 min-w-[20px] sm:min-w-[40px]">
+                                <div class="h-1 bg-teal-800 transition-all duration-300" id="progress-bar-1" style="width: 0%"></div>
+                            </div>
+                            <div class="flex items-center flex-shrink-0">
+                                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-semibold text-xs sm:text-sm" id="step-2-indicator">2</div>
+                                <span class="ml-2 sm:ml-3 text-xs sm:text-sm font-medium text-gray-600 whitespace-nowrap">Job Questions</span>
+                            </div>
+                            <div class="flex-1 mx-1 sm:mx-2 h-1 bg-gray-200 min-w-[20px] sm:min-w-[40px]">
+                                <div class="h-1 bg-gray-200 transition-all duration-300" id="progress-bar-2" style="width: 0%"></div>
+                            </div>
+                            <div class="flex items-center flex-shrink-0">
+                                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-semibold text-xs sm:text-sm" id="step-3-indicator">3</div>
+                                <span class="ml-2 sm:ml-3 text-xs sm:text-sm font-medium text-gray-600 whitespace-nowrap">Support Details</span>
+                            </div>
+                            <div class="flex-1 mx-1 sm:mx-2 h-1 bg-gray-200 min-w-[20px] sm:min-w-[40px]">
+                                <div class="h-1 bg-gray-200 transition-all duration-300" id="progress-bar-3" style="width: 0%"></div>
+                            </div>
+                            <div class="flex items-center flex-shrink-0">
+                                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-semibold text-xs sm:text-sm" id="step-4-indicator">4</div>
+                                <span class="ml-2 sm:ml-3 text-xs sm:text-sm font-medium text-gray-600 whitespace-nowrap">References & Agreement</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                @if ($errors->any())
-                    <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
-                        <p class="font-semibold mb-1">Please review the highlighted fields and try again.</p>
-                        <ul class="list-disc list-inside text-sm">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+                    @if ($errors->any())
+                        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+                            <p class="font-semibold mb-1">Please review the highlighted fields and try again.</p>
+                            <ul class="list-disc list-inside text-sm">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
 
-                <form action="{{ route('careers.apply.store', $job) }}" method="POST" enctype="multipart/form-data" id="application-form">
-                    @csrf
+                    <form action="{{ route('careers.apply.store', $job) }}" method="POST" enctype="multipart/form-data" id="application-form">
+                        @csrf
 
                     <!-- Page 1: Personal & Education -->
                     <div id="page-1" class="form-page">
@@ -75,12 +78,37 @@
                                 </div>
 
                                 <div>
-                                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number <span class="text-red-500">*</span></label>
-                                    <p class="text-sm text-gray-500 mb-2">Include country code (e.g., +254712345678)</p>
-                                    <input type="tel" id="phone" name="phone" value="{{ old('phone') }}" required
-                                           pattern="^\+[1-9]\d{1,14}$"
-                                           placeholder="+254712345678"
-                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent">
+                                    <label for="phone_local" class="block text-sm font-medium text-gray-700 mb-1">Phone Number <span class="text-red-500">*</span></label>
+                                    <p class="text-sm text-gray-500 mb-2">Select your country code and enter your mobile number.</p>
+
+                                    <div class="flex gap-3">
+                                        <div class="w-32">
+                                            <label for="phone_country_code" class="sr-only">Country Code</label>
+                                            <select id="phone_country_code"
+                                                    class="w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-teal-800 focus:border-transparent">
+                                                <option value="+254">Kenya (+254)</option>
+                                                <option value="+256">Uganda (+256)</option>
+                                                <option value="+255">Tanzania (+255)</option>
+                                                <option value="+250">Rwanda (+250)</option>
+                                                <option value="+257">Burundi (+257)</option>
+                                                <option value="+211">South Sudan (+211)</option>
+                                                <option value="+251">Ethiopia (+251)</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="flex-1">
+                                            <label for="phone_local" class="sr-only">Mobile Number</label>
+                                            <input type="tel" id="phone_local"
+                                                   inputmode="numeric"
+                                                   autocomplete="tel-national"
+                                                   placeholder="7XXXXXXXX"
+                                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-800 focus:border-transparent">
+                                        </div>
+                                    </div>
+
+                                    <!-- Actual value submitted to the server (full E.164 number) -->
+                                    <input type="hidden" id="phone" name="phone" value="{{ old('phone') }}" required>
+
                                     @error('phone')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
                                     <p class="text-xs text-gray-500 mt-1" id="phone-hint"></p>
                                 </div>
@@ -528,7 +556,73 @@
                             </button>
                         </div>
                     </div>
-                </form>
+                    </form>
+                </div>
+
+                <!-- Sidebar: Timeline & Tips -->
+                <aside class="space-y-6 lg:sticky lg:top-28">
+                    <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Your Application Journey</h3>
+                        <ol class="relative border-l border-teal-100 pl-4 space-y-4 text-sm">
+                            <li class="ml-4">
+                                <div class="absolute -left-1.5 mt-1 h-3 w-3 rounded-full bg-teal-700 border border-white"></div>
+                                <p class="font-semibold text-gray-900">Step 1: Personal & Education</p>
+                                <p class="text-gray-600 text-xs mt-1">Tell us who you are and share your education and experience.</p>
+                            </li>
+                            <li class="ml-4">
+                                <div class="absolute -left-1.5 mt-1 h-3 w-3 rounded-full bg-teal-500 border border-white"></div>
+                                <p class="font-semibold text-gray-900">Step 2: Job Questions</p>
+                                <p class="text-gray-600 text-xs mt-1">Help us understand why you are the right fit for this role.</p>
+                            </li>
+                            <li class="ml-4">
+                                <div class="absolute -left-1.5 mt-1 h-3 w-3 rounded-full bg-teal-400 border border-white"></div>
+                                <p class="font-semibold text-gray-900">Step 3: Support Details</p>
+                                <p class="text-gray-600 text-xs mt-1">Share any extra information that strengthens your application.</p>
+                            </li>
+                            <li class="ml-4">
+                                <div class="absolute -left-1.5 mt-1 h-3 w-3 rounded-full bg-teal-300 border border-white"></div>
+                                <p class="font-semibold text-gray-900">Step 4: References & Agreement</p>
+                                <p class="text-gray-600 text-xs mt-1">Add professional referees and confirm your details.</p>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="bg-teal-900 text-teal-50 rounded-2xl shadow-md p-6 space-y-3">
+                        <h3 class="text-lg font-semibold flex items-center gap-2">
+                            <span>Tips to Stand Out</span>
+                        </h3>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start gap-2">
+                                <span class="mt-1 h-1.5 w-1.5 rounded-full bg-teal-300"></span>
+                                <span>Use clear, concise answers that highlight measurable achievements.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="mt-1 h-1.5 w-1.5 rounded-full bg-teal-300"></span>
+                                <span>Align your experience with the key responsibilities of the Regional Manager role.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="mt-1 h-1.5 w-1.5 rounded-full bg-teal-300"></span>
+                                <span>Have your CV and referee contacts ready before you start.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="mt-1 h-1.5 w-1.5 rounded-full bg-teal-300"></span>
+                                <span>Double‑check your phone and email so we can easily reach you.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 space-y-3">
+                        <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Why Apply with Fortress Lenders</h3>
+                        <div class="space-y-2 text-sm text-gray-700">
+                            <p class="flex items-center gap-2">
+                                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-50 text-teal-700 text-xs font-semibold">FL</span>
+                                <span>Licensed and regulated financial services provider in Kenya.</span>
+                            </p>
+                            <p>We are committed to fair hiring practices, equal opportunity, and safeguarding your personal information.</p>
+                            <p class="text-xs text-gray-500">Your application is reviewed by our Human Resources team, and your details are kept confidential and used only for recruitment purposes.</p>
+                        </div>
+                    </div>
+                </aside>
             </div>
         </div>
     </section>
@@ -639,12 +733,12 @@
                 } else {
                     field.classList.remove('border-red-500');
                     
-                    // Validate phone number format
-                    if (field.type === 'tel' || field.id === 'phone') {
-                        const phonePattern = /^\+[1-9]\d{1,14}$/;
+                    // Validate phone number format (hidden E.164 field)
+                    if (field.id === 'phone') {
+                        const phonePattern = /^\+[1-9]\d{7,14}$/;
                         if (!phonePattern.test(value)) {
                             field.classList.add('border-red-500');
-                            errorMessage = 'Phone number must include country code (e.g., +254712345678)';
+                            errorMessage = 'Please provide a valid phone number with country code.';
                             isValid = false;
                             fieldValid = false;
                         }
@@ -707,29 +801,62 @@
 
         // Real-time phone validation and conditional fields
         document.addEventListener('DOMContentLoaded', function() {
-            const phoneInput = document.getElementById('phone');
+            const phoneInput = document.getElementById('phone'); // hidden full E.164 value
             const phoneHint = document.getElementById('phone-hint');
+            const phoneCountry = document.getElementById('phone_country_code');
+            const phoneLocal = document.getElementById('phone_local');
             
-            if (phoneInput) {
-                phoneInput.addEventListener('input', function() {
-                    const value = this.value.trim();
-                    const phonePattern = /^\+[1-9]\d{1,14}$/;
-                    
-                    if (value === '') {
-                        phoneHint.textContent = '';
-                        this.classList.remove('border-red-500', 'border-green-500');
-                    } else if (phonePattern.test(value)) {
-                        phoneHint.textContent = '✓ Valid phone number format';
-                        phoneHint.className = 'text-xs text-green-600 mt-1';
-                        this.classList.remove('border-red-500');
-                        this.classList.add('border-green-500');
-                    } else {
-                        phoneHint.textContent = 'Phone must start with + and country code (e.g., +254712345678)';
-                        phoneHint.className = 'text-xs text-red-600 mt-1';
-                        this.classList.remove('border-green-500');
-                        this.classList.add('border-red-500');
-                    }
-                });
+            // Helper to update hidden full phone value from dropdown + local number
+            function updateFullPhone() {
+                if (!phoneInput || !phoneCountry || !phoneLocal) return;
+
+                const code = (phoneCountry.value || '').trim();
+                // remove non-digits from local part
+                const localRaw = phoneLocal.value.replace(/\D/g, '');
+                phoneLocal.value = localRaw;
+
+                if (!code || !localRaw) {
+                    phoneInput.value = '';
+                    phoneHint.textContent = '';
+                    phoneLocal.classList.remove('border-red-500', 'border-green-500');
+                    return;
+                }
+
+                const full = `${code}${localRaw}`;
+                phoneInput.value = full;
+
+                const phonePattern = /^\+[1-9]\d{7,14}$/;
+                if (phonePattern.test(full)) {
+                    phoneHint.textContent = '✓ Valid phone number format';
+                    phoneHint.className = 'text-xs text-green-600 mt-1';
+                    phoneLocal.classList.remove('border-red-500');
+                    phoneLocal.classList.add('border-green-500');
+                } else {
+                    phoneHint.textContent = 'Enter a valid number after the country code, e.g., 7XXXXXXXX';
+                    phoneHint.className = 'text-xs text-red-600 mt-1';
+                    phoneLocal.classList.remove('border-green-500');
+                    phoneLocal.classList.add('border-red-500');
+                }
+            }
+
+            // If there is an existing full number (old form value), split it into country code + local part
+            if (phoneInput && phoneCountry && phoneLocal && phoneInput.value) {
+                const full = phoneInput.value.trim();
+                const countryOptions = Array.from(phoneCountry.options).map(o => o.value);
+                const matchCode = countryOptions.find(code => full.startsWith(code));
+                if (matchCode) {
+                    phoneCountry.value = matchCode;
+                    phoneLocal.value = full.slice(matchCode.length);
+                }
+                updateFullPhone();
+            }
+
+            if (phoneCountry) {
+                phoneCountry.addEventListener('change', updateFullPhone);
+            }
+
+            if (phoneLocal) {
+                phoneLocal.addEventListener('input', updateFullPhone);
             }
 
             // Education Level - Show/hide education details

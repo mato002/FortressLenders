@@ -55,7 +55,7 @@ class AIPromptSettingsController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
-            'prompt_type' => 'required|string|in:system,cv_analysis,application_analysis,profile_summary,skill_matching',
+            'prompt_type' => 'required|string|in:system,cv_analysis,application_analysis,profile_summary,skill_matching,aptitude_test_analysis,self_interview_analysis',
             'role' => 'nullable|string|in:admin,hr_manager,client',
             'content' => 'required|string|min:10',
             'description' => 'nullable|string|max:500',
@@ -104,7 +104,7 @@ class AIPromptSettingsController extends Controller
     public function reset(Request $request)
     {
         $validated = $request->validate([
-            'prompt_type' => 'required|string|in:system,cv_analysis,application_analysis,profile_summary,skill_matching',
+            'prompt_type' => 'required|string|in:system,cv_analysis,application_analysis,profile_summary,skill_matching,aptitude_test_analysis,self_interview_analysis',
             'role' => 'nullable|string|in:admin,hr_manager,client',
         ]);
 
@@ -160,6 +160,20 @@ class AIPromptSettingsController extends Controller
                 'when_used' => 'When matching skills to job requirements',
                 'location' => 'app/Services/AIAnalysisService.php - buildSkillMatchingPrompt() method',
             ],
+            'aptitude_test_analysis' => [
+                'name' => 'Aptitude Test Analysis Prompt',
+                'description' => 'Used when analyzing aptitude test results to provide insights on candidate performance.',
+                'content' => $this->getAptitudeTestAnalysisPromptTemplate(),
+                'when_used' => 'When analyzing aptitude test results',
+                'location' => 'app/Services/AIAnalysisService.php - buildAptitudeTestAnalysisPrompt() method',
+            ],
+            'self_interview_analysis' => [
+                'name' => 'Self Interview Analysis Prompt',
+                'description' => 'Used when analyzing self interview responses to evaluate candidate fit, communication skills, and cultural alignment.',
+                'content' => $this->getSelfInterviewAnalysisPromptTemplate(),
+                'when_used' => 'When analyzing self interview responses',
+                'location' => 'app/Services/AIAnalysisService.php - buildSelfInterviewAnalysisPrompt() method',
+            ],
         ];
     }
 
@@ -174,6 +188,8 @@ class AIPromptSettingsController extends Controller
             'application_analysis' => 'The main evaluation prompt used when evaluating a job application against job requirements.',
             'profile_summary' => 'Used when generating a professional candidate profile summary.',
             'skill_matching' => 'Used when matching candidate skills to job requirements.',
+            'aptitude_test_analysis' => 'Used when analyzing aptitude test results to provide insights on candidate performance.',
+            'self_interview_analysis' => 'Used when analyzing self interview responses to evaluate candidate fit, communication skills, and cultural alignment.',
         ];
 
         return $descriptions[$promptType] ?? '';
@@ -260,5 +276,77 @@ class AIPromptSettingsController extends Controller
                "3. Bonus skills (additional valuable skills)\n" .
                "4. Match percentage\n\n" .
                "Format as JSON with keys: matching_skills, missing_skills, bonus_skills, match_percentage.";
+    }
+
+    /**
+     * Get Aptitude Test Analysis prompt template
+     */
+    private function getAptitudeTestAnalysisPromptTemplate(): string
+    {
+        return "Analyze the candidate's aptitude test performance and provide insights.\n\n" .
+               "Job Position: {job_post->title}\n" .
+               "Job Requirements: {job_post->requirements}\n\n" .
+               "Candidate Information:\n" .
+               "Name: {application->name}\n" .
+               "Education: {application->education_level} in {application->area_of_study}\n" .
+               "Current Position: {application->current_job_title} at {application->current_company}\n\n" .
+               "Aptitude Test Results:\n" .
+               "Overall Score: {aptitude_test_score}% ({total_score}/{total_possible_score} points)\n" .
+               "Pass Threshold: {pass_threshold}%\n" .
+               "Status: {aptitude_test_passed}\n" .
+               "Time Taken: {time_taken_seconds} seconds\n" .
+               "Completed At: {aptitude_test_completed_at}\n\n" .
+               "Section Performance:\n" .
+               "{section_performance}\n\n" .
+               "Question Details:\n" .
+               "{question_details}\n\n" .
+               "Please provide:\n" .
+               "1. Overall performance assessment (strengths and weaknesses)\n" .
+               "2. Section-by-section analysis (numerical, logical, verbal, scenario)\n" .
+               "3. Areas of strength (which sections/questions they excelled in)\n" .
+               "4. Areas for improvement (which sections/questions need work)\n" .
+               "5. Analysis of calculation questions (if any) - evaluate their mathematical reasoning and accuracy\n" .
+               "6. Analysis of text questions (if any) - provide insights on written responses\n" .
+               "7. Relevance to job requirements (how test performance relates to job needs)\n" .
+               "8. Recommendations for next steps (if passed, what to focus on; if failed, what to improve)\n" .
+               "9. Confidence assessment (how reliable is this test result)\n\n" .
+               "Note: Multiple choice questions are auto-graded. Calculation questions are auto-graded based on numeric answer comparison (handles formats like 42, 42.0, 42.00). Text questions require manual review.\n\n" .
+               "Format your response as JSON with keys: overall_assessment, section_analysis, strengths, areas_for_improvement, calculation_analysis, text_analysis, job_relevance, recommendations, confidence_level.";
+    }
+
+    /**
+     * Get Self Interview Analysis prompt template
+     */
+    private function getSelfInterviewAnalysisPromptTemplate(): string
+    {
+        return "Analyze the candidate's self interview responses and provide comprehensive insights.\n\n" .
+               "Job Position: {job_post->title}\n" .
+               "Job Description: {job_post->description}\n" .
+               "Job Requirements: {job_post->requirements}\n\n" .
+               "Candidate Information:\n" .
+               "Name: {application->name}\n" .
+               "Education: {application->education_level} in {application->area_of_study}\n" .
+               "Current Position: {application->current_job_title} at {application->current_company}\n\n" .
+               "Self Interview Results:\n" .
+               "Overall Score: {self_interview_score}% ({total_score}/{total_possible_score} points)\n" .
+               "Pass Threshold: {pass_threshold}%\n" .
+               "Status: {self_interview_passed}\n" .
+               "Time Taken: {time_taken_seconds} seconds\n" .
+               "Completed At: {self_interview_completed_at}\n\n" .
+               "Question Responses:\n" .
+               "{question_responses}\n\n" .
+               "Please provide:\n" .
+               "1. Overall assessment of communication skills and self-awareness\n" .
+               "2. Analysis of each response (quality, depth, relevance)\n" .
+               "3. Cultural fit assessment (alignment with company values and role)\n" .
+               "4. Strengths demonstrated in responses\n" .
+               "5. Areas of concern or gaps in responses\n" .
+               "6. Analysis of calculation questions (if any) - evaluate their problem-solving approach\n" .
+               "7. Analysis of text responses - evaluate writing quality, clarity, and thoughtfulness\n" .
+               "8. Job relevance (how responses relate to job requirements)\n" .
+               "9. Recommendations for next steps (proceed to interview, request clarification, etc.)\n" .
+               "10. Confidence level in assessment\n\n" .
+               "Note: Multiple choice questions are auto-graded. Calculation questions are auto-graded based on numeric answer comparison. Text questions require manual review and should be evaluated for quality, depth, and relevance.\n\n" .
+               "Format your response as JSON with keys: overall_assessment, response_analysis, cultural_fit, strengths, concerns, calculation_analysis, text_analysis, job_relevance, recommendations, confidence_level.";
     }
 }
