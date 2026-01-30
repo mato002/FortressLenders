@@ -17,24 +17,29 @@ return new class extends Migration
             $table->boolean('aptitude_test_passed')->nullable()->after('aptitude_test_score');
             $table->timestamp('aptitude_test_completed_at')->nullable()->after('aptitude_test_passed');
         });
-        
+
         // Use raw SQL to modify enum (Laravel doesn't support enum changes directly)
-        DB::statement("ALTER TABLE job_applications MODIFY COLUMN status ENUM(
-            'pending', 
-            'sieving_passed', 
-            'sieving_rejected',
-            'stage_2_passed',
-            'reviewed', 
-            'shortlisted', 
-            'rejected', 
-            'interview_scheduled', 
-            'interview_passed', 
-            'interview_failed', 
-            'second_interview', 
-            'written_test', 
-            'case_study', 
-            'hired'
-        ) DEFAULT 'pending'");
+        // but **only** on databases that support MySQL-style ENUM + MODIFY syntax.
+        // Our test environment uses SQLite, where this statement is invalid, so we
+        // skip it there to keep the suite green.
+        if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE job_applications MODIFY COLUMN status ENUM(
+                'pending', 
+                'sieving_passed', 
+                'sieving_rejected',
+                'stage_2_passed',
+                'reviewed', 
+                'shortlisted', 
+                'rejected', 
+                'interview_scheduled', 
+                'interview_passed', 
+                'interview_failed', 
+                'second_interview', 
+                'written_test', 
+                'case_study', 
+                'hired'
+            ) DEFAULT 'pending'");
+        }
     }
 
     /**
@@ -51,21 +56,23 @@ return new class extends Migration
         });
         
         // Revert status enum
-        DB::statement("ALTER TABLE job_applications MODIFY COLUMN status ENUM(
-            'pending', 
-            'sieving_passed', 
-            'sieving_rejected',
-            'reviewed', 
-            'shortlisted', 
-            'rejected', 
-            'interview_scheduled', 
-            'interview_passed', 
-            'interview_failed', 
-            'second_interview', 
-            'written_test', 
-            'case_study', 
-            'hired'
-        ) DEFAULT 'pending'");
+        if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE job_applications MODIFY COLUMN status ENUM(
+                'pending', 
+                'sieving_passed', 
+                'sieving_rejected',
+                'reviewed', 
+                'shortlisted', 
+                'rejected', 
+                'interview_scheduled', 
+                'interview_passed', 
+                'interview_failed', 
+                'second_interview', 
+                'written_test', 
+                'case_study', 
+                'hired'
+            ) DEFAULT 'pending'");
+        }
     }
 };
 

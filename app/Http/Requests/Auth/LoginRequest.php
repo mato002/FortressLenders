@@ -56,8 +56,9 @@ class LoginRequest extends FormRequest
         // If not a candidate, try to authenticate as an employee (User)
         $user = \App\Models\User::where('email', $email)->first();
         
-        // Block candidates trying to login as users
-        if ($user && ($user->role === 'candidate' || ($user->role === 'user' && !$user->is_admin))) {
+        // Block users with role 'candidate' from logging in as employees
+        // (They should use the candidate login system)
+        if ($user && $user->role === 'candidate') {
             RateLimiter::hit($this->throttleKey());
             throw ValidationException::withMessages([
                 'email' => 'Candidates should use the candidate login. Please contact support if you need access.',

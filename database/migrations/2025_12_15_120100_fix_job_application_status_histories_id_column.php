@@ -13,10 +13,13 @@ return new class extends Migration
     public function up(): void
     {
         // Ensure the `id` column is AUTO_INCREMENT on environments
-        // where it was created without it. The primary key is already
-        // defined by the original create-table migration, so we avoid
-        // redefining it here to prevent "Multiple primary key defined".
-        if (Schema::hasTable('job_application_status_histories')) {
+        // where it was created without it, but **skip** this on SQLite
+        // which does not support the MySQL-style `MODIFY` syntax used
+        // in the raw statement below (this was breaking our test suite,
+        // which runs on SQLite).
+        $driver = Schema::getConnection()->getDriverName();
+
+        if ($driver !== 'sqlite' && Schema::hasTable('job_application_status_histories')) {
             DB::statement('ALTER TABLE job_application_status_histories MODIFY id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT');
         }
     }

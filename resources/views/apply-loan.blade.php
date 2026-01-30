@@ -897,6 +897,8 @@
                     }
 
                     // Build WhatsApp message
+                    const pageUrl = @json(url()->current());
+                    const siteUrl = @json(config('app.url') ?? url('/'));
                     const intro = 'Hello Fortress Lenders, I would like to get more details about this loan estimate:';
                     const lines = [
                         intro,
@@ -906,6 +908,9 @@
                         `Service charge: KES ${lastLoanCalculation.serviceCharge.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
                         `Total repayment: KES ${lastLoanCalculation.totalRepayment.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
                         `Repayment frequency: ${lastLoanCalculation.paymentFrequency === 'weekly' ? 'Weekly' : 'Monthly'}`,
+                        '',
+                        `Apply from this page: ${pageUrl}`,
+                        `Fortress Lenders website: ${siteUrl}`,
                     ];
                     const msg = encodeURIComponent(lines.join('\n'));
 

@@ -10,10 +10,16 @@ use Illuminate\Support\Str;
 
 class AptitudeTestController extends Controller
 {
+    private function modalMessage(string $title, string $message, int $status = 200)
+    {
+        return response()
+            ->view('aptitude-test.modal-message', compact('title', 'message'), $status);
+    }
+
     /**
      * Show the aptitude test for a job application
      */
-    public function show(JobApplication $application)
+    public function show(Request $request, JobApplication $application)
     {
         // Check if candidate is authenticated
         $candidate = \Illuminate\Support\Facades\Auth::guard('candidate')->user();
@@ -25,7 +31,14 @@ class AptitudeTestController extends Controller
         }
         
         // Verify the application has passed sieving
-        if ($application->status !== 'sieving_passed') {
+        if (!in_array($application->status, ['sieving_passed', 'pending_manual_review'], true)) {
+            if ($request->ajax()) {
+                return $this->modalMessage(
+                    'Aptitude Test Not Available',
+                    'You are not eligible to take the aptitude test at this time.',
+                    403
+                );
+            }
             if ($isCandidateView) {
                 return redirect()->route('candidate.dashboard')
                     ->with('error', 'You are not eligible to take the aptitude test at this time.');
@@ -92,6 +105,14 @@ class AptitudeTestController extends Controller
 
         // Ensure we have question IDs before querying
         if (empty($questionIds)) {
+            if ($request->ajax()) {
+                return $this->modalMessage(
+                    'No Aptitude Test Yet',
+                    'There are no aptitude test questions set up for this job yet. Please check back later or contact support.',
+                    404
+                );
+            }
+
             return redirect()->route('careers.index')
                 ->with('error', 'Unable to load test questions. Please contact support.');
         }
@@ -99,6 +120,11 @@ class AptitudeTestController extends Controller
         $questions = AptitudeTestQuestion::whereIn('id', $questionIds)
             ->orderByRaw('FIELD(id, ' . implode(',', $questionIds) . ')')
             ->get();
+
+        // If AJAX request, return only the content for modal
+        if ($request->ajax()) {
+            return view('aptitude-test.modal-content', compact('application', 'session', 'questions', 'isCandidateView'));
+        }
 
         return view('aptitude-test.take', compact('application', 'session', 'questions', 'isCandidateView'));
     }

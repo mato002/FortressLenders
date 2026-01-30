@@ -132,9 +132,13 @@
                                     </div>
                                     <div class="flex gap-2">
                                         @if(in_array($app->status, ['sieving_passed', 'pending_manual_review']) && !$app->aptitude_test_completed_at)
-                                            <a href="{{ route('aptitude-test.show', $app) }}" class="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-semibold">
+                                            <button 
+                                                type="button"
+                                                onclick="openAptitudeTestModal({{ $app->id }})"
+                                                class="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-semibold"
+                                            >
                                                 Take Test
-                                            </a>
+                                            </button>
                                         @elseif($app->aptitude_test_passed && !$app->self_interview_completed_at)
                                             <a href="{{ route('self-interview.show', $app) }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold">
                                                 Start Interview
@@ -207,4 +211,122 @@
             </a>
         </div>
     @endif
+
+    <!-- Aptitude Test Modal -->
+    <div id="aptitudeTestModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Background overlay -->
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeAptitudeTestModal()"></div>
+
+            <!-- Modal panel -->
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-900" id="modal-title">Aptitude Test</h3>
+                        <button type="button" onclick="closeAptitudeTestModal()" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="aptitudeTestContent" class="max-h-[80vh] overflow-y-auto">
+                        <!-- Test content will be loaded here via AJAX -->
+                        <div class="flex items-center justify-center py-12">
+                            <div class="text-center">
+                                <svg class="animate-spin h-8 w-8 text-teal-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <p class="text-gray-600">Loading test...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
+
+@push('scripts')
+<script>
+    function openAptitudeTestModal(applicationId) {
+        const modal = document.getElementById('aptitudeTestModal');
+        const content = document.getElementById('aptitudeTestContent');
+        
+        // Show modal
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        
+        // Load test content via AJAX
+        content.innerHTML = `
+            <div class="flex items-center justify-center py-12">
+                <div class="text-center">
+                    <svg class="animate-spin h-8 w-8 text-teal-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="text-gray-600">Loading test...</p>
+                </div>
+            </div>
+        `;
+        
+        fetch(`/aptitude-test/${applicationId}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'text/html',
+            }
+        })
+        .then(response => {
+            // If the backend redirected (e.g. to careers page), don't inject that HTML.
+            if (response.redirected) {
+                throw new Error('redirected');
+            }
+            return response.text();
+        })
+        .then(html => {
+            // The response should be the modal content directly
+            content.innerHTML = html;
+            
+            // Handle form submission within modal - submit normally but close modal first
+            const form = content.querySelector('#testForm');
+            if (form) {
+                // Override form submission to close modal and then submit
+                const originalSubmit = form.onsubmit;
+                form.addEventListener('submit', function(e) {
+                    // Close modal immediately
+                    closeAptitudeTestModal();
+                    // Let form submit normally - it will redirect to results/next step
+                    // The page will reload/redirect, so modal is already closed
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading test:', error);
+            content.innerHTML = `
+                <div class="py-10 px-6">
+                    <div class="max-w-xl mx-auto text-center">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Aptitude Test Not Available</h3>
+                        <p class="text-gray-600 mb-6">There are no aptitude test questions set up yet, or you’re not eligible to take the test right now.</p>
+                        <button type="button" onclick="closeAptitudeTestModal()" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-sm font-semibold">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    function closeAptitudeTestModal() {
+        const modal = document.getElementById('aptitudeTestModal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+    
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeAptitudeTestModal();
+        }
+    });
+</script>
+@endpush

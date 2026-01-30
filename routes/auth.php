@@ -50,7 +50,10 @@ Route::middleware('auth')->group(function () {
         ->name('password.confirm');
 
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
+});
 
+// Password update route - accessible by both web and candidate guards
+Route::middleware('auth:web,candidate')->group(function () {
     Route::put('password', [PasswordController::class, 'update'])->name('password.update');
 });
 

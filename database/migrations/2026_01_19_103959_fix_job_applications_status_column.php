@@ -20,6 +20,13 @@ return new class extends Migration
             return;
         }
 
+        // This migration relies on MySQL's ENUM + MODIFY syntax, which is not
+        // supported on SQLite (used by our automated tests). Skip on SQLite
+        // to avoid breaking the test suite.
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Use raw SQL to modify enum to include all required status values
         // This is safe to run multiple times as MySQL will handle it gracefully
         DB::statement("ALTER TABLE job_applications MODIFY COLUMN status ENUM(
@@ -46,7 +53,7 @@ return new class extends Migration
     public function down(): void
     {
         // Revert to original enum values (without sieving statuses)
-        if (Schema::hasTable('job_applications')) {
+        if (Schema::hasTable('job_applications') && Schema::getConnection()->getDriverName() !== 'sqlite') {
             DB::statement("ALTER TABLE job_applications MODIFY COLUMN status ENUM(
                 'pending', 
                 'reviewed', 
