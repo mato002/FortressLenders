@@ -17,6 +17,73 @@
         </div>
     </div>
 
+    <!-- Two-column layout: Main content + Sidebar with charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Profile Completion -->
+            @include('candidate.components.profile-completion')
+
+            <!-- Document Reminders -->
+            @include('candidate.components.document-reminders')
+
+            <!-- Upcoming Activities -->
+            @include('candidate.components.interview-schedule')
+
+            <!-- Application Timeline -->
+            @include('candidate.components.application-timeline')
+
+            <!-- Recent Activity Feed -->
+            @include('candidate.components.activity-feed')
+        </div>
+
+        <aside class="space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">Profile Completion</h3>
+                <div class="flex items-center gap-4">
+                    <div class="w-36 h-36">
+                        <canvas id="profileCompletionChart" width="160" height="160"></canvas>
+                    </div>
+                    <div>
+                        <p class="text-lg font-bold text-gray-900">{{ $completionPercentage }}%</p>
+                        <p class="text-sm text-gray-500">Complete</p>
+                        <p class="mt-3 text-sm text-gray-600">Improve your profile to boost application success rate.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">Applications Status</h3>
+                <canvas id="applicationsChart" width="300" height="180"></canvas>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">Performance</h3>
+                <div class="grid grid-cols-2 gap-3 text-center">
+                    <div>
+                        <p class="text-sm text-gray-500">Success Rate</p>
+                        <p class="text-lg font-bold text-gray-900">{{ round($performanceMetrics['success_rate'] ?? 0) }}%</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Tests Completed</p>
+                        <p class="text-lg font-bold text-gray-900">{{ $performanceMetrics['tests_completed'] ?? 0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">Recommended Jobs</h3>
+                <div class="space-y-3">
+                    @foreach($recommendedJobs as $job)
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <p class="font-semibold text-gray-900">{{ $job->title }}</p>
+                            <p class="text-sm text-gray-500">{{ $job->company->name ?? '' }}</p>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </aside>
+    </div>
+
     <!-- Statistics Cards -->
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
@@ -171,32 +238,44 @@
                     View All →
                 </a>
             </div>
-            <div class="divide-y divide-gray-200">
-                @foreach($recentApplications as $application)
-                    <div class="p-6 hover:bg-gray-50 transition-colors">
-                        <div class="flex items-center justify-between">
-                            <div class="flex-1">
-                                <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ $application->jobPost->title }}</h3>
-                                <p class="text-sm text-gray-500 mb-2">
-                                    Applied on {{ $application->created_at->format('M d, Y') }}
-                                </p>
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
-                                    @if($application->status === 'hired') bg-purple-100 text-purple-800
-                                    @elseif($application->status === 'stage_2_passed') bg-blue-100 text-blue-800
-                                    @elseif(in_array($application->status, ['sieving_passed'])) bg-green-100 text-green-800
-                                    @elseif(in_array($application->status, ['sieving_rejected'])) bg-red-100 text-red-800
-                                    @else bg-gray-100 text-gray-800
-                                    @endif">
-                                    {{ ucfirst(str_replace('_', ' ', $application->status)) }}
-                                </span>
-                            </div>
-                            <a href="{{ route('candidate.application.show', $application) }}" 
-                               class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-semibold">
-                                View Details
-                            </a>
-                        </div>
-                    </div>
-                @endforeach
+            <div class="p-4 overflow-x-auto">
+                <table class="min-w-full text-left divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-sm font-medium text-gray-600">Job</th>
+                            <th class="px-4 py-3 text-sm font-medium text-gray-600">Applied</th>
+                            <th class="px-4 py-3 text-sm font-medium text-gray-600">Status</th>
+                            <th class="px-4 py-3 text-sm font-medium text-gray-600">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-100">
+                        @foreach($recentApplications as $application)
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3 align-middle">
+                                    <div class="font-semibold text-gray-900">{{ $application->jobPost->title }}</div>
+                                    <div class="text-sm text-gray-500">{{ $application->jobPost->company->name ?? '' }}</div>
+                                </td>
+                                <td class="px-4 py-3 align-middle text-sm text-gray-600">{{ $application->created_at->format('M d, Y') }}</td>
+                                <td class="px-4 py-3 align-middle">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+                                        @if($application->status === 'hired') bg-purple-100 text-purple-800
+                                        @elseif($application->status === 'stage_2_passed') bg-blue-100 text-blue-800
+                                        @elseif(in_array($application->status, ['sieving_passed'])) bg-green-100 text-green-800
+                                        @elseif(in_array($application->status, ['sieving_rejected'])) bg-red-100 text-red-800
+                                        @else bg-gray-100 text-gray-800
+                                        @endif">
+                                        {{ ucfirst(str_replace('_', ' ', $application->status)) }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 align-middle">
+                                    <div class="flex gap-2">
+                                        <a href="{{ route('candidate.application.show', $application) }}" class="px-3 py-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-semibold">View</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
     @else
@@ -326,6 +405,51 @@
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
             closeAptitudeTestModal();
+        }
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const stats = @json($stats ?? []);
+        const completion = {{ $completionPercentage ?? 0 }};
+
+        // Profile completion doughnut
+        const profileEl = document.getElementById('profileCompletionChart');
+        if (profileEl && typeof Chart !== 'undefined') {
+            new Chart(profileEl.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Complete','Remaining'],
+                    datasets: [{
+                        data: [completion, Math.max(0, 100 - completion)],
+                        backgroundColor: ['#059669', '#e6f4ef'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    cutout: '70%',
+                    plugins: {legend: {display: false}}
+                }
+            });
+        }
+
+        // Applications status bar
+        const appsEl = document.getElementById('applicationsChart');
+        if (appsEl && typeof Chart !== 'undefined') {
+            const data = [stats.pending || 0, stats.sieving_passed || 0, stats.sieving_rejected || 0, stats.stage_2_passed || 0, stats.hired || 0];
+            new Chart(appsEl.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Pending','Passed','Rejected','Stage 2','Hired'],
+                    datasets: [{
+                        label: 'Applications',
+                        data: data,
+                        backgroundColor: ['#f59e0b','#10b981','#ef4444','#3b82f6','#8b5cf6']
+                    }]
+                },
+                options: {responsive: true, plugins: {legend: {display: false}}, scales: {y: {beginAtZero: true}}}
+            });
         }
     });
 </script>

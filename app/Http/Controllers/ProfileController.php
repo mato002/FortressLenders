@@ -58,32 +58,73 @@ class ProfileController extends Controller
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest|CandidateProfileUpdateRequest $request): RedirectResponse
+    public function update(Request $request): RedirectResponse
     {
         // Handle candidate profile update
         $candidate = Auth::guard('candidate')->user();
         if ($candidate) {
-            $candidate->fill($request->validated());
+            // Validate candidate request
+            $validated = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'email', 'max:255', 'unique:candidates,email,' . $candidate->id],
+                'phone' => ['nullable', 'string', 'max:20'],
+                'address' => ['nullable', 'string', 'max:255'],
+                'city' => ['nullable', 'string', 'max:100'],
+                'country' => ['nullable', 'string', 'max:100'],
+            ]);
             
-            if ($candidate->isDirty('email')) {
+            $candidate->fill($validated);
+            $emailChanged = $candidate->isDirty('email');
+
+            if ($emailChanged) {
                 $candidate->email_verified_at = null;
             }
-            
+
             $candidate->save();
-            
-            return Redirect::route('profile.edit')->with('status', 'profile-updated');
+
+            if ($emailChanged && method_exists($candidate, 'sendEmailVerificationNotification')) {
+                // Send verification link and redirect with message
+                try {
+                    $candidate->sendEmailVerificationNotification();
+                } catch (\Exception $e) {
+                    // Log and continue
+                    \Log::error('Failed to send verification email to candidate', ['error' => $e->getMessage(), 'candidate_id' => $candidate->id]);
+                }
+                return Redirect::route(\Route::has('candidate.profile.edit') ? 'candidate.profile.edit' : 'profile.edit')
+                    ->with('status', 'verification-link-sent');
+            }
+
+            return Redirect::route(\Route::has('candidate.profile.edit') ? 'candidate.profile.edit' : 'profile.edit')->with('status', 'profile-updated');
         }
         
         // Handle employee profile update
         $user = $request->user();
-        $user->fill($request->validated());
+        
+        // Validate user request
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+        ]);
+        
+        $user->fill($validated);
 
-        if ($user->isDirty('email')) {
+        $emailChanged = $user->isDirty('email');
+
+        if ($emailChanged) {
             $user->email_verified_at = null;
         }
 
         $user->save();
-        
+
+        if ($emailChanged && method_exists($user, 'sendEmailVerificationNotification')) {
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Exception $e) {
+                \Log::error('Failed to send verification email to user', ['error' => $e->getMessage(), 'user_id' => $user->id]);
+            }
+            return Redirect::route($user->is_admin ? 'admin.profile' : 'profile.edit')->with('status', 'verification-link-sent');
+        }
+
         // Redirect to admin profile if accessed from admin panel
         if ($user->is_admin) {
             return Redirect::route('admin.profile')->with('status', 'profile-updated');

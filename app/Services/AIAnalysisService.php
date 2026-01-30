@@ -828,33 +828,6 @@ class AIAnalysisService
     }
 
     /**
-     * Analyze self interview results
-     */
-    public function analyzeSelfInterview(JobApplication $application): array
-    {
-        $session = $application->selfInterviewSession;
-        $jobPost = $application->jobPost;
-        
-        if (!$session || !$session->completed_at || !$jobPost) {
-            return [];
-        }
-
-        try {
-            $companyId = $this->getCompanyId($application);
-            $prompt = $this->buildSelfInterviewAnalysisPrompt($application, $session, $jobPost);
-            $response = $this->callAI($prompt, $companyId, $application->id, 'self_interview_analysis');
-            
-            return $this->parseSelfInterviewAnalysisResponse($response);
-        } catch (\Exception $e) {
-            Log::error('AI self interview analysis failed', [
-                'application_id' => $application->id,
-                'error' => $e->getMessage()
-            ]);
-            return [];
-        }
-    }
-
-    /**
      * Build self interview analysis prompt
      */
     private function buildSelfInterviewAnalysisPrompt(JobApplication $application, $session, JobPost $jobPost): string
