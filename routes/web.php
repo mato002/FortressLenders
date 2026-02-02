@@ -212,6 +212,11 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             Route::get('/general', [GeneralSettingsController::class, 'edit'])->name('general.edit');
             Route::post('/general', [GeneralSettingsController::class, 'update'])->name('general.update');
             
+            // AI Prompts
+            Route::get('/ai-prompts', [\App\Http\Controllers\Admin\AIPromptSettingsController::class, 'index'])->name('ai-prompts.index');
+            Route::post('/ai-prompts', [\App\Http\Controllers\Admin\AIPromptSettingsController::class, 'update'])->name('ai-prompts.update');
+            Route::post('/ai-prompts/reset', [\App\Http\Controllers\Admin\AIPromptSettingsController::class, 'reset'])->name('ai-prompts.reset');
+            
             // Team Members
             Route::resource('team-members', AdminTeamMemberController::class);
             

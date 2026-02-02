@@ -146,12 +146,15 @@
                             <p class="text-sm text-teal-700 mb-4">
                                 Congratulations! You've passed the initial screening. Please complete the aptitude test to proceed to the next stage.
                             </p>
-                            <a href="{{ route('aptitude-test.show', $application) }}" class="inline-flex items-center px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-semibold">
+                            <button 
+                                type="button"
+                                onclick="openAptitudeTestModal({{ $application->id }})"
+                                class="inline-flex items-center px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-semibold">
                                 Start Aptitude Test
                                 <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -200,9 +203,12 @@
                 ← Back to Dashboard
             </a>
             @if(in_array($application->status, ['sieving_passed', 'pending_manual_review']) && !$application->aptitude_test_completed_at)
-                <a href="{{ route('aptitude-test.show', $application) }}" class="inline-flex items-center px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-semibold">
+                <button 
+                    type="button"
+                    onclick="openAptitudeTestModal({{ $application->id }})"
+                    class="inline-flex items-center px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-semibold">
                     Take Aptitude Test
-                </a>
+                </button>
             @endif
         </div>
     </div>

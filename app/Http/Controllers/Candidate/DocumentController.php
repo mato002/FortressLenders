@@ -13,7 +13,7 @@ class DocumentController extends Controller
     /**
      * Display all documents.
      */
-    public function index()
+    public function index(Request $request)
     {
         $candidate = Auth::guard('candidate')->user();
         
@@ -21,7 +21,20 @@ class DocumentController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        $documents = $candidate->documents()->orderBy('created_at', 'desc')->get();
+        $documents = $candidate->documents()
+            ->select('id', 'candidate_id', 'document_type', 'original_filename', 'status', 'created_at', 'submitted_at', 'uploaded_by')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        // Calculate statistics
+        $stats = [
+            'total' => $documents->count(),
+            'approved' => $documents->where('status', 'approved')->count(),
+            'pending' => $documents->where('status', 'submitted')->count(),
+            'rejected' => $documents->where('status', 'rejected')->count(),
+            'hr_uploaded' => $documents->whereNotNull('uploaded_by')->count(),
+            'candidate_uploaded' => $documents->whereNull('uploaded_by')->count(),
+        ];
         
         // Group documents by type
         $groupedDocuments = [
@@ -34,7 +47,10 @@ class DocumentController extends Controller
             'sha' => $documents->where('document_type', 'sha')->first(),
         ];
 
-        return view('candidate.documents.index', compact('candidate', 'groupedDocuments'));
+        // Get all documents for listing (optional - for future enhancements)
+        $allDocuments = $documents;
+
+        return view('candidate.documents.index', compact('candidate', 'groupedDocuments', 'stats', 'allDocuments'));
     }
 
     /**

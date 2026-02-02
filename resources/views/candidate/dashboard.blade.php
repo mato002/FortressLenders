@@ -185,6 +185,9 @@
                     <p class="text-sm text-amber-800 mb-4">You have {{ $actionRequired->count() }} application(s) that require your attention:</p>
                     <div class="space-y-3">
                         @foreach($actionRequired as $app)
+                            @if(!$app->jobPost)
+                                @continue
+                            @endif
                             <div class="bg-white rounded-lg p-4 border border-amber-200">
                                 <div class="flex items-center justify-between flex-wrap gap-3">
                                     <div>
@@ -250,6 +253,9 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-100">
                         @foreach($recentApplications as $application)
+                            @if(!$application->jobPost)
+                                @continue
+                            @endif
                             <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-3 align-middle">
                                     <div class="font-semibold text-gray-900">{{ $application->jobPost->title }}</div>

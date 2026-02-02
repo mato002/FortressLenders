@@ -4,7 +4,7 @@
 @section('header-description', 'Find answers and get support')
 
 @section('content')
-<div class="max-w-4xl mx-auto">
+<div class="w-full">
     <!-- Search -->
     <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
         <div class="relative">
@@ -16,7 +16,7 @@
     </div>
 
     <!-- FAQ Categories -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow cursor-pointer" onclick="filterCategory('applications')">
             <div class="flex items-center gap-3 mb-2">
                 <div class="flex items-center justify-center h-10 w-10 rounded-full bg-blue-100">
@@ -68,7 +68,7 @@
     </div>
 
     <!-- FAQs -->
-    <div class="space-y-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <!-- Applications FAQ -->
         <div class="faq-category" data-category="applications">
             <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden faq-item">
@@ -104,6 +104,30 @@
                 </button>
                 <div class="hidden px-6 pb-4 text-gray-600 border-t border-gray-200">
                     <p>You can track your application status on your dashboard. We'll also send you email updates as your application progresses through each stage.</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden faq-item">
+                <button class="w-full px-6 py-4 text-left hover:bg-gray-50 transition-colors flex items-center justify-between" onclick="toggleFAQ(this)">
+                    <h3 class="font-semibold text-gray-900">How many applications can I submit?</h3>
+                    <svg class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                    </svg>
+                </button>
+                <div class="hidden px-6 pb-4 text-gray-600 border-t border-gray-200">
+                    <p>You can apply to as many positions as you're interested in. However, we recommend focusing on roles that match your skills and experience for better success rates.</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden faq-item">
+                <button class="w-full px-6 py-4 text-left hover:bg-gray-50 transition-colors flex items-center justify-between" onclick="toggleFAQ(this)">
+                    <h3 class="font-semibold text-gray-900">What happens after I submit my application?</h3>
+                    <svg class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                    </svg>
+                </button>
+                <div class="hidden px-6 pb-4 text-gray-600 border-t border-gray-200">
+                    <p>After submission, your application goes through AI sieving, then manual review. If you pass, you'll be invited to take an aptitude test, followed by a self interview if successful.</p>
                 </div>
             </div>
         </div>
@@ -145,6 +169,30 @@
                     <p>The self interview is a video-based assessment where you answer pre-recorded questions. Record your responses and submit them for evaluation.</p>
                 </div>
             </div>
+
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden faq-item">
+                <button class="w-full px-6 py-4 text-left hover:bg-gray-50 transition-colors flex items-center justify-between" onclick="toggleFAQ(this)">
+                    <h3 class="font-semibold text-gray-900">Can I retake the aptitude test if I fail?</h3>
+                    <svg class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                    </svg>
+                </button>
+                <div class="hidden px-6 pb-4 text-gray-600 border-t border-gray-200">
+                    <p>Unfortunately, you cannot retake the aptitude test for the same application. However, you can apply to other positions and take their respective tests.</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden faq-item">
+                <button class="w-full px-6 py-4 text-left hover:bg-gray-50 transition-colors flex items-center justify-between" onclick="toggleFAQ(this)">
+                    <h3 class="font-semibold text-gray-900">What happens if I don't complete the test on time?</h3>
+                    <svg class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                    </svg>
+                </button>
+                <div class="hidden px-6 pb-4 text-gray-600 border-t border-gray-200">
+                    <p>If you don't complete the test within the given timeframe, your application may be automatically rejected. We recommend completing tests as soon as they become available.</p>
+                </div>
+            </div>
         </div>
 
         <!-- Profile FAQ -->
@@ -184,6 +232,18 @@
                     <p>You can request account deletion in your account settings. This will remove all your data and is permanent.</p>
                 </div>
             </div>
+
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden faq-item">
+                <button class="w-full px-6 py-4 text-left hover:bg-gray-50 transition-colors flex items-center justify-between" onclick="toggleFAQ(this)">
+                    <h3 class="font-semibold text-gray-900">What file formats are accepted for documents?</h3>
+                    <svg class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                    </svg>
+                </button>
+                <div class="hidden px-6 pb-4 text-gray-600 border-t border-gray-200">
+                    <p>We accept PDF, DOC, DOCX, and image formats (JPG, PNG) for documents. Maximum file size is 10MB per document.</p>
+                </div>
+            </div>
         </div>
 
         <!-- Account FAQ -->
@@ -221,6 +281,18 @@
                 </button>
                 <div class="hidden px-6 pb-4 text-gray-600 border-t border-gray-200">
                     <p>Email us at support@fortresslenders.com or use the contact form in your profile settings. We typically respond within 24 hours.</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden faq-item">
+                <button class="w-full px-6 py-4 text-left hover:bg-gray-50 transition-colors flex items-center justify-between" onclick="toggleFAQ(this)">
+                    <h3 class="font-semibold text-gray-900">How do I change my password?</h3>
+                    <svg class="w-5 h-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                    </svg>
+                </button>
+                <div class="hidden px-6 pb-4 text-gray-600 border-t border-gray-200">
+                    <p>Go to Profile Settings and use the "Update Password" section. You'll need to enter your current password and then set a new one.</p>
                 </div>
             </div>
         </div>

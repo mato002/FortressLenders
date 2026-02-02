@@ -145,10 +145,12 @@
                                     View Details
                                 </a>
                                 @if(in_array($application->status, ['sieving_passed', 'pending_manual_review']) && !$application->aptitude_test_completed_at)
-                                    <a href="{{ route('aptitude-test.show', $application) }}" 
-                                       class="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-semibold">
+                                    <button 
+                                        type="button"
+                                        onclick="openAptitudeTestModal({{ $application->id }})"
+                                        class="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-semibold">
                                         Take Test
-                                    </a>
+                                    </button>
                                 @endif
                             </div>
                         </div>

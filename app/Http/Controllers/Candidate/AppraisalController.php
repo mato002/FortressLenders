@@ -12,7 +12,7 @@ class AppraisalController extends Controller
     /**
      * Display all appraisals.
      */
-    public function index()
+    public function index(Request $request)
     {
         $candidate = Auth::guard('candidate')->user();
         
@@ -20,28 +20,80 @@ class AppraisalController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        $appraisals = $candidate->appraisals()
-            ->with('createdBy')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        // Base query
+        $baseQuery = $candidate->appraisals()->with('createdBy');
 
-        // Group by type
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->string('search');
+            $baseQuery->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('content', 'like', "%{$search}%");
+            });
+        }
+
+        // Type filter
+        if ($request->filled('type')) {
+            $baseQuery->where('type', $request->string('type'));
+        }
+
+        // Status filter (acknowledged/pending)
+        if ($request->filled('status')) {
+            if ($request->string('status') === 'acknowledged') {
+                $baseQuery->where('is_acknowledged', true);
+            } elseif ($request->string('status') === 'pending') {
+                $baseQuery->where('is_acknowledged', false);
+            }
+        }
+
+        // Date range filter
+        if ($request->filled('date_from')) {
+            $baseQuery->whereDate('created_at', '>=', $request->date('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $baseQuery->whereDate('created_at', '<=', $request->date('date_to'));
+        }
+
+        // Sort
+        $sortBy = $request->string('sort_by', 'created_at');
+        $sortOrder = $request->string('sort_order', 'desc');
+        $baseQuery->orderBy($sortBy, $sortOrder);
+
+        $appraisals = $baseQuery->paginate(15)->withQueryString();
+
+        // Statistics
+        $stats = [
+            'total' => $candidate->appraisals()->count(),
+            'performance_reviews' => $candidate->appraisals()->where('type', 'performance_review')->count(),
+            'hr_communications' => $candidate->appraisals()->where('type', 'hr_communication')->count(),
+            'warnings' => $candidate->appraisals()->where('type', 'warning')->count(),
+            'acknowledged' => $candidate->appraisals()->where('is_acknowledged', true)->count(),
+            'pending' => $candidate->appraisals()->where('is_acknowledged', false)->count(),
+        ];
+
+        // Group by type for tabbed view (limit to prevent memory issues)
         $performanceReviews = $candidate->appraisals()
             ->where('type', 'performance_review')
-            ->with('createdBy')
+            ->select('id', 'candidate_id', 'type', 'title', 'content', 'review_date', 'is_acknowledged', 'created_at', 'created_by')
+            ->with('createdBy:id,name')
             ->orderBy('review_date', 'desc')
+            ->limit(50) // Limit to prevent memory exhaustion
             ->get();
 
         $hrCommunications = $candidate->appraisals()
             ->where('type', 'hr_communication')
-            ->with('createdBy')
+            ->select('id', 'candidate_id', 'type', 'title', 'content', 'is_acknowledged', 'created_at', 'created_by')
+            ->with('createdBy:id,name')
             ->orderBy('created_at', 'desc')
+            ->limit(50) // Limit to prevent memory exhaustion
             ->get();
 
         $warnings = $candidate->appraisals()
             ->where('type', 'warning')
-            ->with('createdBy')
+            ->select('id', 'candidate_id', 'type', 'title', 'content', 'severity', 'is_acknowledged', 'created_at', 'created_by')
+            ->with('createdBy:id,name')
             ->orderBy('created_at', 'desc')
+            ->limit(50) // Limit to prevent memory exhaustion
             ->get();
 
         return view('candidate.appraisals.index', compact(
@@ -49,7 +101,8 @@ class AppraisalController extends Controller
             'appraisals',
             'performanceReviews',
             'hrCommunications',
-            'warnings'
+            'warnings',
+            'stats'
         ));
     }
 

@@ -5,6 +5,9 @@
     @if($upcomingActivities && $upcomingActivities->count() > 0)
         <div class="space-y-3">
             @foreach($upcomingActivities as $activity)
+                @if(empty($activity['job_title']))
+                    @continue
+                @endif
                 <div class="p-4 border-l-4 rounded-lg {{ $activity['type'] === 'aptitude' ? 'border-amber-500 bg-amber-50' : 'border-blue-500 bg-blue-50' }}">
                     <div class="flex items-start justify-between mb-2">
                         <div>

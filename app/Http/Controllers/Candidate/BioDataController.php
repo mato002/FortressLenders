@@ -22,7 +22,41 @@ class BioDataController extends Controller
 
         $bioData = $candidate->bio_data ? json_decode($candidate->bio_data, true) : [];
 
-        return view('candidate.bio-data.index', compact('candidate', 'bioData'));
+        // Calculate completion statistics
+        $requiredFields = [
+            'full_name', 'date_of_birth', 'gender', 'nationality', 'id_number', 'phone',
+            'address', 'city', 'emergency_contact_name', 'emergency_contact_phone',
+            'emergency_contact_relationship', 'education_level', 'institution', 'qualification'
+        ];
+        
+        $optionalFields = [
+            'postal_code', 'year_completed', 'previous_employer', 'previous_position',
+            'previous_start_date', 'previous_end_date', 'skills', 'languages', 'additional_info'
+        ];
+        
+        $completedRequired = collect($requiredFields)->filter(function($field) use ($bioData) {
+            return !empty($bioData[$field] ?? null);
+        })->count();
+        
+        $completedOptional = collect($optionalFields)->filter(function($field) use ($bioData) {
+            return !empty($bioData[$field] ?? null);
+        })->count();
+        
+        $completionPercentage = count($requiredFields) > 0 
+            ? round(($completedRequired / count($requiredFields)) * 100) 
+            : 0;
+        
+        $stats = [
+            'completion_percentage' => $completionPercentage,
+            'required_completed' => $completedRequired,
+            'required_total' => count($requiredFields),
+            'optional_completed' => $completedOptional,
+            'optional_total' => count($optionalFields),
+            'is_complete' => $candidate->bio_data_completed ?? false,
+            'completed_at' => $candidate->bio_data_completed_at ?? null,
+        ];
+
+        return view('candidate.bio-data.index', compact('candidate', 'bioData', 'stats'));
     }
 
     /**

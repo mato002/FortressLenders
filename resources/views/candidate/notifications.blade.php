@@ -4,12 +4,15 @@
 @section('header-description', 'Stay updated on your applications')
 
 @section('content')
-<div class="max-w-4xl mx-auto">
+<div class="w-full">
     <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-bold text-gray-900">All Notifications</h2>
-            <div class="flex gap-2">
-                <button class="px-4 py-2 text-sm font-semibold text-teal-600 hover:bg-teal-50 rounded-lg transition-colors" onclick="filterNotifications('all')">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">All Notifications</h2>
+                <p class="text-sm text-gray-600 mt-1">Stay updated on your job applications, tests, and interviews</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <button class="px-4 py-2 text-sm font-semibold text-teal-600 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors" onclick="filterNotifications('all')">
                     All
                 </button>
                 <button class="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" onclick="filterNotifications('unread')">
@@ -21,14 +24,17 @@
                 <button class="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" onclick="filterNotifications('tests')">
                     Tests
                 </button>
+                <button class="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" onclick="markAllAsRead()">
+                    Mark All Read
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Notifications List -->
-    <div class="space-y-3">
+    <div class="space-y-4">
         <!-- Application Status Update -->
-        <div class="notification-item bg-white rounded-2xl shadow border border-gray-100 p-6 hover:shadow-lg transition-shadow cursor-pointer" data-type="applications">
+        <div class="notification-item bg-white rounded-2xl shadow border border-gray-100 p-6 hover:shadow-lg transition-shadow cursor-pointer" data-type="applications" data-read="false">
             <div class="flex items-start gap-4">
                 <div class="flex-shrink-0 mt-1">
                     <div class="flex items-center justify-center h-10 w-10 rounded-full bg-blue-100">
@@ -52,7 +58,7 @@
         </div>
 
         <!-- Test Reminder -->
-        <div class="notification-item bg-white rounded-2xl shadow border border-gray-100 p-6 hover:shadow-lg transition-shadow cursor-pointer" data-type="tests">
+        <div class="notification-item bg-white rounded-2xl shadow border border-gray-100 p-6 hover:shadow-lg transition-shadow cursor-pointer" data-type="tests" data-read="false">
             <div class="flex items-start gap-4">
                 <div class="flex-shrink-0 mt-1">
                     <div class="flex items-center justify-center h-10 w-10 rounded-full bg-amber-100">
@@ -76,7 +82,7 @@
         </div>
 
         <!-- Interview Invitation -->
-        <div class="notification-item bg-white rounded-2xl shadow border border-gray-100 p-6 hover:shadow-lg transition-shadow cursor-pointer" data-type="tests">
+        <div class="notification-item bg-white rounded-2xl shadow border border-gray-100 p-6 hover:shadow-lg transition-shadow cursor-pointer" data-type="tests" data-read="true">
             <div class="flex items-start gap-4">
                 <div class="flex-shrink-0 mt-1">
                     <div class="flex items-center justify-center h-10 w-10 rounded-full bg-purple-100">
@@ -97,7 +103,7 @@
         </div>
 
         <!-- Document Request -->
-        <div class="notification-item bg-white rounded-2xl shadow border border-gray-100 p-6 hover:shadow-lg transition-shadow cursor-pointer" data-type="applications">
+        <div class="notification-item bg-white rounded-2xl shadow border border-gray-100 p-6 hover:shadow-lg transition-shadow cursor-pointer" data-type="applications" data-read="true">
             <div class="flex items-start gap-4">
                 <div class="flex-shrink-0 mt-1">
                     <div class="flex items-center justify-center h-10 w-10 rounded-full bg-red-100">
@@ -118,7 +124,7 @@
         </div>
 
         <!-- Congratulations -->
-        <div class="notification-item bg-white rounded-2xl shadow border border-gray-100 p-6 hover:shadow-lg transition-shadow cursor-pointer" data-type="applications">
+        <div class="notification-item bg-white rounded-2xl shadow border border-gray-100 p-6 hover:shadow-lg transition-shadow cursor-pointer" data-type="applications" data-read="true">
             <div class="flex items-start gap-4">
                 <div class="flex-shrink-0 mt-1">
                     <div class="flex items-center justify-center h-10 w-10 rounded-full bg-green-100">
@@ -139,7 +145,7 @@
         </div>
 
         <!-- Job Recommendation -->
-        <div class="notification-item bg-white rounded-2xl shadow border border-gray-100 p-6 hover:shadow-lg transition-shadow cursor-pointer" data-type="applications">
+        <div class="notification-item bg-white rounded-2xl shadow border border-gray-100 p-6 hover:shadow-lg transition-shadow cursor-pointer" data-type="applications" data-read="true">
             <div class="flex items-start gap-4">
                 <div class="flex-shrink-0 mt-1">
                     <div class="flex items-center justify-center h-10 w-10 rounded-full bg-cyan-100">
@@ -160,9 +166,62 @@
         </div>
     </div>
 
-    <!-- No More Notifications -->
-    <div class="text-center py-8">
-        <p class="text-gray-500">You're all caught up! Check back soon for more updates.</p>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Total Notifications</p>
+                    <p class="text-2xl font-bold text-gray-900" id="total-count">6</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Unread</p>
+                    <p class="text-2xl font-bold text-amber-600" id="unread-count">2</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Applications</p>
+                    <p class="text-2xl font-bold text-teal-600" id="applications-count">4</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Tests & Interviews</p>
+                    <p class="text-2xl font-bold text-purple-600" id="tests-count">2</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
@@ -171,18 +230,69 @@
 <script>
 function filterNotifications(type) {
     const items = document.querySelectorAll('.notification-item');
+    const buttons = document.querySelectorAll('[onclick^="filterNotifications"]');
+    
+    // Update button states
+    buttons.forEach(btn => {
+        if (btn.textContent.trim() === type.charAt(0).toUpperCase() + type.slice(1) || 
+            (type === 'all' && btn.textContent.trim() === 'All')) {
+            btn.classList.add('text-teal-600', 'bg-teal-50');
+            btn.classList.remove('text-gray-600');
+        } else {
+            btn.classList.remove('text-teal-600', 'bg-teal-50');
+            btn.classList.add('text-gray-600');
+        }
+    });
     
     if (type === 'all') {
         items.forEach(item => item.classList.remove('hidden'));
     } else if (type === 'unread') {
         items.forEach(item => {
-            item.classList.toggle('hidden', !item.querySelector('[class*="bg-"]'));
+            const isUnread = item.dataset.read === 'false';
+            item.classList.toggle('hidden', !isUnread);
         });
     } else {
         items.forEach(item => {
             item.classList.toggle('hidden', item.dataset.type !== type);
         });
     }
+    
+    updateCounts();
 }
+
+function markAllAsRead() {
+    const items = document.querySelectorAll('.notification-item[data-read="false"]');
+    items.forEach(item => {
+        item.dataset.read = 'true';
+        const badge = item.querySelector('[class*="bg-"]');
+        if (badge && badge.textContent.includes('Unread')) {
+            badge.remove();
+        }
+    });
+    updateCounts();
+    Swal.fire({
+        icon: 'success',
+        title: 'All notifications marked as read',
+        timer: 2000,
+        showConfirmButton: false
+    });
+}
+
+function updateCounts() {
+    const items = document.querySelectorAll('.notification-item:not(.hidden)');
+    const unreadItems = document.querySelectorAll('.notification-item[data-read="false"]:not(.hidden)');
+    const applicationItems = document.querySelectorAll('.notification-item[data-type="applications"]:not(.hidden)');
+    const testItems = document.querySelectorAll('.notification-item[data-type="tests"]:not(.hidden)');
+    
+    document.getElementById('total-count').textContent = items.length;
+    document.getElementById('unread-count').textContent = unreadItems.length;
+    document.getElementById('applications-count').textContent = applicationItems.length;
+    document.getElementById('tests-count').textContent = testItems.length;
+}
+
+// Initialize counts on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateCounts();
+});
 </script>
 @endpush

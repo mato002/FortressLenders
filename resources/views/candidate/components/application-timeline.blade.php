@@ -5,6 +5,9 @@
     
     <div class="space-y-6">
         @foreach($activeApplications as $application)
+            @if(!$application->jobPost)
+                @continue
+            @endif
             <div class="relative">
                 <div class="flex items-start gap-4">
                     <!-- Job Info -->
