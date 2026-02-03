@@ -17,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
             'role' => EnsureUserHasRole::class,
             'not.candidate' => \App\Http\Middleware\EnsureNotCandidate::class,
+            'portal.candidate.or.employee' => \App\Http\Middleware\EnsureCandidateOrEmployee::class,
+            'only.candidates' => \App\Http\Middleware\OnlyCandidates::class,
         ]);
         
         // Track user sessions for authenticated users, check blocked IPs, and check banned users

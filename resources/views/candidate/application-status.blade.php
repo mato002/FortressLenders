@@ -92,7 +92,7 @@
         </div>
     @endif
 
-    <!-- Aptitude Test Section -->
+    <!-- Aptitude Test Section (take-test actions hidden for employees) -->
     @if(in_array($application->status, ['sieving_passed', 'pending_manual_review']))
         <div class="border-b border-gray-200 pb-6">
             <h2 class="text-xl font-bold text-gray-900 mb-4">Aptitude Test</h2>
@@ -134,6 +134,7 @@
                     @endif
                 </div>
             @else
+                @if(!is_portal_employee())
                 <div class="bg-teal-50 border border-teal-200 rounded-lg p-6">
                     <div class="flex items-start">
                         <div class="flex-shrink-0">
@@ -158,6 +159,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
             @endif
         </div>
     @endif
@@ -202,7 +204,7 @@
             <a href="{{ route('candidate.dashboard') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-semibold">
                 ← Back to Dashboard
             </a>
-            @if(in_array($application->status, ['sieving_passed', 'pending_manual_review']) && !$application->aptitude_test_completed_at)
+            @if(!is_portal_employee() && in_array($application->status, ['sieving_passed', 'pending_manual_review']) && !$application->aptitude_test_completed_at)
                 <button 
                     type="button"
                     onclick="openAptitudeTestModal({{ $application->id }})"

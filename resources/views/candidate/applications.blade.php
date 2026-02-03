@@ -90,7 +90,8 @@
                                     Applied on {{ $application->created_at->format('M d, Y') }}
                                 </p>
                                 
-                                <!-- Next Step Indicator -->
+                                <!-- Next Step Indicator (hidden for employees - no aptitude/self-interview) -->
+                                @if(!is_portal_employee())
                                 @if(in_array($application->status, ['sieving_passed', 'pending_manual_review']) && !$application->aptitude_test_completed_at)
                                     <div class="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
                                         <p class="text-sm font-semibold text-amber-900 mb-1">📋 Next Step: Complete Aptitude Test</p>
@@ -101,6 +102,7 @@
                                         <p class="text-sm font-semibold text-blue-900 mb-1">✅ Next Step: Self Interview</p>
                                         <p class="text-xs text-blue-700">You've passed the aptitude test. Complete your self interview to proceed.</p>
                                     </div>
+                                @endif
                                 @endif
 
                                 @if($application->aiSievingDecision)
@@ -144,7 +146,7 @@
                                    class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-semibold">
                                     View Details
                                 </a>
-                                @if(in_array($application->status, ['sieving_passed', 'pending_manual_review']) && !$application->aptitude_test_completed_at)
+                                @if(!is_portal_employee() && in_array($application->status, ['sieving_passed', 'pending_manual_review']) && !$application->aptitude_test_completed_at)
                                     <button 
                                         type="button"
                                         onclick="openAptitudeTestModal({{ $application->id }})"

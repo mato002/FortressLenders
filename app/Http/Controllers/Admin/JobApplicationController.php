@@ -6,8 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Mail\AptitudeTestInvitation;
 use App\Mail\JobApplicationConfirmation;
 use App\Mail\CandidateAccountCreated;
-use App\Models\JobApplication;
 use App\Models\Candidate;
+use App\Models\JobApplication;
+use App\Models\User;
 use App\Models\JobApplicationMessage;
 use App\Models\JobApplicationReview;
 use App\Models\JobApplicationStatusHistory;
@@ -19,9 +20,10 @@ use App\Services\AIAnalysisService;
 use App\Jobs\ProcessCvJob;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 
@@ -485,6 +487,7 @@ class JobApplicationController extends Controller
             } elseif ($interview->interview_type === 'second') {
                 $this->recordStatusChange($application, 'hired', 'interview_result', $validated['feedback'] ?? null);
                 $application->update(['status' => 'hired']);
+                $this->ensureEmployeeUserForHiredCandidate($application);
             }
         } else {
             $this->recordStatusChange($application, 'interview_failed', 'interview_result', $validated['feedback'] ?? null);
@@ -509,6 +512,11 @@ class JobApplicationController extends Controller
         $this->recordStatusChange($application, $newStatus, 'manual_update');
 
         $application->update(['status' => $newStatus]);
+
+        // When hired, create/link employee user so they can log in to the candidate portal
+        if ($newStatus === 'hired') {
+            $this->ensureEmployeeUserForHiredCandidate($application);
+        }
 
         // Send email notification if status changed to sieving_passed
         if ($newStatus === 'sieving_passed' && $previousStatus !== 'sieving_passed') {
@@ -658,21 +666,61 @@ class JobApplicationController extends Controller
                 ->with('candidate_password', $temporaryPassword)
                 ->with('candidate_email', $candidate->email);
         } catch (\Exception $e) {
-            \Log::error('Failed to resend candidate credentials', [
+            Log::error('Failed to resend candidate credentials', [
                 'candidate_id' => $candidate->id,
                 'application_id' => $application->id,
                 'error' => $e->getMessage(),
             ]);
-            
-            // Store password in session even if email fails
             session([
                 'candidate_password_' . $candidate->id => $temporaryPassword,
-                'candidate_password_time_' . $candidate->id => now()->addMinutes(5)
+                'candidate_password_time_' . $candidate->id => now()->addMinutes(5),
             ]);
-            
             return back()->with('warning', 'Failed to send email. New password: ' . $temporaryPassword . ' (Please send manually)')
                 ->with('candidate_password', $temporaryPassword)
                 ->with('candidate_email', $candidate->email);
+        }
+    }
+
+    /**
+     * When a candidate is hired, create a User (employee) and link to their Candidate record
+     * so they can log in to the candidate portal as an employee (except aptitude/self-interview).
+     */
+    protected function ensureEmployeeUserForHiredCandidate(JobApplication $application): void
+    {
+        if (! $application->candidate_id) {
+            return;
+        }
+
+        $candidate = Candidate::find($application->candidate_id);
+        if (! $candidate || $candidate->user_id) {
+            return;
+        }
+
+        if (User::where('email', $candidate->email)->exists()) {
+            return;
+        }
+
+        try {
+            $password = Str::random(12);
+            $user = User::create([
+                'name' => $candidate->name,
+                'email' => $candidate->email,
+                'password' => Hash::make($password),
+                'role' => 'employee',
+                'email_verified_at' => now(),
+            ]);
+            $candidate->update(['user_id' => $user->id]);
+            Log::info('Employee user created for hired candidate', [
+                'candidate_id' => $candidate->id,
+                'user_id' => $user->id,
+                'application_id' => $application->id,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to create employee user for hired candidate', [
+                'application_id' => $application->id,
+                'candidate_id' => $candidate->id,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
     

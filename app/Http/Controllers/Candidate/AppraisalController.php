@@ -14,7 +14,7 @@ class AppraisalController extends Controller
      */
     public function index(Request $request)
     {
-        $candidate = Auth::guard('candidate')->user();
+        $candidate = current_portal_candidate();
         
         if (!$candidate) {
             abort(403, 'Unauthorized.');
@@ -111,7 +111,7 @@ class AppraisalController extends Controller
      */
     public function show(CandidateAppraisal $appraisal)
     {
-        $candidate = Auth::guard('candidate')->user();
+        $candidate = current_portal_candidate();
         
         if (!$candidate || $appraisal->candidate_id !== $candidate->id) {
             abort(403, 'Unauthorized.');
@@ -127,7 +127,7 @@ class AppraisalController extends Controller
      */
     public function acknowledge(CandidateAppraisal $appraisal)
     {
-        $candidate = Auth::guard('candidate')->user();
+        $candidate = current_portal_candidate();
         
         if (!$candidate || $appraisal->candidate_id !== $candidate->id) {
             abort(403, 'Unauthorized.');

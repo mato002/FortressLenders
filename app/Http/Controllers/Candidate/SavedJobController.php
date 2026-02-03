@@ -12,7 +12,7 @@ class SavedJobController
 {
     public function index(): View
     {
-        $candidate = auth()->guard('candidate')->user();
+        $candidate = current_portal_candidate();
         
         $savedJobs = SavedJob::where('candidate_id', $candidate->id)
             ->with('jobPost')
@@ -26,7 +26,7 @@ class SavedJobController
 
     public function save(JobPost $jobPost): JsonResponse
     {
-        $candidate = auth()->guard('candidate')->user();
+        $candidate = current_portal_candidate();
 
         $saved = SavedJob::firstOrCreate([
             'candidate_id' => $candidate->id,
@@ -42,7 +42,7 @@ class SavedJobController
 
     public function unsave(JobPost $jobPost): RedirectResponse
     {
-        $candidate = auth()->guard('candidate')->user();
+        $candidate = current_portal_candidate();
 
         SavedJob::where('candidate_id', $candidate->id)
             ->where('job_post_id', $jobPost->id)

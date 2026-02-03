@@ -15,7 +15,7 @@ class DocumentController extends Controller
      */
     public function index(Request $request)
     {
-        $candidate = Auth::guard('candidate')->user();
+        $candidate = current_portal_candidate();
         
         if (!$candidate) {
             abort(403, 'Unauthorized.');
@@ -58,7 +58,7 @@ class DocumentController extends Controller
      */
     public function download(CandidateDocument $document)
     {
-        $candidate = Auth::guard('candidate')->user();
+        $candidate = current_portal_candidate();
         
         if (!$candidate || $document->candidate_id !== $candidate->id) {
             abort(403, 'Unauthorized.');
@@ -79,7 +79,7 @@ class DocumentController extends Controller
      */
     public function upload(Request $request)
     {
-        $candidate = Auth::guard('candidate')->user();
+        $candidate = current_portal_candidate();
         
         if (!$candidate) {
             abort(403, 'Unauthorized.');
@@ -124,7 +124,7 @@ class DocumentController extends Controller
      */
     public function destroy(CandidateDocument $document)
     {
-        $candidate = Auth::guard('candidate')->user();
+        $candidate = current_portal_candidate();
         
         if (!$candidate || $document->candidate_id !== $candidate->id) {
             abort(403, 'Unauthorized.');

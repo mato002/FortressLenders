@@ -192,6 +192,7 @@
                                 <div class="flex items-center justify-between flex-wrap gap-3">
                                     <div>
                                         <p class="font-semibold text-gray-900">{{ $app->jobPost->title }}</p>
+                                        @if(!is_portal_employee())
                                         <p class="text-sm text-gray-600">
                                             @if(in_array($app->status, ['sieving_passed', 'pending_manual_review']) && !$app->aptitude_test_completed_at)
                                                 Aptitude test pending
@@ -199,8 +200,10 @@
                                                 Self interview pending
                                             @endif
                                         </p>
+                                        @endif
                                     </div>
                                     <div class="flex gap-2">
+                                        @if(!is_portal_employee())
                                         @if(in_array($app->status, ['sieving_passed', 'pending_manual_review']) && !$app->aptitude_test_completed_at)
                                             <button 
                                                 type="button"
@@ -213,6 +216,7 @@
                                             <a href="{{ route('self-interview.show', $app) }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold">
                                                 Start Interview
                                             </a>
+                                        @endif
                                         @endif
                                         <a href="{{ route('candidate.application.show', $app) }}" class="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-sm font-semibold">
                                             View Details
@@ -297,6 +301,7 @@
         </div>
     @endif
 
+    @if(!is_portal_employee())
     <!-- Aptitude Test Modal -->
     <div id="aptitudeTestModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -330,9 +335,11 @@
             </div>
         </div>
     </div>
+    @endif
 @endsection
 
 @push('scripts')
+@if(!is_portal_employee())
 <script>
     function openAptitudeTestModal(applicationId) {
         const modal = document.getElementById('aptitudeTestModal');
@@ -414,6 +421,7 @@
         }
     });
 </script>
+@endif
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {

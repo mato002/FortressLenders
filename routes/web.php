@@ -50,6 +50,9 @@ Route::get('/apply-loan', [LoanApplicationController::class, 'create'])->name('l
 Route::post('/apply-loan', [LoanApplicationController::class, 'store'])
     ->middleware('throttle:5,1')
     ->name('loan.apply.submit');
+Route::post('/apply-loan/whatsapp-lead', [LoanApplicationController::class, 'storeCalculatorLead'])
+    ->middleware('throttle:10,1')
+    ->name('loan.apply.whatsapp-lead');
 
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])
@@ -117,27 +120,35 @@ Route::get('/application/status/lookup', function() {
 Route::post('/application/lookup', [JobApplicationController::class, 'lookup'])->name('application.lookup');
 Route::get('/application/{application}/status', [JobApplicationController::class, 'status'])->name('application.status');
 
-// Aptitude Test Routes (Public and Candidate)
-Route::get('/aptitude-test/{application}', [\App\Http\Controllers\AptitudeTestController::class, 'show'])->name('aptitude-test.show');
-Route::post('/aptitude-test/{application}/submit', [\App\Http\Controllers\AptitudeTestController::class, 'submit'])->name('aptitude-test.submit');
-Route::get('/aptitude-test/{application}/results', [\App\Http\Controllers\AptitudeTestController::class, 'results'])->name('aptitude-test.results');
-Route::get('/aptitude-test/{application}/verify', [\App\Http\Controllers\AptitudeTestController::class, 'verify'])->name('aptitude-test.verify');
+// Aptitude Test Routes (block employees; candidates and guests allowed)
+Route::middleware(['only.candidates'])->group(function () {
+    Route::get('/aptitude-test/{application}', [\App\Http\Controllers\AptitudeTestController::class, 'show'])->name('aptitude-test.show');
+    Route::post('/aptitude-test/{application}/submit', [\App\Http\Controllers\AptitudeTestController::class, 'submit'])->name('aptitude-test.submit');
+    Route::get('/aptitude-test/{application}/results', [\App\Http\Controllers\AptitudeTestController::class, 'results'])->name('aptitude-test.results');
+    Route::get('/aptitude-test/{application}/verify', [\App\Http\Controllers\AptitudeTestController::class, 'verify'])->name('aptitude-test.verify');
+});
 
-// Self Interview Routes (Public and Candidate)
-Route::get('/self-interview/{application}', [\App\Http\Controllers\SelfInterviewController::class, 'show'])->name('self-interview.show');
-Route::post('/self-interview/{application}/submit', [\App\Http\Controllers\SelfInterviewController::class, 'submit'])->name('self-interview.submit');
-Route::get('/self-interview/{application}/results', [\App\Http\Controllers\SelfInterviewController::class, 'results'])->name('self-interview.results');
+// Self Interview Routes (block employees; candidates and guests allowed)
+Route::middleware(['only.candidates'])->group(function () {
+    Route::get('/self-interview/{application}', [\App\Http\Controllers\SelfInterviewController::class, 'show'])->name('self-interview.show');
+    Route::post('/self-interview/{application}/submit', [\App\Http\Controllers\SelfInterviewController::class, 'submit'])->name('self-interview.submit');
+    Route::get('/self-interview/{application}/results', [\App\Http\Controllers\SelfInterviewController::class, 'results'])->name('self-interview.results');
+});
 
 // Dashboard Routes (Protected)
 Route::get('/dashboard', function () {
     // Check if candidate is logged in
-    $candidate = auth()->guard('candidate')->user();
-    if ($candidate) {
+    if (auth()->guard('candidate')->check()) {
         return redirect()->route('candidate.dashboard');
     }
     
-    // Check if employee/user is logged in
+    // Check if portal employee is logged in (web guard, role employee)
     $user = auth()->user();
+    if ($user && $user->role === 'employee') {
+        return redirect()->route('candidate.dashboard');
+    }
+    
+    // Check if staff (admin, hr, loan, editor, client) is logged in
     if ($user && (in_array($user->role, ['admin', 'hr_manager', 'loan_manager', 'editor']) || $user->isClient())) {
         return redirect()->route('admin.dashboard');
     }
@@ -145,8 +156,8 @@ Route::get('/dashboard', function () {
     return redirect()->route('profile.edit');
 })->middleware(['auth:web,candidate', 'verified'])->name('dashboard');
 
-// Candidate Routes (separate guard)
-Route::middleware(['auth:candidate'])->prefix('candidate')->name('candidate.')->group(function () {
+// Candidate Routes (candidate guard OR employee with linked candidate)
+Route::middleware(['auth:web,candidate', 'verified', 'portal.candidate.or.employee'])->prefix('candidate')->name('candidate.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\CandidateDashboardController::class, 'index'])->name('dashboard');
     Route::get('/application/{application}', [\App\Http\Controllers\CandidateDashboardController::class, 'show'])->name('application.show');
     Route::get('/applications', [\App\Http\Controllers\CandidateDashboardController::class, 'applications'])->name('applications');
@@ -218,6 +229,8 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             Route::post('/ai-prompts/reset', [\App\Http\Controllers\Admin\AIPromptSettingsController::class, 'reset'])->name('ai-prompts.reset');
             
             // Team Members
+            Route::post('team-members/{team_member}/generate-login', [AdminTeamMemberController::class, 'generateLogin'])->name('team-members.generate-login');
+            Route::post('team-members/{team_member}/toggle-status', [AdminTeamMemberController::class, 'toggleStatus'])->name('team-members.toggle-status');
             Route::resource('team-members', AdminTeamMemberController::class);
             
             // Branches

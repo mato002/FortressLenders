@@ -1,4 +1,5 @@
-<!-- Interview Schedule Widget -->
+<!-- Interview Schedule Widget (aptitude/self-interview - hidden for employees) -->
+@if(!is_portal_employee())
 <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
     <h2 class="text-xl font-bold text-gray-900 mb-4">Upcoming Activities</h2>
     
@@ -61,3 +62,4 @@
         </div>
     @endif
 </div>
+@endif

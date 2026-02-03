@@ -1,2 +1,53 @@
+SMS / Messaging API Setup – Fortress Lenders
+=============================================
 
+The app can send SMS (and optionally WhatsApp) for contact replies, loan/job
+notifications, and candidate messages. Configure one or more providers in .env.
 
+1. BULK SMS (config/services.php → bulksms)
+-------------------------------------------
+Used for SMS from the admin contact reply and similar flows.
+
+- BULKSMS_API_URL    – API base URL (default: https://crm.pradytecai.com/api)
+- BULKSMS_API_KEY   – Your API key from the provider
+- BULKSMS_CLIENT_ID – Client/account identifier
+- BULKSMS_SENDER_ID – Sender name (e.g. FORTRESS)
+
+Get credentials from your Bulk SMS provider dashboard, then set these in .env.
+
+2. ULTRASMS (config/services.php → ultrasms)
+--------------------------------------------
+Alternative SMS provider.
+
+- ULTRASMS_API_URL      – e.g. https://api.ultramsg.com
+- ULTRASMS_INSTANCE_ID  – Your instance ID (e.g. instance143390)
+- ULTRASMS_TOKEN       – API token
+
+Sign up at ultramsg.com (or your provider), create an instance, and copy
+instance ID and token into .env.
+
+3. TWILIO (config/integrations.php)
+------------------------------------
+- TWILIO_ACCOUNT_SID  – Twilio account SID
+- TWILIO_AUTH_TOKEN   – Twilio auth token
+- TWILIO_PHONE_NUMBER – Twilio sending number (e.g. +254…)
+- TWILIO_ENABLED      – true to enable
+
+Get these from the Twilio console (Account SID, Auth Token, and a purchased
+phone number). Set TWILIO_ENABLED=true when ready.
+
+4. WHATSAPP (config/services.php → whatsapp)
+--------------------------------------------
+- WHATSAPP_API_URL – Your WhatsApp Business API base URL
+- WHATSAPP_API_KEY – API key if required by the provider
+
+Configure if you use WhatsApp for replies/notifications.
+
+5. AFTER CONFIGURATION
+----------------------
+- Run: php artisan config:clear  (then config:cache in production)
+- Test from Admin → Contact Messages → reply via SMS/WhatsApp (if available)
+- Ensure .env is not committed; keep API keys in environment or a secrets manager.
+
+For Kenya, use a provider that supports local numbers (e.g. +254) and complies
+with local regulations.

@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -85,6 +86,7 @@ class User extends Authenticatable
         return [
             'user' => 'User',
             'candidate' => 'Candidate',
+            'employee' => 'Employee (Candidate Portal)',
             'admin' => 'Administrator',
             'hr_manager' => 'HR Manager',
             'loan_manager' => 'Loan Manager',
@@ -169,11 +171,20 @@ class User extends Authenticatable
     }
     
     /**
-     * Check if user is an employee (not a candidate).
+     * Check if user is an employee (staff with admin/portal access).
+     * Includes role 'employee' (candidate portal only) and admin roles.
      */
     public function isEmployee(): bool
     {
-        return !$this->isCandidate() && ($this->is_admin || in_array($this->role, ['admin', 'hr_manager', 'loan_manager', 'editor', 'client']));
+        return $this->role === 'employee' || $this->is_admin || in_array($this->role, ['admin', 'hr_manager', 'loan_manager', 'editor', 'client']);
+    }
+
+    /**
+     * Check if user is a portal-only employee (candidate dashboard, no admin).
+     */
+    public function isPortalEmployee(): bool
+    {
+        return $this->role === 'employee';
     }
 
     /**
@@ -190,5 +201,21 @@ class User extends Authenticatable
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * Get the team member record linked to this user (when employee was created from team).
+     */
+    public function teamMember(): HasOne
+    {
+        return $this->hasOne(TeamMember::class);
+    }
+
+    /**
+     * Get the candidate record linked to this user (for employee portal access).
+     */
+    public function candidate(): HasOne
+    {
+        return $this->hasOne(Candidate::class);
     }
 }

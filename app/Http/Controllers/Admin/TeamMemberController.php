@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Candidate;
 use App\Models\TeamMember;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class TeamMemberController extends Controller
@@ -37,7 +41,8 @@ class TeamMemberController extends Controller
         $hiddenTeamMembersCount = TeamMember::where('is_active', false)->count();
         $filteredTeamMembersCount = $query->count();
 
-        $teamMembers = $query->orderBy('display_order')
+        $teamMembers = $query->with('user')
+            ->orderBy('display_order')
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();
@@ -106,6 +111,63 @@ class TeamMemberController extends Controller
         $status = $teamMember->is_active ? 'activated' : 'deactivated';
         // Redirect to index without filters so the member is still visible
         return redirect()->route('admin.team-members.index')->with('status', "Team member {$status} successfully.");
+    }
+
+    /**
+     * Generate portal login for this team member (creates User + Candidate, links to team member).
+     * Employee can then log in with web guard and use the candidate dashboard (except aptitude/self-interview).
+     */
+    public function generateLogin(Request $request, TeamMember $teamMember): RedirectResponse
+    {
+        if (! $teamMember->email) {
+            return back()->withErrors(['error' => 'Team member must have an email address to generate a login.']);
+        }
+
+        if ($teamMember->user_id) {
+            return back()->with('status', 'This team member already has portal access.');
+        }
+
+        if (User::where('email', $teamMember->email)->exists()) {
+            return back()->withErrors(['error' => 'A user with this email already exists. Use a different email or link the existing user.']);
+        }
+
+        $password = $request->filled('password')
+            ? $request->validate(['password' => ['required', 'string', 'min:8', 'confirmed']])['password']
+            : Str::random(12);
+
+        \DB::transaction(function () use ($teamMember, $password) {
+            $user = User::create([
+                'name' => $teamMember->name,
+                'email' => $teamMember->email,
+                'password' => Hash::make($password),
+                'role' => 'employee',
+                'email_verified_at' => now(),
+            ]);
+
+            $existingCandidate = Candidate::where('email', $teamMember->email)->first();
+            if ($existingCandidate) {
+                $existingCandidate->update([
+                    'user_id' => $user->id,
+                    'password' => Hash::make($password),
+                ]);
+            } else {
+                Candidate::create([
+                    'name' => $teamMember->name,
+                    'email' => $teamMember->email,
+                    'password' => Hash::make($password),
+                    'user_id' => $user->id,
+                    'email_verified_at' => now(),
+                ]);
+            }
+
+            $teamMember->update(['user_id' => $user->id]);
+        });
+
+        return redirect()
+            ->route('admin.team-members.show', $teamMember)
+            ->with('status', 'Portal login created. They can log in at the main login page with this email and the password below.')
+            ->with('generated_password', $password)
+            ->with('generated_email', $teamMember->email);
     }
 
     protected function validatedData(Request $request, ?TeamMember $teamMember = null): array

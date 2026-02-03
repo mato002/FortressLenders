@@ -14,7 +14,7 @@ class BioDataController extends Controller
      */
     public function index()
     {
-        $candidate = Auth::guard('candidate')->user();
+        $candidate = current_portal_candidate();
         
         if (!$candidate) {
             abort(403, 'Unauthorized.');
@@ -64,7 +64,7 @@ class BioDataController extends Controller
      */
     public function update(Request $request)
     {
-        $candidate = Auth::guard('candidate')->user();
+        $candidate = current_portal_candidate();
         
         if (!$candidate) {
             abort(403, 'Unauthorized.');

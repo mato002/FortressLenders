@@ -5,8 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Candidate extends Authenticatable
 {
@@ -24,6 +24,7 @@ class Candidate extends Authenticatable
         'bio_data',
         'bio_data_completed',
         'bio_data_completed_at',
+        'user_id',
     ];
 
     /**
@@ -49,6 +50,14 @@ class Candidate extends Authenticatable
             'bio_data_completed' => 'boolean',
             'bio_data_completed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Get the user (employee) linked to this candidate when they can log in as employee.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**

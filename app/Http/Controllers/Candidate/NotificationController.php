@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Candidate;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
@@ -12,7 +11,7 @@ class NotificationController extends Controller
      */
     public function index()
     {
-        $candidate = Auth::guard('candidate')->user();
+        $candidate = current_portal_candidate();
         
         if (!$candidate) {
             abort(403, 'Unauthorized');

@@ -156,9 +156,14 @@
                             @endif
                         </td>
                         <td class="px-4 sm:px-6 py-5">
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold {{ $member->is_active ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-700 border border-slate-200' }}">
-                                {{ $member->is_active ? 'Active' : 'Hidden' }}
-                            </span>
+                            <div class="flex flex-col gap-1">
+                                <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold {{ $member->is_active ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-700 border border-slate-200' }}">
+                                    {{ $member->is_active ? 'Active' : 'Hidden' }}
+                                </span>
+                                @if($member->user_id)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-800">Portal access</span>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-4 sm:px-6 py-5 text-slate-600 text-sm hidden md:table-cell font-medium">{{ $member->display_order }}</td>
                         <td class="px-4 sm:px-6 py-5 text-right">
@@ -180,6 +185,15 @@
                                         @endif
                                     </button>
                                 </form>
+                                @if($member->email && !$member->user_id)
+                                    <form action="{{ route('admin.team-members.generate-login', $member) }}" method="POST" class="inline-block" onsubmit="return confirm('Generate portal login for {{ addslashes($member->name) }}? They will be able to log in to the candidate dashboard (except aptitude test and self interview).');">
+                                        @csrf
+                                        <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-teal-600 hover:bg-teal-50 transition-colors" title="Generate login for candidate portal">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                                            <span class="hidden sm:inline">Generate login</span>
+                                        </button>
+                                    </form>
+                                @endif
                                 <a href="{{ route('admin.team-members.show', $member) }}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>

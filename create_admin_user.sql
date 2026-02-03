@@ -3,10 +3,12 @@
 -- Password: @Kenya1234
 -- Role: admin
 
--- IMPORTANT: First generate the password hash by running:
--- php artisan tinker
--- Then type: Hash::make('@Kenya1234')
--- Copy the output hash and replace YOUR_PASSWORD_HASH_HERE below
+-- EASIEST: Generate ready-to-run SQL with hash pre-filled (no manual steps):
+--   php generate_admin_sql.php admin
+-- Then pipe to MySQL or save to a file and run.
+
+-- ALTERNATIVE (manual hash): Generate hash with: php artisan tinker → Hash::make('@Kenya1234')
+-- Then replace YOUR_PASSWORD_HASH_HERE below with that hash.
 
 INSERT INTO `users` (
     `name`, 
@@ -21,7 +23,7 @@ INSERT INTO `users` (
 ) VALUES (
     'Fortress Admin',
     'admin@fortresslenders.com',
-    '$2y$12$YOUR_PASSWORD_HASH_HERE', -- Replace with hash from: Hash::make('@Kenya1234')
+    '$2y$12$YOUR_PASSWORD_HASH_HERE',
     NOW(),
     1,
     0,
@@ -35,6 +37,6 @@ INSERT INTO `users` (
     `role` = VALUES(`role`),
     `updated_at` = NOW();
 
--- OR use the PHP script instead (easier - it will generate the hash automatically):
+-- Or create/update user directly in the database via PHP (no SQL needed):
 -- php update_admin_password.php
 

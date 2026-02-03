@@ -1,13 +1,14 @@
 -- SQL queries to create both Admin and HR Manager users
 -- Both use password: @Kenya1234
--- 
--- STEP 1: Generate password hash first
--- Run: php artisan tinker
--- Then: Hash::make('@Kenya1234')
--- Copy the hash and replace YOUR_PASSWORD_HASH_HERE in both queries below
+
+-- EASIEST: Generate ready-to-run SQL with hash pre-filled (no copy/paste):
+--   php generate_admin_sql.php
+--   php generate_admin_sql.php both
+-- Then: php generate_admin_sql.php | mysql -u root -p your_database
+--   or: php generate_admin_sql.php > users.sql  then run users.sql
 
 -- ============================================
--- Admin User
+-- Admin User (replace YOUR_PASSWORD_HASH_HERE if not using generator)
 -- ============================================
 INSERT INTO `users` (
     `name`, 
@@ -22,7 +23,7 @@ INSERT INTO `users` (
 ) VALUES (
     'Fortress Admin',
     'admin@fortresslenders.com',
-    '$2y$12$YOUR_PASSWORD_HASH_HERE', -- Replace with hash from Hash::make('@Kenya1234')
+    '$2y$12$YOUR_PASSWORD_HASH_HERE',
     NOW(),
     1,
     0,
@@ -37,7 +38,7 @@ INSERT INTO `users` (
     `updated_at` = NOW();
 
 -- ============================================
--- HR Manager User
+-- HR Manager User (use same hash as above if manual)
 -- ============================================
 INSERT INTO `users` (
     `name`, 
@@ -52,7 +53,7 @@ INSERT INTO `users` (
 ) VALUES (
     'HR Manager',
     'hr@fortresslenders.com',
-    '$2y$12$YOUR_PASSWORD_HASH_HERE', -- Use the SAME hash as above
+    '$2y$12$YOUR_PASSWORD_HASH_HERE',
     NOW(),
     0,
     0,
@@ -67,8 +68,7 @@ INSERT INTO `users` (
     `updated_at` = NOW();
 
 -- ============================================
--- EASIER METHOD: Use PHP script instead
+-- EASIER: Use PHP to create/update users directly (no SQL)
 -- ============================================
--- Just run: php update_admin_password.php
--- This will create/update both users automatically with the correct password hash
+-- php update_admin_password.php
 

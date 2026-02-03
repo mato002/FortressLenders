@@ -6,7 +6,6 @@ use App\Models\JobApplication;
 use App\Models\Candidate;
 use App\Models\JobPost;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class CandidateDashboardController extends Controller
@@ -16,10 +15,10 @@ class CandidateDashboardController extends Controller
      */
     public function applications(Request $request)
     {
-        $candidate = Auth::guard('candidate')->user();
+        $candidate = current_portal_candidate();
         
-        if (!$candidate) {
-            abort(403, 'Unauthorized. Please log in as a candidate.');
+        if (! $candidate) {
+            abort(403, 'Unauthorized. Please log in to the candidate portal.');
         }
         
         try {
@@ -84,10 +83,10 @@ class CandidateDashboardController extends Controller
      */
     public function index(Request $request)
     {
-        $candidate = Auth::guard('candidate')->user();
+        $candidate = current_portal_candidate();
         
-        if (!$candidate) {
-            abort(403, 'Unauthorized. Please log in as a candidate.');
+        if (! $candidate) {
+            abort(403, 'Unauthorized. Please log in to the candidate portal.');
         }
         
         try {
@@ -216,10 +215,10 @@ class CandidateDashboardController extends Controller
      */
     public function show(JobApplication $application)
     {
-        $candidate = Auth::guard('candidate')->user();
+        $candidate = current_portal_candidate();
         
-        if (!$candidate) {
-            abort(403, 'Unauthorized. Please log in as a candidate.');
+        if (! $candidate) {
+            abort(403, 'Unauthorized. Please log in to the candidate portal.');
         }
         
         // Ensure the application belongs to the logged-in candidate

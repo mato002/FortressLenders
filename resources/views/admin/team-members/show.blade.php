@@ -104,10 +104,34 @@
         </div>
 
         <div class="space-y-6">
+            @if(session('generated_password'))
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+                    <h3 class="text-lg font-semibold text-amber-900 mb-2">Portal login created</h3>
+                    <p class="text-sm text-amber-800 mb-3">Share these credentials with the team member. They can log in at the main login page to access the candidate dashboard (bio data, documents, appraisals, etc.). Aptitude tests and self interviews are not available for employees.</p>
+                    <dl class="text-sm space-y-1">
+                        <div><dt class="inline font-medium text-amber-900">Email:</dt> <dd class="inline">{{ session('generated_email') }}</dd></div>
+                        <div><dt class="inline font-medium text-amber-900">Password:</dt> <dd class="inline font-mono bg-amber-100 px-2 py-0.5 rounded">{{ session('generated_password') }}</dd></div>
+                    </dl>
+                    <p class="text-xs text-amber-700 mt-3">Please save this password; it will not be shown again.</p>
+                </div>
+            @endif
+
             <!-- Quick Actions -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                 <div class="space-y-3">
+                    @if($teamMember->email && !$teamMember->user_id)
+                        <form action="{{ route('admin.team-members.generate-login', $teamMember) }}" method="POST" onsubmit="return confirm('Generate portal login for this team member? They will be able to log in to the candidate dashboard.');">
+                            @csrf
+                            <button type="submit" class="w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-center font-semibold transition">
+                                Generate portal login
+                            </button>
+                        </form>
+                    @elseif($teamMember->user_id)
+                        <p class="text-sm text-gray-600 py-2">This team member has portal access. They log in with their email at the main login page.</p>
+                    @else
+                        <p class="text-sm text-gray-500 py-2">Add an email to this team member to enable &quot;Generate portal login&quot;.</p>
+                    @endif
                     <a href="{{ route('admin.team-members.edit', $teamMember) }}" class="block w-full px-4 py-2 bg-teal-50 text-teal-800 rounded-lg hover:bg-teal-100 text-center font-semibold transition">
                         Edit Member
                     </a>

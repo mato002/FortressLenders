@@ -376,6 +376,7 @@
         }
     </script>
 
+    @if(!is_portal_employee())
     <!-- Aptitude Test Modal -->
     <div id="aptitudeTestModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -411,7 +412,7 @@
     </div>
 
     <script>
-        // Aptitude Test Modal Functions
+        // Aptitude Test Modal Functions (only for candidates; employees do not see this block)
         function openAptitudeTestModal(applicationId) {
             const modal = document.getElementById('aptitudeTestModal');
             const content = document.getElementById('aptitudeTestContent');
@@ -492,6 +493,7 @@
             }
         });
     </script>
+    @endif
 
     @stack('scripts')
 </body>

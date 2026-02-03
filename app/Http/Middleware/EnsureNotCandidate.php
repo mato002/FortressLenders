@@ -17,9 +17,9 @@ class EnsureNotCandidate
     {
         $user = auth()->user();
         
-        // Block candidates from accessing admin/employee areas
-        if ($user && ($user->role === 'candidate' || ($user->role === 'user' && !$user->is_admin))) {
-            abort(403, 'Access denied. This area is for employees only.');
+        // Block candidates and portal-only employees from accessing admin
+        if ($user && ($user->role === 'candidate' || $user->role === 'employee' || ($user->role === 'user' && !$user->is_admin))) {
+            abort(403, 'Access denied. This area is for staff only. Use the candidate portal if you are an employee.');
         }
         
         return $next($request);
