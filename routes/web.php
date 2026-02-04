@@ -64,6 +64,13 @@ Route::get('/news', [PostController::class, 'index'])->name('posts.index');
 Route::get('/news/{post:slug}', [PostController::class, 'show'])->name('posts.show');
 Route::get('/ceo-message', [CeoMessageController::class, 'index'])->name('ceo-message');
 
+// Team Onboarding (public form for company members to self-register)
+Route::get('/team-onboarding', [\App\Http\Controllers\TeamOnboardingController::class, 'create'])->name('team.onboarding');
+Route::post('/team-onboarding', [\App\Http\Controllers\TeamOnboardingController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('team.onboarding.store');
+Route::get('/team-onboarding/success', [\App\Http\Controllers\TeamOnboardingController::class, 'success'])->name('team.onboarding.success');
+
 // Legal / Terms
 Route::view('/terms', 'terms')->name('terms');
 

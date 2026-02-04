@@ -74,6 +74,24 @@
         </div>
     </div>
 
+    <!-- Share onboarding link -->
+    <div class="mb-6 bg-teal-50 border border-teal-200 rounded-2xl p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h3 class="font-semibold text-teal-900 mb-1">Team Onboarding Form</h3>
+                <p class="text-sm text-teal-800">Share this link with company members to let them add their own profiles. Submissions will appear here as pending (hidden) until you activate them.</p>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <input type="text" id="onboarding-url" readonly value="{{ route('team.onboarding') }}"
+                    class="flex-1 min-w-0 px-4 py-2.5 border border-teal-200 rounded-xl bg-white text-sm text-gray-700 font-mono">
+                <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('onboarding-url').value); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy link', 2000)"
+                    class="px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-semibold whitespace-nowrap">
+                    Copy link
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Filters -->
     <form method="GET" action="{{ route('admin.team-members.index') }}" class="mb-6">
         <div class="bg-white rounded-2xl shadow-md border border-slate-200/60 p-5">
