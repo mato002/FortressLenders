@@ -309,8 +309,289 @@ class JobApplicationController extends Controller
             'hired' => JobApplication::where('candidate_id', $candidate->id)->where('status', 'hired')->count(),
         ];
         
+        // Calculate profile completion percentage
+        $score = 0;
+        $total = 3;
+        
+        // Email verified
+        if ($candidate->email_verified_at) $score++;
+        
+        // Bio data complete
+        $bioDataComplete = $candidate->phone && $candidate->address && $candidate->city && $candidate->country;
+        if ($bioDataComplete) $score++;
+        
+        // Documents uploaded
+        $documentsUploaded = \App\Models\CandidateDocument::where('candidate_id', $candidate->id)->exists();
+        if ($documentsUploaded) $score++;
+        
+        $completionPercentage = (int) (($score / $total) * 100);
+        
+        // Get recent applications (last 5)
+        $recentApplications = JobApplication::where('candidate_id', $candidate->id)
+            ->select('id', 'job_post_id', 'status', 'created_at', 'candidate_id')
+            ->with(['jobPost:id,title,company_id', 'jobPost.company:id,name'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+        
+        // Get applications requiring action
+        $actionRequired = collect();
+        try {
+            $actionRequired = JobApplication::where('candidate_id', $candidate->id)
+                ->where(function($query) {
+                    $query->where(function($q) {
+                        $q->whereIn('status', ['sieving_passed', 'pending_manual_review'])
+                          ->whereNull('aptitude_test_completed_at');
+                    })
+                    ->orWhere(function($q) {
+                        $q->where('aptitude_test_passed', true)
+                          ->whereNull('self_interview_completed_at')
+                          ->whereNotIn('status', ['stage_2_passed', 'hired', 'sieving_rejected']);
+                    });
+                })
+                ->select('id', 'job_post_id', 'status', 'candidate_id', 'aptitude_test_completed_at', 'aptitude_test_passed', 'self_interview_completed_at')
+                ->with(['jobPost:id,title'])
+                ->limit(5)
+                ->get();
+        } catch (\Exception $e) {
+            // If columns don't exist, try simpler query
+            try {
+                $actionRequired = JobApplication::where('candidate_id', $candidate->id)
+                    ->whereIn('status', ['sieving_passed', 'pending_manual_review'])
+                    ->whereNull('aptitude_test_completed_at')
+                    ->select('id', 'job_post_id', 'status', 'candidate_id')
+                    ->with(['jobPost:id,title'])
+                    ->limit(5)
+                    ->get();
+            } catch (\Exception $e2) {
+                $actionRequired = collect();
+            }
+        }
+        
+        // Get upcoming activities
+        $upcomingActivities = collect();
+        try {
+            $needingTest = JobApplication::where('candidate_id', $candidate->id)
+                ->whereIn('status', ['sieving_passed', 'pending_manual_review'])
+                ->whereNull('aptitude_test_completed_at')
+                ->select('id', 'job_post_id', 'status', 'candidate_id')
+                ->with(['jobPost:id,title'])
+                ->limit(3)
+                ->get();
+            
+            foreach ($needingTest as $app) {
+                if ($app->jobPost) {
+                    $upcomingActivities->push([
+                        'type' => 'aptitude',
+                        'job_title' => $app->jobPost->title,
+                        'application_id' => $app->id,
+                        'time_remaining' => 'soon'
+                    ]);
+                }
+            }
+        
+            try {
+                $needingInterview = JobApplication::where('candidate_id', $candidate->id)
+                    ->where('aptitude_test_passed', true)
+                    ->whereNull('self_interview_completed_at')
+                    ->whereNotIn('status', ['stage_2_passed', 'hired', 'sieving_rejected'])
+                    ->select('id', 'job_post_id', 'status', 'candidate_id')
+                    ->with(['jobPost:id,title'])
+                    ->limit(3)
+                    ->get();
+                
+                foreach ($needingInterview as $app) {
+                    if ($app->jobPost) {
+                        $upcomingActivities->push([
+                            'type' => 'interview',
+                            'job_title' => $app->jobPost->title,
+                            'application_id' => $app->id,
+                            'time_remaining' => 'soon'
+                        ]);
+                    }
+                }
+            } catch (\Exception $e) {
+                // Columns don't exist, skip
+            }
+        } catch (\Exception $e) {
+            // Columns don't exist, return empty collection
+        }
+        
+        // Get active applications for timeline
+        $activeApplications = JobApplication::where('candidate_id', $candidate->id)
+            ->whereNotIn('status', ['sieving_rejected'])
+            ->select('id', 'job_post_id', 'status', 'created_at', 'candidate_id', 'aptitude_test_completed_at', 'self_interview_completed_at')
+            ->with(['jobPost:id,title,company_id', 'jobPost.company:id,name'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+        
+        // Get document reminders
+        $documentReminders = collect();
+        $activeApps = JobApplication::where('candidate_id', $candidate->id)
+            ->whereNotIn('status', ['sieving_rejected', 'hired'])
+            ->select('id', 'job_post_id', 'status', 'candidate_id')
+            ->with(['jobPost:id,title'])
+            ->limit(10)
+            ->get();
+        
+        $uploadedDocs = \App\Models\CandidateDocument::where('candidate_id', $candidate->id)
+            ->pluck('document_type')
+            ->toArray();
+        
+        $requiredDocs = ['Resume', 'Cover Letter'];
+        $missingDocs = array_diff($requiredDocs, $uploadedDocs);
+        
+        if (count($missingDocs) > 0) {
+            foreach ($activeApps as $app) {
+                if (!$app->jobPost) {
+                    continue;
+                }
+                
+                $documentReminders->push([
+                    'job_title' => $app->jobPost->title,
+                    'missing_docs' => $missingDocs
+                ]);
+                
+                if ($documentReminders->count() >= 5) {
+                    break;
+                }
+            }
+        }
+        
+        // Get performance metrics
+        $performanceMetrics = [
+            'total_applications' => 0,
+            'passed_applications' => 0,
+            'success_rate' => 0,
+            'avg_aptitude_score' => 0,
+            'tests_completed' => 0,
+            'completed_tests' => 0,
+            'pending_tests' => 0,
+        ];
+        
+        try {
+            $metricsQuery = JobApplication::where('candidate_id', $candidate->id)
+                ->selectRaw('
+                    COUNT(*) as total_applications,
+                    SUM(CASE WHEN status IN ("sieving_passed", "pending_manual_review", "stage_2_passed", "hired") THEN 1 ELSE 0 END) as passed_applications
+                ')
+                ->first();
+            
+            $performanceMetrics['total_applications'] = (int) ($metricsQuery->total_applications ?? 0);
+            $performanceMetrics['passed_applications'] = (int) ($metricsQuery->passed_applications ?? 0);
+            
+            if ($performanceMetrics['total_applications'] > 0) {
+                $performanceMetrics['success_rate'] = round(($performanceMetrics['passed_applications'] / $performanceMetrics['total_applications']) * 100, 1);
+            }
+            
+            try {
+                $testsQuery = JobApplication::where('candidate_id', $candidate->id)
+                    ->selectRaw('
+                        SUM(CASE WHEN aptitude_test_completed_at IS NOT NULL THEN 1 ELSE 0 END) as tests_completed,
+                        SUM(CASE WHEN status IN ("sieving_passed", "pending_manual_review") AND aptitude_test_completed_at IS NULL THEN 1 ELSE 0 END) as pending_tests
+                    ')
+                    ->first();
+                
+                $performanceMetrics['tests_completed'] = (int) ($testsQuery->tests_completed ?? 0);
+                $performanceMetrics['pending_tests'] = (int) ($testsQuery->pending_tests ?? 0);
+                $performanceMetrics['completed_tests'] = $performanceMetrics['tests_completed'];
+            } catch (\Exception $e) {
+                // Columns don't exist, keep defaults
+            }
+        } catch (\Exception $e) {
+            // If query fails, return defaults
+        }
+        
+        // Get recent activity feed
+        $activityFeed = collect();
+        $recentApps = JobApplication::where('candidate_id', $candidate->id)
+            ->select('id', 'job_post_id', 'status', 'created_at', 'candidate_id', 'aptitude_test_completed_at', 'self_interview_completed_at')
+            ->with(['jobPost:id,title'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+        
+        foreach ($recentApps as $app) {
+            if (!$app->jobPost) {
+                continue;
+            }
+            
+            $activityFeed->push([
+                'type' => 'application',
+                'title' => 'Applied to ' . $app->jobPost->title,
+                'description' => 'Status: ' . ucfirst(str_replace('_', ' ', $app->status)),
+                'time' => $app->created_at->diffForHumans(),
+                'timestamp' => $app->created_at->timestamp,
+                'link' => route('candidate.application.show', $app)
+            ]);
+            
+            try {
+                if (isset($app->aptitude_test_completed_at) && $app->aptitude_test_completed_at) {
+                    $activityFeed->push([
+                        'type' => 'test_completed',
+                        'title' => 'Completed aptitude test for ' . $app->jobPost->title,
+                        'time' => $app->aptitude_test_completed_at->diffForHumans(),
+                        'timestamp' => $app->aptitude_test_completed_at->timestamp,
+                        'link' => route('candidate.application.show', $app)
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // Column doesn't exist, skip
+            }
+            
+            try {
+                if (isset($app->self_interview_completed_at) && $app->self_interview_completed_at) {
+                    $activityFeed->push([
+                        'type' => 'interview_completed',
+                        'title' => 'Completed self interview for ' . $app->jobPost->title,
+                        'time' => $app->self_interview_completed_at->diffForHumans(),
+                        'timestamp' => $app->self_interview_completed_at->timestamp,
+                        'link' => route('candidate.application.show', $app)
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // Column doesn't exist, skip
+            }
+        }
+        
+        $activityFeed = $activityFeed->sortByDesc('timestamp')->take(5)->values();
+        
+        // Get recommended jobs
+        $appliedDepartments = JobApplication::where('candidate_id', $candidate->id)
+            ->join('job_posts', 'job_applications.job_post_id', '=', 'job_posts.id')
+            ->select('job_posts.department')
+            ->whereNotNull('job_posts.department')
+            ->distinct()
+            ->limit(5)
+            ->pluck('department')
+            ->filter()
+            ->unique()
+            ->take(5);
+        
+        if ($appliedDepartments->isEmpty()) {
+            $recommendedJobs = \App\Models\JobPost::where('is_active', true)
+                ->select('id', 'title', 'department', 'company_id', 'created_at')
+                ->with('company:id,name')
+                ->orderBy('created_at', 'desc')
+                ->limit(3)
+                ->get();
+        } else {
+            $recommendedJobs = \App\Models\JobPost::where('is_active', true)
+                ->whereIn('department', $appliedDepartments->toArray())
+                ->select('id', 'title', 'department', 'company_id', 'created_at')
+                ->with('company:id,name')
+                ->orderBy('created_at', 'desc')
+                ->limit(3)
+                ->get();
+        }
+        
         // Pass admin flag to view
-        return view('candidate.dashboard', compact('applications', 'stats', 'candidate'))->with('isAdminView', true);
+        return view('candidate.dashboard', compact(
+            'applications', 'stats', 'candidate', 'completionPercentage', 'bioDataComplete', 'documentsUploaded',
+            'recentApplications', 'actionRequired', 'upcomingActivities', 'activeApplications',
+            'documentReminders', 'performanceMetrics', 'activityFeed', 'recommendedJobs'
+        ))->with('isAdminView', true);
     }
 
     public function sendMessage(Request $request, JobApplication $application): RedirectResponse
@@ -1276,6 +1557,50 @@ class JobApplicationController extends Controller
                 'error' => $e->getMessage()
             ]);
             return back()->withErrors(['error' => 'Failed to queue processing: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Re-run AI sieving evaluation for an application
+     */
+    public function resieve(JobApplication $application): RedirectResponse
+    {
+        $this->checkApplicationAccess($application);
+        
+        try {
+            // Check token availability before processing
+            $user = auth()->user();
+            $company = $user && $user->isClient() && $user->company_id 
+                ? $user->company 
+                : \App\Models\Company::first();
+            if ($company) {
+                $tokenService = app(\App\Services\TokenService::class);
+                $estimatedTokens = $tokenService->estimateTokens('scoring', 5000);
+                
+                if (!$tokenService->hasEnoughTokens($company->id, $estimatedTokens)) {
+                    return back()->withErrors([
+                        'error' => 'Insufficient tokens available. Please purchase more tokens to use AI features.'
+                    ]);
+                }
+            }
+            
+            // Re-run sieving evaluation
+            $sievingService = new \App\Services\AISievingService();
+            $sievingService->evaluate($application);
+            
+            return back()->with('success', 'AI sieving re-evaluated successfully!');
+        } catch (\Exception $e) {
+            \Log::error('Failed to re-run AI sieving', [
+                'application_id' => $application->id,
+                'error' => $e->getMessage()
+            ]);
+            
+            $errorMessage = $e->getMessage();
+            if (str_contains($errorMessage, 'Insufficient tokens')) {
+                return back()->withErrors(['error' => $errorMessage]);
+            }
+            
+            return back()->withErrors(['error' => 'Failed to re-run sieving: ' . $errorMessage]);
         }
     }
 }

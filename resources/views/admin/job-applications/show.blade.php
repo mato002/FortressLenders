@@ -379,6 +379,57 @@
 
                     <!-- History Tab -->
                     <div id="content-history" class="tab-content hidden">
+                        <!-- Email & Account Events -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
+                            <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Email & Account Events</h2>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-slate-50 rounded-xl p-4">
+                                    <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Application confirmation email</p>
+                                    @if($application->confirmation_email_sent_at)
+                                        <p class="text-sm font-semibold text-slate-900 mt-1">Sent</p>
+                                        <p class="text-xs text-slate-500">{{ $application->confirmation_email_sent_at->format('M d, Y H:i') }}</p>
+                                    @else
+                                        <p class="text-sm font-semibold text-slate-900 mt-1">Not recorded</p>
+                                        <p class="text-xs text-slate-500">If email sending is enabled, this should update on submit.</p>
+                                    @endif
+                                </div>
+
+                                <div class="bg-slate-50 rounded-xl p-4">
+                                    <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Sieving passed / Aptitude invite</p>
+                                    @if($application->sieving_passed_email_sent_at)
+                                        <p class="text-sm font-semibold text-slate-900 mt-1">Sent</p>
+                                        <p class="text-xs text-slate-500">{{ $application->sieving_passed_email_sent_at->format('M d, Y H:i') }}</p>
+                                    @else
+                                        <p class="text-sm font-semibold text-slate-900 mt-1">Not sent yet</p>
+                                        <p class="text-xs text-slate-500">Will send automatically when status becomes <span class="font-semibold">Sieving Passed</span>.</p>
+                                    @endif
+                                </div>
+
+                                <div class="bg-slate-50 rounded-xl p-4">
+                                    <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Candidate account</p>
+                                    @if($application->candidate)
+                                        <p class="text-sm font-semibold text-slate-900 mt-1">Linked</p>
+                                        <p class="text-xs text-slate-500">Candidate #{{ $application->candidate->id }} ({{ $application->candidate->email }})</p>
+                                    @else
+                                        <p class="text-sm font-semibold text-slate-900 mt-1">Not created / linked</p>
+                                        <p class="text-xs text-slate-500">Will be created automatically after <span class="font-semibold">Sieving Passed</span>.</p>
+                                    @endif
+                                </div>
+
+                                <div class="bg-slate-50 rounded-xl p-4">
+                                    <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Login credentials email</p>
+                                    @if($application->candidate_credentials_sent_at)
+                                        <p class="text-sm font-semibold text-slate-900 mt-1">Sent</p>
+                                        <p class="text-xs text-slate-500">{{ $application->candidate_credentials_sent_at->format('M d, Y H:i') }}</p>
+                                    @else
+                                        <p class="text-sm font-semibold text-slate-900 mt-1">Not sent yet</p>
+                                        <p class="text-xs text-slate-500">Sent automatically after <span class="font-semibold">Sieving Passed</span> when an account is created/reset.</p>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Status History -->
                         @if($application->statusHistories && $application->statusHistories->count() > 0)
                             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
@@ -1010,9 +1061,17 @@
                 @endif
 
                 <!-- AI Sieving Decision -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide">AI Sieving Decision</h2>
+                        <form method="POST" action="{{ route('admin.job-applications.resieve', $application) }}" class="inline resieve-form">
+                            @csrf
+                            <button type="submit" class="px-3 py-1.5 text-xs font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                                Re-Run Sieving
+                            </button>
+                        </form>
+                    </div>
                 @if($application->aiSievingDecision)
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
-                        <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">AI Sieving Decision</h2>
                         <div class="space-y-4">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -1077,8 +1136,12 @@
                                 </div>
                             @endif
                         </div>
+                @else
+                    <div class="bg-slate-50 rounded-lg p-4 text-center">
+                        <p class="text-sm text-slate-600 mb-3">No sieving decision yet. Click "Re-Run Sieving" to evaluate this application.</p>
                     </div>
                 @endif
+                </div>
 
                 <!-- Candidate Account Status -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-6">
@@ -1198,6 +1261,52 @@
                             Update Status
                         </button>
                     </form>
+                </div>
+
+                <!-- Application Confirmation Email Status -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
+                    <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">Application Confirmation Email</h2>
+                    @if($application->confirmation_email_sent_at)
+                        <div class="mb-4 p-3 rounded-lg bg-green-50 border border-green-200">
+                            <div class="flex items-start gap-2">
+                                <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div class="flex-1">
+                                    <p class="text-sm font-semibold text-green-800">Email Sent</p>
+                                    <p class="text-xs text-green-700 mt-1">
+                                        Sent on {{ $application->confirmation_email_sent_at->format('M d, Y g:i A') }}
+                                        ({{ $application->confirmation_email_sent_at->diffForHumans() }})
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        @php
+                            $hoursSinceSent = $application->confirmation_email_sent_at->diffInHours(now());
+                            $canResend = $hoursSinceSent >= 24;
+                        @endphp
+                        @if($canResend)
+                            <p class="text-xs text-slate-500 text-center mb-2">
+                                You can resend the confirmation email now (24+ hours have passed)
+                            </p>
+                        @else
+                            <p class="text-xs text-slate-500 text-center mb-2">
+                                Can resend in {{ 24 - $hoursSinceSent }} hour(s)
+                            </p>
+                        @endif
+                    @else
+                        <div class="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200">
+                            <div class="flex items-start gap-2">
+                                <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <div class="flex-1">
+                                    <p class="text-sm font-semibold text-amber-800">Email Not Sent</p>
+                                    <p class="text-xs text-amber-700 mt-1">The application confirmation email has not been sent yet.</p>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Send Confirmation Email -->
@@ -1531,7 +1640,11 @@
                         combineDateTime();
                         if (!hiddenInput.value) {
                             e.preventDefault();
-                            alert('Please select both date and time for the interview.');
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Missing Information',
+                                text: 'Please select both date and time for the interview.'
+                            });
                             return false;
                         }
                     });
@@ -1658,22 +1771,22 @@
 
     <!-- Aptitude Test Results Modal -->
     @if($application->aptitudeTestSession && $application->aptitudeTestSession->completed_at && $questions->count() > 0)
-        <div id="aptitudeResultsModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div id="aptitudeResultsModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" style="touch-action: pan-y;">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-2 sm:px-4 pb-4 sm:pb-20 text-center sm:block sm:p-0">
                 <!-- Background overlay -->
                 <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeAptitudeResultsModal()"></div>
 
                 <!-- Modal panel -->
-                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="inline-block align-bottom bg-white rounded-lg sm:rounded-2xl text-left overflow-hidden shadow-xl transform transition-all w-full max-w-full sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full mx-2 sm:mx-auto">
+                    <div class="bg-white px-3 sm:px-4 md:px-6 pt-4 sm:pt-5 pb-4 sm:pb-4 max-h-[90vh] sm:max-h-none flex flex-col">
                         <!-- Header -->
-                        <div class="flex items-center justify-between mb-6">
-                            <div>
-                                <h3 class="text-2xl font-bold text-gray-900" id="modal-title">Aptitude Test Detailed Results</h3>
-                                <p class="text-sm text-gray-600 mt-1">Position: {{ $application->jobPost->title ?? 'N/A' }}</p>
+                        <div class="flex items-start sm:items-center justify-between mb-4 sm:mb-6 flex-shrink-0">
+                            <div class="flex-1 pr-2">
+                                <h3 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 break-words" id="modal-title">Aptitude Test Detailed Results</h3>
+                                <p class="text-xs sm:text-sm text-gray-600 mt-1 break-words">Position: {{ $application->jobPost->title ?? 'N/A' }}</p>
                             </div>
-                            <button type="button" onclick="closeAptitudeResultsModal()" class="text-gray-400 hover:text-gray-500">
-                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <button type="button" onclick="closeAptitudeResultsModal()" class="text-gray-400 hover:text-gray-500 flex-shrink-0 ml-2">
+                                <svg class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
@@ -1683,26 +1796,26 @@
                         @php
                             $session = $application->aptitudeTestSession;
                         @endphp
-                        <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-6 border border-teal-200">
-                                <p class="text-sm font-medium text-teal-700 mb-2">Your Score</p>
-                                <p class="text-4xl font-bold text-teal-900">{{ $session->total_score ?? 0 }}</p>
-                                <p class="text-sm text-teal-600 mt-1">out of {{ $session->total_possible_score ?? 0 }}</p>
+                        <div class="mb-4 sm:mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 flex-shrink-0">
+                            <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-teal-200">
+                                <p class="text-xs sm:text-sm font-medium text-teal-700 mb-2">Your Score</p>
+                                <p class="text-2xl sm:text-3xl md:text-4xl font-bold text-teal-900">{{ $session->total_score ?? 0 }}</p>
+                                <p class="text-xs sm:text-sm text-teal-600 mt-1">out of {{ $session->total_possible_score ?? 0 }}</p>
                             </div>
                             
-                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-                                <p class="text-sm font-medium text-blue-700 mb-2">Pass Threshold</p>
-                                <p class="text-4xl font-bold text-blue-900">{{ $session->pass_threshold ?? 70 }}</p>
-                                <p class="text-sm text-blue-600 mt-1">points required</p>
+                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-blue-200">
+                                <p class="text-xs sm:text-sm font-medium text-blue-700 mb-2">Pass Threshold</p>
+                                <p class="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-900">{{ $session->pass_threshold ?? 70 }}</p>
+                                <p class="text-xs sm:text-sm text-blue-600 mt-1">points required</p>
                             </div>
                             
-                            <div class="bg-gradient-to-br {{ ($session->is_passed ?? $application->aptitude_test_passed) ? 'from-green-50 to-green-100 border-green-200' : 'from-red-50 to-red-100 border-red-200' }} rounded-xl p-6 border">
-                                <p class="text-sm font-medium {{ ($session->is_passed ?? $application->aptitude_test_passed) ? 'text-green-700' : 'text-red-700' }} mb-2">Result</p>
-                                <p class="text-4xl font-bold {{ ($session->is_passed ?? $application->aptitude_test_passed) ? 'text-green-900' : 'text-red-900' }}">
+                            <div class="bg-gradient-to-br {{ ($session->is_passed ?? $application->aptitude_test_passed) ? 'from-green-50 to-green-100 border-green-200' : 'from-red-50 to-red-100 border-red-200' }} rounded-lg sm:rounded-xl p-4 sm:p-6 border sm:col-span-2 md:col-span-1">
+                                <p class="text-xs sm:text-sm font-medium {{ ($session->is_passed ?? $application->aptitude_test_passed) ? 'text-green-700' : 'text-red-700' }} mb-2">Result</p>
+                                <p class="text-2xl sm:text-3xl md:text-4xl font-bold {{ ($session->is_passed ?? $application->aptitude_test_passed) ? 'text-green-900' : 'text-red-900' }}">
                                     {{ ($session->is_passed ?? $application->aptitude_test_passed) ? 'PASSED' : 'FAILED' }}
                                 </p>
                                 @if(isset($session->time_taken_seconds) && $session->time_taken_seconds)
-                                    <p class="text-sm {{ ($session->is_passed ?? $application->aptitude_test_passed) ? 'text-green-600' : 'text-red-600' }} mt-1">
+                                    <p class="text-xs sm:text-sm {{ ($session->is_passed ?? $application->aptitude_test_passed) ? 'text-green-600' : 'text-red-600' }} mt-1">
                                         Time: {{ gmdate('i:s', $session->time_taken_seconds) }}
                                     </p>
                                 @endif
@@ -1710,8 +1823,8 @@
                         </div>
 
                         <!-- Question Review -->
-                        <div class="max-h-[60vh] overflow-y-auto">
-                            <h4 class="text-xl font-semibold text-gray-800 mb-4">Question Review</h4>
+                        <div class="flex-1 overflow-y-auto -mx-3 sm:mx-0 px-3 sm:px-0" style="max-height: calc(90vh - 300px); min-height: 200px;">
+                            <h4 class="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">Question Review</h4>
                             
                             @php
                                 $sectionOrder = ['numerical', 'logical', 'verbal', 'scenario'];
@@ -1732,8 +1845,8 @@
                                             'scenario' => 'Section D: Job-Fit Scenarios'
                                         ];
                                     @endphp
-                                    <div class="mb-6">
-                                        <h5 class="text-lg font-semibold text-gray-700 mb-3">
+                                    <div class="mb-4 sm:mb-6">
+                                        <h5 class="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3 break-words">
                                             {{ $sectionTitles[$question->section] ?? ucfirst($question->section) }}
                                         </h5>
                                 @endif
@@ -1743,24 +1856,24 @@
                                     $isCorrect = strtolower(trim($userAnswer ?? '')) === strtolower(trim($question->correct_answer));
                                 @endphp
 
-                                <div class="mb-6 p-5 rounded-xl border-2 {{ $isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50' }}">
-                                    <div class="flex items-start justify-between mb-3">
-                                        <div class="flex items-center gap-2">
+                                <div class="mb-4 sm:mb-6 p-3 sm:p-5 rounded-lg sm:rounded-xl border-2 {{ $isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50' }}">
+                                    <div class="flex items-start justify-between mb-2 sm:mb-3">
+                                        <div class="flex items-center gap-2 flex-wrap">
                                             @if($isCorrect)
-                                                <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                                 </svg>
-                                                <span class="text-sm font-medium text-green-700">Correct (+{{ $question->points }} points)</span>
+                                                <span class="text-xs sm:text-sm font-medium text-green-700">Correct (+{{ $question->points }} points)</span>
                                             @else
-                                                <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                                                 </svg>
-                                                <span class="text-sm font-medium text-red-700">Incorrect (0 points)</span>
+                                                <span class="text-xs sm:text-sm font-medium text-red-700">Incorrect (0 points)</span>
                                             @endif
                                         </div>
                                     </div>
                                     
-                                    <p class="text-gray-900 font-medium mb-3">{{ $question->question }}</p>
+                                    <p class="text-sm sm:text-base text-gray-900 font-medium mb-2 sm:mb-3 break-words">{{ $question->question }}</p>
                                     
                                     <div class="space-y-2">
                                         @foreach($question->options as $key => $option)
@@ -1768,22 +1881,22 @@
                                                 $isUserAnswer = strtolower($key) === strtolower(trim($userAnswer ?? ''));
                                                 $isCorrectAnswer = strtolower($key) === strtolower(trim($question->correct_answer));
                                             @endphp
-                                            <div class="p-3 rounded-lg border-2 {{ $isCorrectAnswer ? 'border-green-400 bg-green-100' : ($isUserAnswer ? 'border-red-400 bg-red-100' : 'border-gray-200') }}">
-                                                <span class="font-semibold mr-2">{{ strtoupper($key) }}.</span>
-                                                {{ $option }}
+                                            <div class="p-2 sm:p-3 rounded-lg border-2 {{ $isCorrectAnswer ? 'border-green-400 bg-green-100' : ($isUserAnswer ? 'border-red-400 bg-red-100' : 'border-gray-200') }}">
+                                                <span class="font-semibold mr-2 text-xs sm:text-sm">{{ strtoupper($key) }}.</span>
+                                                <span class="text-xs sm:text-sm break-words">{{ $option }}</span>
                                                 @if($isCorrectAnswer)
-                                                    <span class="ml-2 text-green-700 font-medium">✓ Correct Answer</span>
+                                                    <span class="ml-2 text-xs sm:text-sm text-green-700 font-medium">✓ Correct Answer</span>
                                                 @endif
                                                 @if($isUserAnswer && !$isCorrectAnswer)
-                                                    <span class="ml-2 text-red-700 font-medium">✗ Your Answer</span>
+                                                    <span class="ml-2 text-xs sm:text-sm text-red-700 font-medium">✗ Your Answer</span>
                                                 @endif
                                             </div>
                                         @endforeach
                                     </div>
                                     
                                     @if($question->explanation && !$isCorrect)
-                                        <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                            <p class="text-sm text-blue-900">
+                                        <div class="mt-2 sm:mt-3 p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                            <p class="text-xs sm:text-sm text-blue-900 break-words">
                                                 <span class="font-semibold">Explanation:</span> {{ $question->explanation }}
                                             </p>
                                         </div>
@@ -1795,8 +1908,8 @@
                     </div>
 
                     <!-- Footer -->
-                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button type="button" onclick="closeAptitudeResultsModal()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    <div class="bg-gray-50 px-3 sm:px-4 md:px-6 py-3 sm:flex sm:flex-row-reverse flex-shrink-0">
+                        <button type="button" onclick="closeAptitudeResultsModal()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-sm sm:text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:ml-3 sm:w-auto">
                             Close
                         </button>
                     </div>
@@ -1830,48 +1943,48 @@
                 array_keys($selfSession->answers ?? [])
             )->get()->keyBy('id');
         @endphp
-        <div id="selfInterviewResultsModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="self-modal-title" role="dialog" aria-modal="true">
-            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div id="selfInterviewResultsModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="self-modal-title" role="dialog" aria-modal="true" style="touch-action: pan-y;">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-2 sm:px-4 pb-4 sm:pb-20 text-center sm:block sm:p-0">
                 <!-- Background overlay -->
                 <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closeSelfInterviewResultsModal()"></div>
 
                 <!-- Modal panel -->
-                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="inline-block align-bottom bg-white rounded-lg sm:rounded-2xl text-left overflow-hidden shadow-xl transform transition-all w-full max-w-full sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full mx-2 sm:mx-auto">
+                    <div class="bg-white px-3 sm:px-4 md:px-6 pt-4 sm:pt-5 pb-4 sm:pb-4 max-h-[90vh] sm:max-h-none flex flex-col">
                         <!-- Header -->
-                        <div class="flex items-center justify-between mb-6">
-                            <div>
-                                <h3 class="text-2xl font-bold text-gray-900" id="self-modal-title">Self Interview Detailed Results</h3>
-                                <p class="text-sm text-gray-600 mt-1">Position: {{ $application->jobPost->title ?? 'N/A' }}</p>
+                        <div class="flex items-start sm:items-center justify-between mb-4 sm:mb-6 flex-shrink-0">
+                            <div class="flex-1 pr-2">
+                                <h3 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 break-words" id="self-modal-title">Self Interview Detailed Results</h3>
+                                <p class="text-xs sm:text-sm text-gray-600 mt-1 break-words">Position: {{ $application->jobPost->title ?? 'N/A' }}</p>
                             </div>
-                            <button type="button" onclick="closeSelfInterviewResultsModal()" class="text-gray-400 hover:text-gray-500">
-                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <button type="button" onclick="closeSelfInterviewResultsModal()" class="text-gray-400 hover:text-gray-500 flex-shrink-0 ml-2">
+                                <svg class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
 
                         <!-- Score Summary -->
-                        <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-6 border border-teal-200">
-                                <p class="text-sm font-medium text-teal-700 mb-2">Rule-Based Score</p>
-                                <p class="text-4xl font-bold text-teal-900">{{ $selfSession->total_score ?? 0 }}</p>
-                                <p class="text-sm text-teal-600 mt-1">out of {{ $selfSession->total_possible_score ?? 0 }}</p>
+                        <div class="mb-4 sm:mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 flex-shrink-0">
+                            <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-teal-200">
+                                <p class="text-xs sm:text-sm font-medium text-teal-700 mb-2">Rule-Based Score</p>
+                                <p class="text-2xl sm:text-3xl md:text-4xl font-bold text-teal-900">{{ $selfSession->total_score ?? 0 }}</p>
+                                <p class="text-xs sm:text-sm text-teal-600 mt-1">out of {{ $selfSession->total_possible_score ?? 0 }}</p>
                             </div>
                             
-                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-                                <p class="text-sm font-medium text-blue-700 mb-2">Pass Threshold</p>
-                                <p class="text-4xl font-bold text-blue-900">{{ $selfSession->pass_threshold ?? 70 }}</p>
-                                <p class="text-sm text-blue-600 mt-1">points required</p>
+                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-blue-200">
+                                <p class="text-xs sm:text-sm font-medium text-blue-700 mb-2">Pass Threshold</p>
+                                <p class="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-900">{{ $selfSession->pass_threshold ?? 70 }}</p>
+                                <p class="text-xs sm:text-sm text-blue-600 mt-1">points required</p>
                             </div>
                             
-                            <div class="bg-gradient-to-br {{ $selfSession->is_passed ? 'from-green-50 to-green-100 border-green-200' : 'from-red-50 to-red-100 border-red-200' }} rounded-xl p-6 border">
-                                <p class="text-sm font-medium {{ $selfSession->is_passed ? 'text-green-700' : 'text-red-700' }} mb-2">Result</p>
-                                <p class="text-4xl font-bold {{ $selfSession->is_passed ? 'text-green-900' : 'text-red-900' }}">
+                            <div class="bg-gradient-to-br {{ $selfSession->is_passed ? 'from-green-50 to-green-100 border-green-200' : 'from-red-50 to-red-100 border-red-200' }} rounded-lg sm:rounded-xl p-4 sm:p-6 border sm:col-span-2 md:col-span-1">
+                                <p class="text-xs sm:text-sm font-medium {{ $selfSession->is_passed ? 'text-green-700' : 'text-red-700' }} mb-2">Result</p>
+                                <p class="text-2xl sm:text-3xl md:text-4xl font-bold {{ $selfSession->is_passed ? 'text-green-900' : 'text-red-900' }}">
                                     {{ $selfSession->is_passed ? 'PASSED' : 'FAILED' }}
                                 </p>
                                 @if(isset($selfSession->time_taken_seconds) && $selfSession->time_taken_seconds)
-                                    <p class="text-sm {{ $selfSession->is_passed ? 'text-green-600' : 'text-red-600' }} mt-1">
+                                    <p class="text-xs sm:text-sm {{ $selfSession->is_passed ? 'text-green-600' : 'text-red-600' }} mt-1">
                                         Time: {{ gmdate('i:s', $selfSession->time_taken_seconds) }}
                                     </p>
                                 @endif
@@ -1879,8 +1992,8 @@
                         </div>
 
                         <!-- Question Review -->
-                        <div class="max-h-[60vh] overflow-y-auto">
-                            <h4 class="text-xl font-semibold text-gray-800 mb-4">Answer Review</h4>
+                        <div class="flex-1 overflow-y-auto -mx-3 sm:mx-0 px-3 sm:px-0" style="max-height: calc(90vh - 300px); min-height: 200px;">
+                            <h4 class="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">Answer Review</h4>
 
                             @foreach($selfQuestions as $question)
                                 @php
@@ -1891,28 +2004,28 @@
                                         && strtolower(trim($userAnswer ?? '')) === strtolower(trim($question->correct_answer));
                                 @endphp
 
-                                <div class="mb-6 p-5 rounded-xl border-2 {{ $hasOptions ? ($isCorrect ? 'border-green-200 bg-green-50' : 'border-blue-200 bg-blue-50') : 'border-slate-200 bg-slate-50' }}">
-                                    <div class="flex items-start justify-between mb-3">
-                                        <div class="flex items-center gap-2">
+                                <div class="mb-4 sm:mb-6 p-3 sm:p-5 rounded-lg sm:rounded-xl border-2 {{ $hasOptions ? ($isCorrect ? 'border-green-200 bg-green-50' : 'border-blue-200 bg-blue-50') : 'border-slate-200 bg-slate-50' }}">
+                                    <div class="flex items-start justify-between mb-2 sm:mb-3">
+                                        <div class="flex items-center gap-2 flex-wrap">
                                             @if($hasOptions)
                                                 @if($isCorrect)
-                                                    <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                                     </svg>
-                                                    <span class="text-sm font-medium text-green-700">Preferred answer (+{{ $question->points }} points)</span>
+                                                    <span class="text-xs sm:text-sm font-medium text-green-700">Preferred answer (+{{ $question->points }} points)</span>
                                                 @else
-                                                    <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                                                     </svg>
-                                                    <span class="text-sm font-medium text-blue-700">Different from preferred answer</span>
+                                                    <span class="text-xs sm:text-sm font-medium text-blue-700">Different from preferred answer</span>
                                                 @endif
                                             @else
-                                                <span class="text-sm font-medium text-slate-700">Open‑ended question</span>
+                                                <span class="text-xs sm:text-sm font-medium text-slate-700">Open‑ended question</span>
                                             @endif
                                         </div>
                                     </div>
 
-                                    <p class="text-gray-900 font-medium mb-3">{{ $question->question }}</p>
+                                    <p class="text-sm sm:text-base text-gray-900 font-medium mb-2 sm:mb-3 break-words">{{ $question->question }}</p>
 
                                     @if($hasOptions)
                                         <div class="space-y-2">
@@ -1922,29 +2035,29 @@
                                                     $isCorrectAnswer = $question->correct_answer !== null &&
                                                         strtolower($key) === strtolower(trim($question->correct_answer));
                                                 @endphp
-                                                <div class="p-3 rounded-lg border-2 {{ $isCorrectAnswer ? 'border-green-400 bg-green-100' : ($isUserAnswer ? 'border-blue-400 bg-blue-100' : 'border-gray-200') }}">
-                                                    <span class="font-semibold mr-2">{{ strtoupper($key) }}.</span>
-                                                    {{ $option }}
+                                                <div class="p-2 sm:p-3 rounded-lg border-2 {{ $isCorrectAnswer ? 'border-green-400 bg-green-100' : ($isUserAnswer ? 'border-blue-400 bg-blue-100' : 'border-gray-200') }}">
+                                                    <span class="font-semibold mr-2 text-xs sm:text-sm">{{ strtoupper($key) }}.</span>
+                                                    <span class="text-xs sm:text-sm break-words">{{ $option }}</span>
                                                     @if($isCorrectAnswer)
-                                                        <span class="ml-2 text-green-700 font-medium">Preferred</span>
+                                                        <span class="ml-2 text-xs sm:text-sm text-green-700 font-medium">Preferred</span>
                                                     @endif
                                                     @if($isUserAnswer && !$isCorrectAnswer)
-                                                        <span class="ml-2 text-blue-700 font-medium">Candidate choice</span>
+                                                        <span class="ml-2 text-xs sm:text-sm text-blue-700 font-medium">Candidate choice</span>
                                                     @endif
                                                 </div>
                                             @endforeach
                                         </div>
                                     @else
-                                        <div class="mt-2 p-3 rounded-lg border border-slate-200 bg-white">
-                                            <p class="text-sm text-slate-700 whitespace-pre-line">
+                                        <div class="mt-2 p-2 sm:p-3 rounded-lg border border-slate-200 bg-white">
+                                            <p class="text-xs sm:text-sm text-slate-700 whitespace-pre-line break-words">
                                                 {{ $userAnswer ?: 'No response provided.' }}
                                             </p>
                                         </div>
                                     @endif
 
                                     @if($question->explanation)
-                                        <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                            <p class="text-sm text-blue-900">
+                                        <div class="mt-2 sm:mt-3 p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                            <p class="text-xs sm:text-sm text-blue-900 break-words">
                                                 <span class="font-semibold">Notes:</span> {{ $question->explanation }}
                                             </p>
                                         </div>
@@ -1953,10 +2066,10 @@
                             @endforeach
                         </div>
 
-                        <div class="mt-6 text-right">
+                        <div class="mt-4 sm:mt-6 text-right flex-shrink-0">
                             <button type="button"
                                     onclick="closeSelfInterviewResultsModal()"
-                                    class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:text-sm">
+                                    class="w-full sm:w-auto inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-sm sm:text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
                                 Close
                             </button>
                         </div>
@@ -2184,6 +2297,38 @@
             document.body.style.overflow = 'auto';
         }
 
+
+        // Handle resieve form with SweetAlert
+        const resieveForm = document.querySelector('.resieve-form');
+        if (resieveForm) {
+            resieveForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formElement = this;
+                
+                Swal.fire({
+                    title: 'Re-run Sieving?',
+                    text: 'Re-run sieving evaluation for this application?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#4f46e5',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, re-run',
+                    cancelButtonText: 'Cancel',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Processing...',
+                            html: 'Running AI sieving evaluation. This may take a moment.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => Swal.showLoading()
+                        });
+                        formElement.submit();
+                    }
+                });
+            });
+        }
 
         // Close modals on Escape key
         document.addEventListener('keydown', function(e) {

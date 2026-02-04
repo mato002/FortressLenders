@@ -42,6 +42,7 @@ Route::get('/', HomeController::class)->name('home');
 Route::get('/about', AboutPageController::class)->name('about');
 
 Route::get('/products', [ProductController::class, 'index'])->name('products');
+Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
 
 Route::get('/careers', [CareerController::class, 'index'])->name('careers.index');
 Route::get('/careers/{jobPost:slug}', [CareerController::class, 'show'])->name('careers.show');
@@ -64,13 +65,13 @@ Route::get('/news', [PostController::class, 'index'])->name('posts.index');
 Route::get('/news/{post:slug}', [PostController::class, 'show'])->name('posts.show');
 Route::get('/ceo-message', [CeoMessageController::class, 'index'])->name('ceo-message');
 
+
 // Team Onboarding (public form for company members to self-register)
 Route::get('/team-onboarding', [\App\Http\Controllers\TeamOnboardingController::class, 'create'])->name('team.onboarding');
 Route::post('/team-onboarding', [\App\Http\Controllers\TeamOnboardingController::class, 'store'])
     ->middleware('throttle:10,1')
     ->name('team.onboarding.store');
 Route::get('/team-onboarding/success', [\App\Http\Controllers\TeamOnboardingController::class, 'success'])->name('team.onboarding.success');
-
 // Legal / Terms
 Route::view('/terms', 'terms')->name('terms');
 
@@ -236,12 +237,15 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             Route::post('/ai-prompts/reset', [\App\Http\Controllers\Admin\AIPromptSettingsController::class, 'reset'])->name('ai-prompts.reset');
             
             // Team Members
-            Route::post('team-members/{team_member}/generate-login', [AdminTeamMemberController::class, 'generateLogin'])->name('team-members.generate-login');
-            Route::post('team-members/{team_member}/toggle-status', [AdminTeamMemberController::class, 'toggleStatus'])->name('team-members.toggle-status');
-            Route::resource('team-members', AdminTeamMemberController::class);
+            Route::post('team-members/bulk-action', [AdminTeamMemberController::class, 'bulkAction'])->name('team-members.bulk-action');
+            Route::post('team-members/{teamMember}/generate-login', [AdminTeamMemberController::class, 'generateLogin'])->name('team-members.generate-login');
+            Route::post('team-members/{teamMember}/regenerate-login', [AdminTeamMemberController::class, 'regenerateLogin'])->name('team-members.regenerate-login');
+            Route::post('team-members/{teamMember}/toggle-status', [AdminTeamMemberController::class, 'toggleStatus'])->name('team-members.toggle-status');
+            Route::resource('team-members', AdminTeamMemberController::class)->parameters(['team-members' => 'teamMember']);
             
             // Branches
             Route::resource('branches', AdminBranchController::class)->except(['show']);
+            Route::post('branches/{branch}/toggle-status', [AdminBranchController::class, 'toggleStatus'])->name('branches.toggle-status');
             
             // Activity Logs
             Route::resource('activity-logs', AdminActivityLogController::class)->only(['index', 'show']);
@@ -253,6 +257,7 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
         });
         
         Route::resource('products', AdminProductController::class);
+        Route::post('products/{product}/toggle-status', [AdminProductController::class, 'toggleStatus'])->name('products.toggle-status');
         Route::post('contact-messages/bulk-update-status', [AdminContactMessageController::class, 'bulkUpdateStatus'])->name('contact-messages.bulk-update-status');
         Route::post('contact-messages/bulk-delete', [AdminContactMessageController::class, 'bulkDelete'])->name('contact-messages.bulk-delete');
         Route::get('contact-messages/export', [AdminContactMessageController::class, 'export'])->name('contact-messages.export');
@@ -324,6 +329,9 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             // Self Interview Question Management
             Route::resource('self-interview', \App\Http\Controllers\Admin\SelfInterviewQuestionController::class)->except(['show']);
             Route::post('self-interview/{selfInterview}/toggle-status', [\App\Http\Controllers\Admin\SelfInterviewQuestionController::class, 'toggleStatus'])->name('self-interview.toggle-status');
+            Route::post('self-interview/bulk-activate', [\App\Http\Controllers\Admin\SelfInterviewQuestionController::class, 'bulkActivate'])->name('self-interview.bulk-activate');
+            Route::post('self-interview/bulk-deactivate', [\App\Http\Controllers\Admin\SelfInterviewQuestionController::class, 'bulkDeactivate'])->name('self-interview.bulk-deactivate');
+            Route::delete('self-interview/bulk-delete', [\App\Http\Controllers\Admin\SelfInterviewQuestionController::class, 'bulkDelete'])->name('self-interview.bulk-delete');
             
             // Job Applications Routes
             Route::prefix('job-applications')->name('job-applications.')->group(function () {
@@ -331,6 +339,7 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
                 Route::post('bulk-send-confirmation', [AdminJobApplicationController::class, 'sendBulkConfirmationEmails'])->name('bulk-send-confirmation');
                 Route::post('bulk-update-status', [AdminJobApplicationController::class, 'bulkUpdateStatus'])->name('bulk-update-status');
                 Route::post('bulk-delete', [AdminJobApplicationController::class, 'bulkDelete'])->name('bulk-delete');
+                Route::post('bulk-sieving', [AdminJobApplicationController::class, 'bulkSieving'])->name('bulk-sieving');
                 Route::get('export', [AdminJobApplicationController::class, 'export'])->name('export');
                 Route::get('calendar', [AdminJobApplicationController::class, 'interviewCalendar'])->name('calendar');
             });
@@ -338,6 +347,7 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             Route::get('job-applications/{application}/download-cv', [AdminJobApplicationController::class, 'downloadCv'])->name('job-applications.download-cv');
             Route::resource('job-applications', AdminJobApplicationController::class)->only(['index', 'show', 'destroy']);
             Route::post('job-applications/{application}/review', [AdminJobApplicationController::class, 'review'])->name('job-applications.review');
+            Route::post('job-applications/{application}/resieve', [AdminJobApplicationController::class, 'resieve'])->name('job-applications.resieve');
             Route::post('job-applications/{application}/schedule-interview', [AdminJobApplicationController::class, 'scheduleInterview'])->name('job-applications.schedule-interview');
             Route::post('job-applications/{application}/update-status', [AdminJobApplicationController::class, 'updateStatus'])->name('job-applications.update-status');
             Route::post('job-applications/{application}/send-message', [AdminJobApplicationController::class, 'sendMessage'])->middleware('throttle:10,1')->name('job-applications.send-message');
