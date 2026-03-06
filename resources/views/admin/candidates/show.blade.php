@@ -251,48 +251,151 @@
             </div>
 
             <!-- Documents -->
-            @if($candidate->documents->count() > 0)
             <div class="bg-white rounded-2xl shadow-md border border-slate-200/60 p-6">
-                <h2 class="text-xl font-bold text-slate-900 mb-4">Documents ({{ $candidate->documents->count() }})</h2>
-                <div class="space-y-3">
-                    @foreach($candidate->documents as $document)
-                        <div class="border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition-colors">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="font-semibold text-slate-900">{{ $document->document_type }}</p>
-                                    <p class="text-sm text-slate-600 mt-1">Uploaded on {{ $document->created_at->format('M d, Y') }}</p>
-                                </div>
-                                <a href="{{ route('candidate.documents.download', $document) }}" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs font-semibold">
-                                    Download
-                                </a>
-                            </div>
-                        </div>
-                    @endforeach
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-slate-900">Documents ({{ $candidate->documents->count() }})</h2>
+                    <!-- HR upload template/document -->
+                    <form method="POST" action="{{ route('admin.candidates.documents.store', $candidate) }}" enctype="multipart/form-data" class="flex items-center gap-2 text-xs sm:text-sm">
+                        @csrf
+                        <label class="sr-only" for="admin_document_type">Document type</label>
+                        <select id="admin_document_type" name="document_type" class="px-2 py-1.5 border border-slate-200 rounded-lg text-xs">
+                            <option value="offer_letter">Offer Letter (Template)</option>
+                            <option value="contract">Contract (Template)</option>
+                            <option value="id">ID Copy</option>
+                            <option value="kra">KRA</option>
+                            <option value="sha">SHA</option>
+                        </select>
+                        <label class="inline-flex items-center px-2 py-1.5 border border-slate-200 rounded-lg bg-slate-50 cursor-pointer text-xs font-semibold text-slate-700 hover:bg-slate-100">
+                            <span>Choose file</span>
+                            <input type="file" name="file" class="hidden" required>
+                        </label>
+                        <button type="submit" class="px-3 py-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-xs font-semibold">
+                            Upload
+                        </button>
+                    </form>
                 </div>
+
+                @if($candidate->documents->count() > 0)
+                    <div class="space-y-3">
+                        @foreach($candidate->documents as $document)
+                            <div class="border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition-colors">
+                                <div class="flex items-center justify-between gap-4">
+                                    <div>
+                                        <p class="font-semibold text-slate-900">
+                                            {{ ucfirst(str_replace('_', ' ', $document->document_type)) }}
+                                            @if($document->uploaded_by)
+                                                <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-teal-100 text-teal-700">HR</span>
+                                            @else
+                                                <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700">Candidate</span>
+                                            @endif
+                                        </p>
+                                        <p class="text-sm text-slate-600 mt-1">
+                                            Uploaded on {{ $document->created_at->format('M d, Y') }}
+                                            @if($document->status)
+                                                • Status: <span class="font-semibold">{{ ucfirst($document->status) }}</span>
+                                            @endif
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <a href="{{ route('admin.candidates.documents.download', [$candidate, $document]) }}" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs font-semibold">
+                                            Download
+                                        </a>
+                                        <form method="POST" action="{{ route('admin.candidates.documents.destroy', [$candidate, $document]) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="px-2.5 py-1.5 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-[11px] font-semibold">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-slate-500 text-sm">No documents uploaded yet for this candidate.</p>
+                @endif
             </div>
-            @endif
 
             <!-- Appraisals -->
-            @if($candidate->appraisals->count() > 0)
             <div class="bg-white rounded-2xl shadow-md border border-slate-200/60 p-6">
-                <h2 class="text-xl font-bold text-slate-900 mb-4">Appraisals ({{ $candidate->appraisals->count() }})</h2>
-                <div class="space-y-3">
-                    @foreach($candidate->appraisals as $appraisal)
-                        <div class="border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition-colors">
-                            <div class="flex items-start justify-between">
-                                <div class="flex-1">
-                                    <p class="font-semibold text-slate-900">{{ $appraisal->title ?? 'Appraisal' }}</p>
-                                    <p class="text-sm text-slate-600 mt-1">Created on {{ $appraisal->created_at->format('M d, Y') }}</p>
-                                </div>
-                                <a href="{{ route('candidate.appraisals.show', $appraisal) }}" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs font-semibold">
-                                    View
-                                </a>
-                            </div>
-                        </div>
-                    @endforeach
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-slate-900">Appraisals ({{ $candidate->appraisals->count() }})</h2>
                 </div>
+
+                <!-- Create appraisal (HR) -->
+                <form method="POST" action="{{ route('admin.candidates.appraisals.store', $candidate) }}" enctype="multipart/form-data" class="mb-5 bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                    @csrf
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Type</label>
+                            <select name="type" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs" required>
+                                <option value="performance_review">Performance Review</option>
+                                <option value="hr_communication">HR Communication</option>
+                                <option value="warning">Warning</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Title</label>
+                            <input type="text" name="title" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Review Date (optional)</label>
+                            <input type="date" name="review_date" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Summary / Notes</label>
+                            <textarea name="content" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs" placeholder="Key points from the review or communication"></textarea>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Attach File (optional)</label>
+                            <input type="file" name="file" class="w-full text-xs">
+                            <button type="submit" class="w-full mt-1 px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-xs font-semibold">
+                                Save Appraisal
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                @if($candidate->appraisals->count() > 0)
+                    <div class="space-y-3">
+                        @foreach($candidate->appraisals as $appraisal)
+                            <div class="border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition-colors">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="flex-1">
+                                        <p class="font-semibold text-slate-900">{{ $appraisal->title ?? 'Appraisal' }}</p>
+                                        <p class="text-sm text-slate-600 mt-1">
+                                            Created on {{ $appraisal->created_at->format('M d, Y') }}
+                                            @if($appraisal->review_date)
+                                                • Review date: {{ $appraisal->review_date->format('M d, Y') }}
+                                            @endif
+                                            @if($appraisal->severity)
+                                                • Severity: {{ ucfirst($appraisal->severity) }}
+                                            @endif
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <a href="{{ route('candidate.appraisals.show', $appraisal) }}" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs font-semibold">
+                                            View
+                                        </a>
+                                        <form method="POST" action="{{ route('admin.candidates.appraisals.destroy', [$candidate, $appraisal]) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="px-2.5 py-1.5 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-[11px] font-semibold">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-slate-500 text-sm">No appraisals recorded for this candidate yet.</p>
+                @endif
             </div>
-            @endif
         </div>
 
         <!-- Sidebar -->

@@ -20,6 +20,7 @@ class TeamMember extends Model
         'bio',
         'display_order',
         'is_active',
+        'account_active',
         'user_id',
     ];
 
@@ -33,6 +34,7 @@ class TeamMember extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'account_active' => 'boolean',
     ];
 }
 

@@ -23,8 +23,8 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        // Check if candidate or portal employee is logged in
-        $candidate = current_portal_candidate();
+        // Check if candidate is logged in
+        $candidate = Auth::guard('candidate')->user();
         if ($candidate) {
             return view('candidate.profile', [
                 'candidate' => $candidate,
@@ -60,8 +60,8 @@ class ProfileController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
-        // Handle candidate/portal employee profile update
-        $candidate = current_portal_candidate();
+        // Handle candidate profile update
+        $candidate = Auth::guard('candidate')->user();
         if ($candidate) {
             // Validate candidate request
             $validated = $request->validate([

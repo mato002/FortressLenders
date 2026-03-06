@@ -71,6 +71,10 @@
     </div>
     @endif
 
+    @php
+        $isLocked = $stats['is_complete'] ?? false;
+    @endphp
+
     <!-- Bio Data Form -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-all duration-200 hover:shadow-md">
         <div class="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
@@ -137,7 +141,10 @@
                     </div>
                     <div>
                         <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number <span class="text-red-500">*</span></label>
-                        <input type="tel" name="phone" id="phone" value="{{ old('phone', $bioData['phone'] ?? '') }}" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors">
+                        <input type="tel" name="phone" id="phone" value="{{ old('phone', $bioData['phone'] ?? '') }}" required
+                               placeholder="+254712345678"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors">
+                        <p class="text-xs text-gray-500 mt-1">Enter your number in international format, starting with +254.</p>
                         @error('phone')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
                 </div>
@@ -239,16 +246,39 @@
             </div>
 
             <!-- Work Experience -->
+            @php
+                $hasPreviousExperience = old('has_previous_experience', $bioData['has_previous_experience'] ?? 'no') === 'yes';
+            @endphp
             <div class="mb-10">
-                <div class="flex items-center gap-3 mb-6 pb-3 border-b-2 border-teal-200">
+                <div class="flex items-center gap-3 mb-4 pb-3 border-b-2 border-teal-200">
                     <div class="p-2 bg-teal-50 rounded-lg">
                         <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900">Previous Work Experience</h3>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-gray-900">Previous Work Experience</h3>
+                        <p class="text-sm text-gray-500">If this is your first job, choose "No" below and you can leave this section blank.</p>
+                    </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Have you worked before?</label>
+                    <div class="flex items-center gap-4">
+                        <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                            <input type="radio" name="has_previous_experience" value="yes" class="text-teal-600 border-gray-300"
+                                   {{ $hasPreviousExperience ? 'checked' : '' }}>
+                            <span>Yes, I have previous work experience</span>
+                        </label>
+                        <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                            <input type="radio" name="has_previous_experience" value="no" class="text-teal-600 border-gray-300"
+                                   {{ ! $hasPreviousExperience ? 'checked' : '' }}>
+                            <span>No, this is my first job</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="work-experience-fields" class="grid grid-cols-1 md:grid-cols-2 gap-6 {{ $hasPreviousExperience ? '' : 'hidden' }}">
                     <div>
                         <label for="previous_employer" class="block text-sm font-medium text-gray-700 mb-2">Previous Employer</label>
                         <input type="text" name="previous_employer" id="previous_employer" value="{{ old('previous_employer', $bioData['previous_employer'] ?? '') }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors">
@@ -301,11 +331,19 @@
                 </div>
             </div>
 
-            <div class="flex justify-end gap-4 pt-6 border-t border-gray-200">
-                <button type="submit" class="px-8 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-lg hover:from-teal-700 hover:to-teal-800 transition-all font-semibold shadow-sm hover:shadow-md">
-                    Save Bio Data
-                </button>
-            </div>
+            @if(! $isLocked)
+                <div class="flex justify-end gap-4 pt-6 border-t border-gray-200">
+                    <button type="submit" class="px-8 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-lg hover:from-teal-700 hover:to-teal-800 transition-all font-semibold shadow-sm hover:shadow-md">
+                        Save Bio Data
+                    </button>
+                </div>
+            @else
+                <div class="pt-6 border-t border-gray-200">
+                    <p class="text-sm text-gray-500">
+                        Your bio data has been submitted and is now locked. To make any changes, please contact HR or your administrator.
+                    </p>
+                </div>
+            @endif
         </form>
     </div>
 </div>
@@ -313,6 +351,32 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    // Toggle previous work experience section
+    (function () {
+        const yesRadio = document.querySelector('input[name="has_previous_experience"][value="yes"]');
+        const noRadio = document.querySelector('input[name="has_previous_experience"][value="no"]');
+        const fields = document.getElementById('work-experience-fields');
+
+        if (!yesRadio || !noRadio || !fields) return;
+
+        function updateWorkExperienceVisibility() {
+            if (yesRadio.checked) {
+                fields.classList.remove('hidden');
+            } else {
+                fields.classList.add('hidden');
+                // Optionally clear values when hidden so first-time workers don't accidentally save stale data
+                ['previous_employer', 'previous_position', 'previous_start_date', 'previous_end_date'].forEach(function (id) {
+                    const input = document.getElementById(id);
+                    if (input) input.value = '';
+                });
+            }
+        }
+
+        yesRadio.addEventListener('change', updateWorkExperienceVisibility);
+        noRadio.addEventListener('change', updateWorkExperienceVisibility);
+        updateWorkExperienceVisibility();
+    })();
+
     document.getElementById('bio-data-form').addEventListener('submit', function(e) {
         e.preventDefault();
         

@@ -275,8 +275,6 @@
                                         data-role="{{ $member->role }}"
                                         data-bio="{{ $member->bio }}"
                                         data-photo="{{ $member->photo_path ? asset('storage/'.$member->photo_path) : '' }}"
-                                        data-email="{{ $member->email ?? '' }}"
-                                        data-phone="{{ $member->phone ?? '' }}"
                                         data-linkedin="{{ $member->linkedin_url ?? '' }}">
                                         Read Full Bio →
                                     </button>
@@ -374,16 +372,14 @@
                 const role = this.getAttribute('data-role');
                 const bio = this.getAttribute('data-bio');
                 const photoPath = this.getAttribute('data-photo');
-                const email = this.getAttribute('data-email');
-                const phone = this.getAttribute('data-phone');
                 const linkedinUrl = this.getAttribute('data-linkedin');
                 
-                openTeamModal(id, name, role, bio, photoPath, email, phone, linkedinUrl);
+                openTeamModal(id, name, role, bio, photoPath, linkedinUrl);
             });
         });
     });
     
-    function openTeamModal(id, name, role, bio, photoPath, email, phone, linkedinUrl) {
+    function openTeamModal(id, name, role, bio, photoPath, linkedinUrl) {
         const modal = document.getElementById('teamModal');
         const modalName = document.getElementById('modalName');
         const modalRole = document.getElementById('modalRole');
@@ -406,29 +402,8 @@
             modalPhoto.textContent = name.substring(0, 2).toUpperCase();
         }
         
-        // Build contact info
+        // Build contact info (only LinkedIn, no email or phone)
         let contactHtml = '';
-        if (email) {
-            contactHtml += `
-                <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                    </svg>
-                    <a href="mailto:${email}" class="hover:text-teal-700">${email}</a>
-                </div>
-            `;
-        }
-        if (phone) {
-            const phoneClean = phone.replace(/\s+/g, '');
-            contactHtml += `
-                <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2H6a3 3 0 01-3-3V5z"/>
-                    </svg>
-                    <a href="tel:${phoneClean}" class="hover:text-teal-700">${phone}</a>
-                </div>
-            `;
-        }
         if (linkedinUrl) {
             contactHtml += `
                 <div class="flex items-center gap-2">

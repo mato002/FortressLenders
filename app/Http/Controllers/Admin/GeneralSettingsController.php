@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\GeneralSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class GeneralSettingsController extends Controller
@@ -68,8 +69,27 @@ class GeneralSettingsController extends Controller
         // Remove favicon from validated array if it's not being updated
         unset($validated['favicon']);
 
-        $settings->fill($validated);
-        $settings->save();
+        // Defensive: some deployments may not have run the latest migrations yet.
+        // Only persist fields that exist as columns to avoid SQL errors.
+        try {
+            $columns = Schema::getColumnListing($settings->getTable());
+            $validated = array_intersect_key($validated, array_flip($columns));
+        } catch (\Exception $e) {
+            // If schema introspection fails, fall back to current behavior
+        }
+
+        try {
+            $settings->fill($validated);
+            $settings->save();
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Common case: missing columns because migrations weren't applied
+            if (str_contains($e->getMessage(), 'Unknown column')) {
+                return back()->withErrors([
+                    'error' => 'Your database schema is missing some General Settings columns. Please run `php artisan migrate` and try again.'
+                ]);
+            }
+            throw $e;
+        }
 
         return redirect()
             ->route('admin.general.edit')

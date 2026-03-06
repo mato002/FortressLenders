@@ -32,8 +32,21 @@ return [
 
         'local' => [
             'driver' => 'local',
-            'root' => storage_path('app/private'),
+            // Default local disk (storage/app)
+            'root' => storage_path('app'),
             'serve' => true,
+            'throw' => false,
+            'report' => false,
+        ],
+
+        /**
+         * Private disk (not publicly accessible).
+         * Used for sensitive uploads like candidate documents / ID cards.
+         */
+        'private' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private'),
+            'visibility' => 'private',
             'throw' => false,
             'report' => false,
         ],

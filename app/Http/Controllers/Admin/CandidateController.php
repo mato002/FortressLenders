@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Candidate;
+use App\Models\DocumentTemplate;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -36,12 +37,16 @@ class CandidateController extends Controller
             ->paginate(20)
             ->withQueryString();
 
+        // Check if shared templates exist so we can show a quick status/badge.
+        $hasTemplates = DocumentTemplate::whereIn('document_type', ['offer_letter', 'contract'])->exists();
+
         return view('admin.candidates.index', compact(
             'candidates',
             'totalCandidatesCount',
             'bioDataCompletedCount',
             'bioDataIncompleteCount',
-            'filteredCandidatesCount'
+            'filteredCandidatesCount',
+            'hasTemplates'
         ));
     }
 

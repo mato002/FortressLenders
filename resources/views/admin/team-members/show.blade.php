@@ -106,7 +106,7 @@
         <div class="space-y-6">
             @if(session('generated_password'))
                 <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6">
-                    <h3 class="text-lg font-semibold text-amber-900 mb-2">Portal login created</h3>
+                    <h3 class="text-lg font-semibold text-amber-900 mb-2">{{ session('status') }}</h3>
                     <p class="text-sm text-amber-800 mb-3">Share these credentials with the team member. They can log in at the main login page to access the candidate dashboard (bio data, documents, appraisals, etc.). Aptitude tests and self interviews are not available for employees.</p>
                     <dl class="text-sm space-y-1">
                         <div><dt class="inline font-medium text-amber-900">Email:</dt> <dd class="inline">{{ session('generated_email') }}</dd></div>
@@ -121,13 +121,19 @@
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                 <div class="space-y-3">
                     @if($teamMember->email && !$teamMember->user_id)
-                        <form action="{{ route('admin.team-members.generate-login', $teamMember) }}" method="POST" onsubmit="return confirm('Generate portal login for this team member? They will be able to log in to the candidate dashboard.');">
+                        <form action="{{ route('admin.team-members.generate-login', $teamMember) }}" method="POST" class="generate-login-form" data-name="{{ $teamMember->name }}">
                             @csrf
                             <button type="submit" class="w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-center font-semibold transition">
                                 Generate portal login
                             </button>
                         </form>
                     @elseif($teamMember->user_id)
+                        <form action="{{ route('admin.team-members.regenerate-login', $teamMember) }}" method="POST" class="regenerate-login-form" data-name="{{ $teamMember->name }}">
+                            @csrf
+                            <button type="submit" class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-center font-semibold transition">
+                                Regenerate Login Credentials
+                            </button>
+                        </form>
                         <p class="text-sm text-gray-600 py-2">This team member has portal access. They log in with their email at the main login page.</p>
                     @else
                         <p class="text-sm text-gray-500 py-2">Add an email to this team member to enable &quot;Generate portal login&quot;.</p>
@@ -150,10 +156,18 @@
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Status Information</h3>
                 <dl class="space-y-3 text-sm">
                     <div class="flex justify-between">
-                        <dt class="text-gray-500">Status</dt>
+                        <dt class="text-gray-500">Website visibility</dt>
                         <dd>
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $teamMember->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700' }}">
-                                {{ $teamMember->is_active ? 'Active' : 'Hidden' }}
+                                {{ $teamMember->is_active ? 'Visible on site' : 'Hidden on site' }}
+                            </span>
+                        </dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">Portal account</dt>
+                        <dd>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ $teamMember->account_active === false ? 'bg-rose-100 text-rose-800' : 'bg-teal-100 text-teal-800' }}">
+                                {{ $teamMember->account_active === false ? 'Login disabled' : 'Login allowed' }}
                             </span>
                         </dd>
                     </div>
@@ -178,6 +192,76 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Generate login confirmation
+        document.querySelectorAll('.generate-login-form').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formElement = this;
+                const memberName = formElement.getAttribute('data-name') || 'this team member';
+
+                Swal.fire({
+                    title: 'Generate login?',
+                    text: `Generate portal login for "${memberName}"? They will be able to log in to the candidate dashboard (except aptitude test and self interview).`,
+                    icon: 'info',
+                    showCancelButton: true,
+                    confirmButtonColor: '#059669',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, generate',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Generating login...',
+                            text: 'Please wait while we create their account.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                        formElement.submit();
+                    }
+                });
+            });
+        });
+
+        // Regenerate login confirmation
+        document.querySelectorAll('.regenerate-login-form').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formElement = this;
+                const memberName = formElement.getAttribute('data-name') || 'this team member';
+
+                Swal.fire({
+                    title: 'Regenerate login?',
+                    text: `Regenerate login credentials for "${memberName}"? A new password will be generated and displayed.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#8b5cf6',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, regenerate',
+                    cancelButtonText: 'Cancel',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Regenerating...',
+                            text: 'Please wait while we update their credentials.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                        formElement.submit();
+                    }
+                });
+            });
+        });
+
         document.querySelectorAll('.delete-form').forEach(function(form) {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();

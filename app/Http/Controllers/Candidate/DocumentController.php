@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Candidate;
 
 use App\Http\Controllers\Controller;
 use App\Models\CandidateDocument;
+use App\Models\DocumentTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -36,11 +37,18 @@ class DocumentController extends Controller
             'candidate_uploaded' => $documents->whereNull('uploaded_by')->count(),
         ];
         
-        // Group documents by type
+        // Load shared templates for offer letter / contract
+        $templates = DocumentTemplate::whereIn('document_type', ['offer_letter', 'contract'])
+            ->get()
+            ->keyBy('document_type');
+
+        // Group documents by type, falling back to shared templates for offer letter / contract
         $groupedDocuments = [
-            'offer_letter' => $documents->where('document_type', 'offer_letter')->first(),
+            'offer_letter' => $documents->where('document_type', 'offer_letter')->first()
+                ?? $templates->get('offer_letter'),
             'filled_offer_letter' => $documents->where('document_type', 'filled_offer_letter')->first(),
-            'contract' => $documents->where('document_type', 'contract')->first(),
+            'contract' => $documents->where('document_type', 'contract')->first()
+                ?? $templates->get('contract'),
             'filled_contract' => $documents->where('document_type', 'filled_contract')->first(),
             'id' => $documents->where('document_type', 'id')->first(),
             'kra' => $documents->where('document_type', 'kra')->first(),
@@ -71,6 +79,34 @@ class DocumentController extends Controller
         return Storage::disk('private')->download(
             $document->file_path,
             $document->original_filename ?? 'document.pdf'
+        );
+    }
+
+    /**
+     * Download a shared template (offer letter / contract).
+     */
+    public function downloadTemplate(string $type)
+    {
+        $candidate = current_portal_candidate();
+
+        if (!$candidate) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $allowed = ['offer_letter', 'contract'];
+        if (!in_array($type, $allowed, true)) {
+            abort(404);
+        }
+
+        $template = DocumentTemplate::where('document_type', $type)->firstOrFail();
+
+        if (!Storage::disk('private')->exists($template->file_path)) {
+            abort(404, 'File not found.');
+        }
+
+        return Storage::disk('private')->download(
+            $template->file_path,
+            $template->original_filename ?? ($type . '.pdf')
         );
     }
 

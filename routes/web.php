@@ -189,6 +189,7 @@ Route::middleware(['auth:web,candidate', 'verified', 'portal.candidate.or.employ
     Route::resource('documents', \App\Http\Controllers\Candidate\DocumentController::class)->only(['index', 'destroy']);
     Route::post('/documents/upload', [\App\Http\Controllers\Candidate\DocumentController::class, 'upload'])->name('documents.upload');
     Route::get('/documents/{document}/download', [\App\Http\Controllers\Candidate\DocumentController::class, 'download'])->name('documents.download');
+    Route::get('/documents/templates/{type}/download', [\App\Http\Controllers\Candidate\DocumentController::class, 'downloadTemplate'])->name('documents.download-template');
     
     // Appraisals Routes
     Route::resource('appraisals', \App\Http\Controllers\Candidate\AppraisalController::class)->only(['index', 'show']);
@@ -208,7 +209,7 @@ Route::middleware(['auth:web'])->group(function () {
     Route::post('/profile/sessions/revoke-others', [ProfileController::class, 'revokeOtherSessions'])->name('profile.sessions.revoke-others');
 });
 
-Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
+Route::middleware(['auth', 'verified', 'not.candidate'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
@@ -313,6 +314,19 @@ Route::middleware(['auth', 'verified', 'admin', 'not.candidate'])
             Route::get('candidates', [\App\Http\Controllers\Admin\CandidateController::class, 'index'])->name('candidates.index');
             Route::get('candidates/filter', [\App\Http\Controllers\Admin\CandidateFilterController::class, 'index'])->name('candidates.filter');
             Route::get('candidates/{candidate}', [\App\Http\Controllers\Admin\CandidateController::class, 'show'])->name('candidates.show');
+
+            // Shared onboarding document templates (offer letter / contract)
+            Route::get('document-templates', [\App\Http\Controllers\Admin\DocumentTemplateController::class, 'index'])->name('document-templates.index');
+            Route::post('document-templates', [\App\Http\Controllers\Admin\DocumentTemplateController::class, 'store'])->name('document-templates.store');
+
+            // Candidate Documents (HR uploads templates / documents for a specific candidate)
+            Route::post('candidates/{candidate}/documents', [\App\Http\Controllers\Admin\CandidateDocumentController::class, 'store'])->name('candidates.documents.store');
+            Route::get('candidates/{candidate}/documents/{document}/download', [\App\Http\Controllers\Admin\CandidateDocumentController::class, 'download'])->name('candidates.documents.download');
+            Route::delete('candidates/{candidate}/documents/{document}', [\App\Http\Controllers\Admin\CandidateDocumentController::class, 'destroy'])->name('candidates.documents.destroy');
+
+            // Candidate Appraisals (HR-created appraisals)
+            Route::post('candidates/{candidate}/appraisals', [\App\Http\Controllers\Admin\CandidateAppraisalController::class, 'store'])->name('candidates.appraisals.store');
+            Route::delete('candidates/{candidate}/appraisals/{appraisal}', [\App\Http\Controllers\Admin\CandidateAppraisalController::class, 'destroy'])->name('candidates.appraisals.destroy');
             
             Route::resource('jobs', JobPostController::class)->except(['destroy']);
             Route::post('jobs/{job}/toggle-status', [JobPostController::class, 'toggleStatus'])->name('jobs.toggle-status');

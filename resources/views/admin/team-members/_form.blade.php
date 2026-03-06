@@ -41,9 +41,15 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
                 <input type="number" name="display_order" min="1" value="{{ old('display_order', $teamMember->display_order) }}" class="{{ $inputClasses }}">
             </div>
-            <div class="flex items-center gap-3 mt-6">
-                <input type="checkbox" name="is_active" value="1" class="h-5 w-5 text-teal-600 border-gray-300 rounded" {{ old('is_active', $teamMember->is_active ?? true) ? 'checked' : '' }}>
-                <span class="text-sm text-gray-700">Visible on website</span>
+            <div class="space-y-2 mt-1">
+                <label class="flex items-center gap-3">
+                    <input type="checkbox" name="is_active" value="1" class="h-5 w-5 text-teal-600 border-gray-300 rounded" {{ old('is_active', $teamMember->is_active ?? true) ? 'checked' : '' }}>
+                    <span class="text-sm text-gray-700">Visible on public website</span>
+                </label>
+                <label class="flex items-center gap-3">
+                    <input type="checkbox" name="account_active" value="1" class="h-5 w-5 text-emerald-600 border-gray-300 rounded" {{ old('account_active', $teamMember->account_active ?? true) ? 'checked' : '' }}>
+                    <span class="text-sm text-gray-700">Portal account active (allow login)</span>
+                </label>
             </div>
         </div>
     </div>

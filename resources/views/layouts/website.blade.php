@@ -25,6 +25,21 @@
         @endif
     </title>
 
+    {{-- Favicon --}}
+    @php
+        $faviconPath = $generalSettings->favicon_path ?? null;
+    @endphp
+    @if($faviconPath)
+        @php
+            $faviconAssetPath = 'storage/' . ltrim($faviconPath, '/');
+        @endphp
+        <link rel="icon" type="image/png" href="{{ asset($faviconAssetPath) }}">
+        <link rel="shortcut icon" href="{{ asset($faviconAssetPath) }}">
+    @else
+        <link rel="icon" href="{{ asset('favicon.ico') }}">
+        <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    @endif
+
     {{-- Open Graph / Facebook Meta Tags --}}
     @hasSection('og_title')
         <meta property="og:type" content="@yield('og_type', 'website')">

@@ -70,6 +70,13 @@ class BioDataController extends Controller
             abort(403, 'Unauthorized.');
         }
 
+        // Prevent edits once bio data is marked as completed.
+        if ($candidate->bio_data_completed) {
+            return redirect()
+                ->route('candidate.bio-data.index')
+                ->withErrors(['error' => 'Your bio data has been submitted and locked. Please contact HR or your administrator if you need any changes.']);
+        }
+
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
             'date_of_birth' => ['required', 'date'],
@@ -87,6 +94,7 @@ class BioDataController extends Controller
             'institution' => ['required', 'string', 'max:255'],
             'qualification' => ['required', 'string', 'max:255'],
             'year_completed' => ['nullable', 'integer', 'min:1900', 'max:' . date('Y')],
+            'has_previous_experience' => ['nullable', 'in:yes,no'],
             'previous_employer' => ['nullable', 'string', 'max:255'],
             'previous_position' => ['nullable', 'string', 'max:255'],
             'previous_start_date' => ['nullable', 'date'],
@@ -96,7 +104,18 @@ class BioDataController extends Controller
             'additional_info' => ['nullable', 'string'],
         ]);
 
+        // If candidate indicates no previous experience, clear any previous_* fields
+        $hasPrevious = ($validated['has_previous_experience'] ?? 'no') === 'yes';
+        if (! $hasPrevious) {
+            $validated['has_previous_experience'] = 'no';
+            $validated['previous_employer'] = null;
+            $validated['previous_position'] = null;
+            $validated['previous_start_date'] = null;
+            $validated['previous_end_date'] = null;
+        }
+
         $candidate->bio_data = json_encode($validated);
+        // Mark as completed on first successful submission
         $candidate->bio_data_completed = true;
         $candidate->bio_data_completed_at = now();
         $candidate->save();

@@ -6,8 +6,10 @@
 @section('content')
     @php use Illuminate\Support\Str; @endphp
 
-    <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+    <!-- Top bar: stats + templates shortcut -->
+    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 flex-1">
         <div class="group relative bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-slate-200/60 overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-blue-100/30 rounded-full -mr-16 -mt-16 blur-2xl"></div>
             <div class="relative">
@@ -63,6 +65,35 @@
                 <p class="text-sm font-medium text-slate-600 mb-1">Filtered Results</p>
                 <p class="text-4xl font-bold text-purple-600">{{ $filteredCandidatesCount }}</p>
             </div>
+        </div>
+        </div>
+
+        <!-- Templates quick action -->
+        <div class="w-full lg:w-80 bg-white rounded-2xl border border-slate-200/60 shadow-sm p-4 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Onboarding forms</p>
+                    <p class="text-sm font-bold text-slate-900 mt-0.5">Standard templates</p>
+                </div>
+                @if(!empty($hasTemplates) && $hasTemplates)
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-700">
+                        Up to date
+                    </span>
+                @else
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-700">
+                        Not set
+                    </span>
+                @endif
+            </div>
+            <p class="text-xs text-slate-600">
+                Upload the latest blank <strong>offer letter</strong> and <strong>contract</strong> once here. All candidates will be able to download them from their portal.
+            </p>
+            <a href="{{ route('admin.document-templates.index') }}" class="inline-flex items-center justify-center gap-2 w-full px-3 py-2 bg-teal-600 text-white rounded-xl text-xs font-semibold hover:bg-teal-700 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Manage standard forms
+            </a>
         </div>
     </div>
 

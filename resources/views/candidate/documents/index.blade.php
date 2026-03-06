@@ -80,6 +80,18 @@
         </div>
     </div>
 
+    <!-- Standard forms note -->
+    <div class="rounded-xl border border-blue-200 bg-blue-50/80 px-4 py-3 flex items-start gap-3">
+        <div class="flex-shrink-0 p-1.5 bg-blue-100 rounded-lg">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div class="text-sm text-blue-800">
+            <span class="font-semibold">Standard company forms:</span> The Offer Letter and Contract are the same for everyone. Download the blank form, fill it in, and upload your completed copy in the section below.
+        </div>
+    </div>
+
     <!-- Offer Letter Section -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-all duration-200 hover:shadow-md">
         <div class="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
@@ -100,6 +112,7 @@
             </div>
         </div>
         <div class="p-8">
+            @php use App\Models\CandidateDocument; @endphp
             @if($groupedDocuments['offer_letter'])
                 <div class="mb-6 p-6 bg-blue-50 border border-blue-200 rounded-xl">
                     <div class="flex items-center justify-between">
@@ -124,9 +137,15 @@
                                 @endif
                             </div>
                         </div>
-                        <a href="{{ route('candidate.documents.download', $groupedDocuments['offer_letter']) }}" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold shadow-sm hover:shadow-md">
-                            Download
-                        </a>
+                        @if($groupedDocuments['offer_letter'] instanceof CandidateDocument)
+                            <a href="{{ route('candidate.documents.download', $groupedDocuments['offer_letter']) }}" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold shadow-sm hover:shadow-md">
+                                Download
+                            </a>
+                        @else
+                            <a href="{{ route('candidate.documents.download-template', 'offer_letter') }}" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold shadow-sm hover:shadow-md">
+                                Download
+                            </a>
+                        @endif
                     </div>
                 </div>
             @else
@@ -234,9 +253,15 @@
                                 </div>
                             </div>
                         </div>
-                        <a href="{{ route('candidate.documents.download', $groupedDocuments['contract']) }}" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold shadow-sm hover:shadow-md">
-                            Download
-                        </a>
+                        @if($groupedDocuments['contract'] instanceof CandidateDocument)
+                            <a href="{{ route('candidate.documents.download', $groupedDocuments['contract']) }}" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold shadow-sm hover:shadow-md">
+                                Download
+                            </a>
+                        @else
+                            <a href="{{ route('candidate.documents.download-template', 'contract') }}" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold shadow-sm hover:shadow-md">
+                                Download
+                            </a>
+                        @endif
                     </div>
                 </div>
             @else
