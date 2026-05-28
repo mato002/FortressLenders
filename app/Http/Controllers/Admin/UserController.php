@@ -26,12 +26,12 @@ class UserController extends Controller
         }
 
         // Role filter
-        if ($request->filled('role') && $request->string('role') !== 'all') {
-            $query->where('role', $request->string('role'));
+        if ($role = $this->queryFilterValue($request, 'role')) {
+            $query->where('role', $role);
         }
 
         // Admin filter
-        if ($request->filled('is_admin') && $request->string('is_admin') !== 'all') {
+        if ($this->hasQueryFilter($request, 'is_admin')) {
             $query->where('is_admin', $request->boolean('is_admin'));
         }
 

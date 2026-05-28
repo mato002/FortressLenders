@@ -104,7 +104,7 @@
         </div>
 
         <!-- Filter Form -->
-        <form method="GET" action="{{ route('admin.aptitude-test.index') }}" class="p-4 sm:p-6">
+        <form method="GET" action="{{ route('admin.aptitude-test.index') }}" data-auto-filter class="p-4 sm:p-6">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <!-- Job Post Filter -->
                 <div>
@@ -164,25 +164,17 @@
                 </div>
             </div>
 
-            <!-- Filter Action Buttons -->
+            @if($hasActiveFilters)
             <div class="flex items-center gap-3 mt-6 pt-4 border-t border-gray-100">
-                <button type="submit" 
-                        class="inline-flex items-center gap-2 px-6 py-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-colors font-semibold text-sm shadow-sm">
+                <a href="{{ route('admin.aptitude-test.index') }}" 
+                   class="inline-flex items-center gap-2 px-6 py-2.5 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold text-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                    Apply Filters
-                </button>
-                @if($hasActiveFilters)
-                    <a href="{{ route('admin.aptitude-test.index') }}" 
-                       class="inline-flex items-center gap-2 px-6 py-2.5 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold text-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        Clear All
-                    </a>
-                @endif
+                    Clear Filters
+                </a>
             </div>
+            @endif
         </form>
     </div>
 

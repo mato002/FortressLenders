@@ -32,7 +32,7 @@
     @endif
 
     <!-- Filters -->
-    <form method="GET" action="{{ route('admin.faqs.index') }}" class="mb-6">
+    <form method="GET" action="{{ route('admin.faqs.index') }}" data-auto-filter class="mb-6">
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -49,16 +49,13 @@
                     </select>
                 </div>
             </div>
+            @if(request()->hasAny(['search', 'is_active']))
             <div class="flex items-center gap-2 mt-4">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm">
-                    Apply Filters
-                </button>
-                @if(request()->hasAny(['search', 'is_active']))
-                    <a href="{{ route('admin.faqs.index') }}" class="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors font-semibold text-sm">
-                        Clear
-                    </a>
-                @endif
+                <a href="{{ route('admin.faqs.index') }}" class="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors font-semibold text-sm">
+                    Clear Filters
+                </a>
             </div>
+            @endif
         </div>
     </form>
 

@@ -32,12 +32,12 @@ class CompanyController extends Controller
         }
 
         // Subscription status filter
-        if ($request->filled('subscription_status') && $request->string('subscription_status') !== 'all') {
-            $query->where('subscription_status', $request->string('subscription_status'));
+        if ($subscriptionStatus = $this->queryFilterValue($request, 'subscription_status')) {
+            $query->where('subscription_status', $subscriptionStatus);
         }
 
         // Active status filter
-        if ($request->filled('is_active') && $request->string('is_active') !== 'all') {
+        if ($this->hasQueryFilter($request, 'is_active')) {
             $query->where('is_active', $request->boolean('is_active'));
         }
 

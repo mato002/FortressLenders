@@ -24,7 +24,7 @@ class CandidateController extends Controller
         }
 
         // Bio data completion filter
-        if ($request->filled('bio_data_completed') && $request->string('bio_data_completed') !== 'all') {
+        if ($this->hasQueryFilter($request, 'bio_data_completed')) {
             $query->where('bio_data_completed', $request->boolean('bio_data_completed'));
         }
 

@@ -34,7 +34,7 @@ class TeamMemberController extends Controller
         }
 
         // Status filter
-        if ($request->filled('is_active') && $request->string('is_active') !== 'all') {
+        if ($this->hasQueryFilter($request, 'is_active')) {
             $query->where('is_active', $request->boolean('is_active'));
         }
 

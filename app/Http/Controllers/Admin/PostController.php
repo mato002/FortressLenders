@@ -29,7 +29,7 @@ class PostController extends Controller
         }
 
         // Status filter
-        if ($request->filled('is_published') && $request->string('is_published') !== 'all') {
+        if ($this->hasQueryFilter($request, 'is_published')) {
             $query->where('is_published', $request->boolean('is_published'));
         }
 

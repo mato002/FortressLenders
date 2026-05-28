@@ -98,7 +98,7 @@
     </div>
 
     <!-- Filters -->
-    <form method="GET" action="{{ route('admin.candidates.index') }}" class="mb-6">
+    <form method="GET" action="{{ route('admin.candidates.index') }}" data-auto-filter class="mb-6">
         <div class="bg-white rounded-2xl shadow-md border border-slate-200/60 p-5">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -115,16 +115,13 @@
                     </select>
                 </div>
             </div>
+            @if(request()->hasAny(['search', 'bio_data_completed']))
             <div class="flex items-center gap-3 mt-5">
-                <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold text-sm shadow-sm">
-                    Apply Filters
-                </button>
-                @if(request()->hasAny(['search', 'bio_data_completed']))
-                    <a href="{{ route('admin.candidates.index') }}" class="px-5 py-2.5 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors font-semibold text-sm">
-                        Clear Filters
-                    </a>
-                @endif
+                <a href="{{ route('admin.candidates.index') }}" class="px-5 py-2.5 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors font-semibold text-sm">
+                    Clear Filters
+                </a>
             </div>
+            @endif
         </div>
     </form>
 

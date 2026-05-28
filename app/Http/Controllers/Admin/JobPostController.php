@@ -41,14 +41,14 @@ class JobPostController extends Controller
             });
         }
 
-        // Status filter
-        if ($request->filled('is_active') && $request->string('is_active') !== 'all') {
-            $query->where('is_active', $request->boolean('is_active'));
+        // Application status filter (matches table status badges)
+        if ($status = $this->queryFilterValue($request, 'status')) {
+            $query->byApplicationStatus($status);
         }
 
         // Department filter
-        if ($request->filled('department') && $request->string('department') !== 'all') {
-            $query->where('department', $request->string('department'));
+        if ($department = $this->queryFilterValue($request, 'department')) {
+            $query->where('department', $department);
         }
 
         // Get counts with company filter applied
@@ -167,7 +167,7 @@ class JobPostController extends Controller
 
         $status = $job->is_active ? 'activated' : 'deactivated';
         
-        return redirect()->route('admin.jobs.index')
+        return redirect()->route('admin.jobs.index', request()->only(['search', 'status', 'department']))
             ->with('success', "Job post {$status} successfully!");
     }
 

@@ -83,6 +83,45 @@ class JobPost extends Model
             });
     }
 
+    /**
+     * Scope to filter by computed application status.
+     */
+    public function scopeByApplicationStatus($query, string $status)
+    {
+        return match ($status) {
+            'inactive' => $query->where('is_active', false),
+            'closed' => $query->where('is_active', true)
+                ->whereNotNull('application_deadline')
+                ->whereDate('application_deadline', '<', now()->toDateString()),
+            'accepting_with_applications' => $query->where('is_active', true)
+                ->where(function ($q) {
+                    $q->whereNull('application_deadline')
+                      ->orWhereDate('application_deadline', '>=', now()->toDateString());
+                })
+                ->whereHas('applications'),
+            'accepting' => $query->where('is_active', true)
+                ->where(function ($q) {
+                    $q->whereNull('application_deadline')
+                      ->orWhereDate('application_deadline', '>=', now()->toDateString());
+                })
+                ->whereDoesntHave('applications'),
+            default => $query,
+        };
+    }
+
+    /**
+     * Application status options for admin filters.
+     */
+    public static function applicationStatusOptions(): array
+    {
+        return [
+            'accepting' => 'Open',
+            'accepting_with_applications' => 'Open (Has Applications)',
+            'closed' => 'Closed',
+            'inactive' => 'Inactive',
+        ];
+    }
+
     public function incrementViews()
     {
         $this->increment('views');

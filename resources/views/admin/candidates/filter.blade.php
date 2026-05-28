@@ -16,7 +16,7 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-6">
                 <h3 class="text-lg font-bold text-gray-900 mb-4">Advanced Filters</h3>
                 
-                <form id="filterForm" method="GET" action="{{ route('admin.candidates.filter') }}" class="space-y-6">
+                <form id="filterForm" method="GET" action="{{ route('admin.candidates.filter') }}" data-auto-filter class="space-y-6">
                     <!-- Experience Level -->
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Experience Level</label>
@@ -89,9 +89,6 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full px-4 py-2 rounded-lg text-sm font-semibold text-white bg-teal-800 hover:bg-teal-900">
-                        Apply Filters
-                    </button>
                 </form>
             </div>
         </div>

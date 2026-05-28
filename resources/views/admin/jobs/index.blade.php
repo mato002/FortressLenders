@@ -21,7 +21,7 @@
     @php use Illuminate\Support\Str; @endphp
 
     <!-- Total Jobs Banner -->
-    @if(request()->hasAny(['search', 'is_active', 'department']))
+    @if(request()->hasAny(['search', 'status', 'department']))
         <div class="mb-6 bg-gradient-to-r from-teal-600 to-teal-700 rounded-xl shadow-lg p-6 text-white">
             <div class="flex items-center justify-between flex-wrap gap-4">
                 <div>
@@ -38,7 +38,7 @@
     @endif
 
     <!-- Filters -->
-    <form method="GET" action="{{ route('admin.jobs.index') }}" class="mb-6">
+    <form method="GET" action="{{ route('admin.jobs.index') }}" data-auto-filter class="mb-6">
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
@@ -57,23 +57,21 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <select name="is_active" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                    <select name="status" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                         <option value="all">All Statuses</option>
-                        <option value="1" {{ request('is_active') === '1' ? 'selected' : '' }}>Active</option>
-                        <option value="0" {{ request('is_active') === '0' ? 'selected' : '' }}>Inactive</option>
+                        @foreach(\App\Models\JobPost::applicationStatusOptions() as $value => $label)
+                            <option value="{{ $value }}" {{ request('status') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
                     </select>
                 </div>
             </div>
+            @if(request()->hasAny(['search', 'status', 'department']))
             <div class="flex items-center gap-2 mt-4">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm">
-                    Apply Filters
-                </button>
-                @if(request()->hasAny(['search', 'is_active', 'department']))
-                    <a href="{{ route('admin.jobs.index') }}" class="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors font-semibold text-sm">
-                        Clear
-                    </a>
-                @endif
+                <a href="{{ route('admin.jobs.index') }}" class="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors font-semibold text-sm">
+                    Clear Filters
+                </a>
             </div>
+            @endif
         </div>
     </form>
 
